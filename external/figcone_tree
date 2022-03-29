@@ -1,0 +1,13 @@
+include(FetchContent)
+Set(FETCHCONTENT_QUIET FALSE)
+set(INSTALL_FIGCONE_TREE ON)
+if (NOT TARGET figcone_tree AND NOT figcone_tree_FOUND)
+    FetchContent_Declare(
+            figcone_tree
+            GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_tree.git
+            GIT_TAG        master
+            GIT_SHALLOW    ON
+            GIT_PROGRESS TRUE
+    )
+    FetchContent_MakeAvailable(figcone_tree)
+endif()

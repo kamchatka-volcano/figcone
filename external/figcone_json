@@ -1,0 +1,13 @@
+include(FetchContent)
+Set(FETCHCONTENT_QUIET FALSE)
+set(INSTALL_FIGCONE_JSON ON)
+if (NOT TARGET figcone_json AND NOT figcone_json_FOUND)
+    FetchContent_Declare(
+            figcone_json
+            GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_json.git
+            GIT_TAG        master
+            GIT_SHALLOW    ON
+            GIT_PROGRESS TRUE
+    )
+    FetchContent_MakeAvailable(figcone_json)
+endif()
