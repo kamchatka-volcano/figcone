@@ -15,7 +15,7 @@ struct SingleParamCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
     FIGCONE_PARAM(test, int);
 };
 
-struct PositiveIntValidator{
+struct IsPositive{
 public:
     void operator()(int val)
     {
@@ -24,14 +24,14 @@ public:
 };
 
 struct ValidatedCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
-    FIGCONE_PARAM(test, int).checkedWith(
+    FIGCONE_PARAM(test, int).ensure(
             [](int val){
                 if (val < 0) throw figcone::ValidationError{"value can't be negative"};
             });
 };
 
 struct ValidatedWithFunctorCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
-    FIGCONE_PARAM(test, int).checkedWith<PositiveIntValidator>();
+    FIGCONE_PARAM(test, int).ensure<IsPositive>();
 };
 
 struct StringParamCfg : public figcone::Config<figcone::NameFormat::CamelCase> {

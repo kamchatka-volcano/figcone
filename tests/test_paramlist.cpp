@@ -11,7 +11,7 @@ struct CfgInt : public figcone::Config<figcone::NameFormat::CamelCase>
     FIGCONE_PARAMLIST(testIntList, int);
 };
 
-struct NonEmptyListValidator{
+struct NotEmpty{
     void operator()(const std::vector<std::string>& value)
     {
         if (value.empty())
@@ -19,7 +19,7 @@ struct NonEmptyListValidator{
     }
 };
 
-struct NonEmptyListElementValidator{
+struct HasNoEmptyElements{
     void operator()(const std::vector<std::string>& value)
     {
         if (std::find_if(value.begin(), value.end(), [](const auto& str){
@@ -32,7 +32,7 @@ struct NonEmptyListElementValidator{
 struct ValidatedCfg : public figcone::Config<figcone::NameFormat::CamelCase>
 {
     FIGCONE_PARAMLIST(testStrList, std::string)
-        .checkedWith([](const std::vector<std::string>& value)
+        .ensure([](const std::vector<std::string>& value)
         {
             if (value.empty()) throw figcone::ValidationError{"a list can't be empty"};
         });
@@ -41,8 +41,8 @@ struct ValidatedCfg : public figcone::Config<figcone::NameFormat::CamelCase>
 struct ValidatedWithFunctorCfg : public figcone::Config<figcone::NameFormat::CamelCase>
 {
     FIGCONE_PARAMLIST(testStrList, std::string)
-    .checkedWith<NonEmptyListValidator>()
-    .checkedWith<NonEmptyListElementValidator>();
+    .ensure<NotEmpty>()
+    .ensure<HasNoEmptyElements>();
 };
 
 struct CfgIntWithoutMacro : public figcone::Config<figcone::NameFormat::CamelCase>

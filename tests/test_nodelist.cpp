@@ -20,9 +20,9 @@ struct Cfg2: public figcone::Config<figcone::NameFormat::CamelCase>{
     FIGCONE_NODE(testNode, Node);
 };
 
-struct MinSizeListValidator{
+struct NotLessThan{
 public:
-    MinSizeListValidator(int minSize)
+    NotLessThan(int minSize)
         : minSize_{minSize}
     {}
 
@@ -35,13 +35,13 @@ private:
 };
 
 struct ValidatedCfg: public figcone::Config<figcone::NameFormat::CamelCase>{
-    FIGCONE_NODELIST(testNodes, Node).checkedWith([](const std::vector<Node>& nodeList){
+    FIGCONE_NODELIST(testNodes, Node).ensure([](const std::vector<Node>& nodeList){
         if (nodeList.size() < 2) throw figcone::ValidationError{"can't have less than 2 elements"};
     });
 };
 
 struct ValidatedWithFunctorCfg: public figcone::Config<figcone::NameFormat::CamelCase>{
-    FIGCONE_NODELIST(testNodes, Node).checkedWith<MinSizeListValidator>(2);
+    FIGCONE_NODELIST(testNodes, Node).ensure<NotLessThan>(2);
 };
 
 struct CfgWithoutMacro: public figcone::Config<figcone::NameFormat::CamelCase>{

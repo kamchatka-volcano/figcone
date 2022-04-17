@@ -26,7 +26,7 @@ public:
         return {};
     }
 
-    ConfigNodeListCreator<TCfg>& checkedWith(std::function<void(const std::vector<TCfg>&)> validatingFunc)
+    ConfigNodeListCreator<TCfg>& ensure(std::function<void(const std::vector<TCfg>&)> validatingFunc)
     {
         cfg_.addValidator(
                 std::make_unique<Validator<std::vector<TCfg>>>(*nodeList_, nodeListValue_, std::move(validatingFunc)));
@@ -34,7 +34,7 @@ public:
     }
 
     template <typename TValidator, typename... TArgs>
-    ConfigNodeListCreator<TCfg>& checkedWith(TArgs&&... args)
+    ConfigNodeListCreator<TCfg>& ensure(TArgs&&... args)
     {
         cfg_.addValidator(std::make_unique<Validator<std::vector<TCfg>>>(*nodeList_, nodeListValue_, TValidator{std::forward<TArgs>(args)...}));
         return *this;

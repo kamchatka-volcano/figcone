@@ -144,7 +144,7 @@ private:
 
     void addValidator(std::unique_ptr<detail::IValidator> validator) override
     {
-        validators_.template emplace_back((std::move(validator)));
+        validators_.emplace_back((std::move(validator)));
     }
 
     void checkLoadingResult()

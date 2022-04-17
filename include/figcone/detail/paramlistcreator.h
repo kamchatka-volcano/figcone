@@ -28,7 +28,7 @@ public:
         return *this;
     }
 
-    ConfigParamListCreator<T>& checkedWith(std::function<void(const std::vector<T>&)> validatingFunc)
+    ConfigParamListCreator<T>& ensure(std::function<void(const std::vector<T>&)> validatingFunc)
     {
         cfg_.addValidator(
                 std::make_unique<Validator<std::vector<T>>>(*paramList_, paramListValue_, std::move(validatingFunc)));
@@ -36,7 +36,7 @@ public:
     }
 
     template <typename TValidator, typename... TArgs>
-    ConfigParamListCreator<T>& checkedWith(TArgs&&... args)
+    ConfigParamListCreator<T>& ensure(TArgs&&... args)
     {
         cfg_.addValidator(std::make_unique<Validator<std::vector<T>>>(*paramList_, paramListValue_, TValidator{std::forward<TArgs>(args)...}));
         return *this;

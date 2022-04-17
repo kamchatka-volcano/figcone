@@ -27,7 +27,7 @@ struct SingleNodeSingleLevelCfg : public figcone::Config<figcone::NameFormat::Ca
     FIGCONE_NODE(a, A);
 };
 
-struct NonEmptyFieldsValidator{
+struct HasNonEmptyFields{
 public:
     void operator()(const B& b)
     {
@@ -36,13 +36,13 @@ public:
 };
 
 struct ValidatedNodeCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
-    FIGCONE_NODE(b, B).checkedWith([](const B& b){
+    FIGCONE_NODE(b, B).ensure([](const B& b){
         if (b.testInt == 0 && b.testString.empty()) throw figcone::ValidationError{"both fields can't be empty"};
     });
 };
 
 struct ValidatedWithFunctorNodeCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
-    FIGCONE_NODE(b, B).checkedWith<NonEmptyFieldsValidator>();
+    FIGCONE_NODE(b, B).ensure<HasNonEmptyFields>();
 };
 
 

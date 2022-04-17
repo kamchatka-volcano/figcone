@@ -26,14 +26,14 @@ public:
         return *this;
     }
 
-    ConfigParamCreator<T>& checkedWith(std::function<void(const T&)> validatingFunc)
+    ConfigParamCreator<T>& ensure(std::function<void(const T&)> validatingFunc)
     {
         cfg_.addValidator(std::make_unique<Validator<T>>(*param_, paramValue_, std::move(validatingFunc)));
         return *this;
     }
 
     template <typename TValidator, typename... TArgs>
-    ConfigParamCreator<T>& checkedWith(TArgs&&... args)
+    ConfigParamCreator<T>& ensure(TArgs&&... args)
     {
         cfg_.addValidator(std::make_unique<Validator<T>>(*param_, paramValue_, TValidator{std::forward<TArgs>(args)...}));
         return *this;

@@ -28,14 +28,14 @@ public:
         return {};
     }
 
-    ConfigNodeCreator<TCfg>& checkedWith(std::function<void(const TCfg&)> validatingFunc)
+    ConfigNodeCreator<TCfg>& ensure(std::function<void(const TCfg&)> validatingFunc)
     {
         cfg_.addValidator(std::make_unique<Validator<TCfg>>(*node_, nodeCfg_, std::move(validatingFunc)));
         return *this;
     }
 
     template <typename TValidator, typename... TArgs>
-    ConfigNodeCreator<TCfg>& checkedWith(TArgs&&... args)
+    ConfigNodeCreator<TCfg>& ensure(TArgs&&... args)
     {
         cfg_.addValidator(std::make_unique<Validator<TCfg>>(*node_, nodeCfg_, TValidator{std::forward<TArgs>(args)...}));
         return *this;
