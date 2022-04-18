@@ -15,6 +15,7 @@ set(SRC
         test_node.cpp
         test_nameformat.cpp
         test_nodelist.cpp
+        test_copynodelist.cpp
         test_paramlist.cpp
         test_dict.cpp)
 

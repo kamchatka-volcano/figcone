@@ -48,19 +48,9 @@ struct CfgWithoutMacro: public figcone::Config<figcone::NameFormat::CamelCase>{
     std::vector<Node> testNodes = nodeList(&CfgWithoutMacro::testNodes, "testNodes");
 };
 
-struct NestedCfg: public figcone::Config<figcone::NameFormat::CamelCase>{
-    FIGCONE_PARAM(testDouble, double);
-    FIGCONE_NODE(testCfg, Cfg);
-};
-
 struct NestedCfgList: public figcone::Config<figcone::NameFormat::CamelCase>{
     FIGCONE_PARAM(testStr, std::string);
     FIGCONE_NODELIST(testList, Cfg);
-};
-
-struct NestedCfg2List: public figcone::Config<figcone::NameFormat::CamelCase>{
-    FIGCONE_PARAM(testStr, std::string);
-    FIGCONE_NODELIST(testList, Cfg2);
 };
 
 class TreeProvider : public figcone::IParser{

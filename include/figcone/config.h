@@ -87,6 +87,14 @@ protected:
     }
 
     template<typename TCfg, typename T>
+    auto copyNodeList(std::vector<T> TCfg::* member, const std::string& name)
+    {
+        static_assert(TCfg::format() == T::format(),
+                      "ConfigNode's config type must have the same name format as its parent.");
+        return detail::ConfigNodeListCreator<T>{*this, name, static_cast<TCfg*>(this)->*member, detail::NodeListType::Copy};
+    }
+
+    template<typename TCfg, typename T>
     auto param(T TCfg::* member, const std::string& name)
     {
         return detail::ConfigParamCreator<T>{*this, name, static_cast<TCfg*>(this)->*member};

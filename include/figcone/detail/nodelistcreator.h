@@ -11,10 +11,11 @@ class ConfigNodeListCreator{
 public:
     ConfigNodeListCreator(IConfig& cfg,
                           std::string nodeListName,
-                          std::vector<TCfg>& nodeList)
+                          std::vector<TCfg>& nodeList,
+                          NodeListType type = NodeListType::Normal)
         : cfg_{cfg}
         , nodeListName_{(Expects(!nodeListName.empty()), std::move(nodeListName))}
-        , nodeList_{std::make_unique<ConfigNodeList<TCfg>>(nodeListName_, nodeList)}
+        , nodeList_{std::make_unique<ConfigNodeList<TCfg>>(nodeListName_, nodeList, type)}
         , nodeListValue_(nodeList)
     {
         static_assert(std::is_base_of_v<IConfig, TCfg>, "TNode must be a subclass of figcone::IConfigNode.");
@@ -50,11 +51,12 @@ private:
 template<typename TCfg, typename TParentCfg>
 ConfigNodeListCreator <TCfg> makeNodeListCreator(TParentCfg& parentCfg,
                                                  std::string nodeListName,
-                                                 const std::function<std::vector<TCfg>&()>& nodeListGetter)
+                                                 const std::function<std::vector<TCfg>&()>& nodeListGetter,
+                                                 NodeListType type = NodeListType::Normal)
 {
     static_assert(TCfg::format() == TParentCfg::format(),
                   "ConfigNode's config type must have the same name format as its parent.");
-    return {parentCfg, std::move(nodeListName), nodeListGetter()};
+    return {parentCfg, std::move(nodeListName), nodeListGetter(), type};
 }
 
 
