@@ -1,6 +1,6 @@
 #pragma once
-#include "configmacros.h"
 #include "nameformat.h"
+#include "detail/configmacros.h"
 #include "detail/iconfig.h"
 #include "detail/inode.h"
 #include "detail/ivalidator.h"

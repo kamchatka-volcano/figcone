@@ -1,9 +1,9 @@
 #pragma once
-#include "detail/nodecreator.h"
-#include "detail/nodelistcreator.h"
-#include "detail/paramcreator.h"
-#include "detail/paramlistcreator.h"
-#include "detail/dictcreator.h"
+#include "nodecreator.h"
+#include "nodelistcreator.h"
+#include "paramcreator.h"
+#include "paramlistcreator.h"
+#include "dictcreator.h"
 
 #define FIGCONE_PARAM(name, type) type name = figcone::detail::makeParamCreator<type>(*this, #name, [this]()->type&{return name;})
 #define FIGCONE_NODE(name, type) type name = figcone::detail::makeNodeCreator<type>(*this, #name, [this]()->type&{return name;})

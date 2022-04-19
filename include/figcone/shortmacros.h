@@ -1,5 +1,5 @@
 #pragma once
-#include "configmacros.h"
+#include "figcone/detail/configmacros.h"
 
 #define PARAM FIGCONE_PARAM
 #define NODE FIGCONE_NODE
