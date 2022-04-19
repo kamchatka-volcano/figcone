@@ -29,7 +29,7 @@ private:
     {
         const auto& paramVal = param.value();
         if (!paramValueFromString(paramVal, paramValue_))
-            throw ConfigError{param.position(), "Couldn't set parameter '" + name_ + "' value from '" + paramVal + "'"};
+            throw ConfigError{"Couldn't set parameter '" + name_ + "' value from '" + paramVal + "'", param.position()};
         hasValue_ = true;
         position_ = param.position();
     }

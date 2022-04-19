@@ -23,7 +23,7 @@ private:
             validatingFunc_(entityValue_);
         }
         catch(const ValidationError& e){
-            throw ConfigError{entity_.position(), entity_.description() + ": " + e.what()};
+            throw ConfigError{entity_.description() + ": " + e.what(), entity_.position()};
         }
     }
 

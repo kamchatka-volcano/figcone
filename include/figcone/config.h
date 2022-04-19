@@ -12,6 +12,7 @@
 #include "detail/nameconverter.h"
 #include "detail/loadingerror.h"
 #include "detail/figcone_json_import.h"
+#include "detail/figcone_toml_import.h"
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
 #include <vector>
@@ -54,6 +55,22 @@ public:
     {
         auto configStream = std::stringstream{configContent};
         auto parser = figcone::json::Parser{};
+        read(configStream, parser);
+    }
+#endif
+
+#ifdef FIGCONE_TOML_AVAILABLE
+    void readTomlFile(const std::filesystem::path& configFile)
+    {
+        auto configStream = std::ifstream{configFile};
+        auto parser = figcone::toml::Parser{};
+        read(configStream, parser);
+    }
+
+    void readToml(const std::string& configContent)
+    {
+        auto configStream = std::stringstream{configContent};
+        auto parser = figcone::toml::Parser{};
         read(configStream, parser);
     }
 #endif
@@ -114,7 +131,7 @@ private:
             load(tree);
         }
         catch (const detail::LoadingError& e) {
-            throw ConfigError{tree.position(), std::string{"Root node: "} + e.what()};
+            throw ConfigError{std::string{"Root node: "} + e.what(), tree.position()};
         }
     }
 
@@ -122,18 +139,18 @@ private:
     {
         for (const auto& [nodeName, node] : treeNode.asItem().nodes()) {
             if (!nodes_.count(nodeName))
-                throw ConfigError{node.position(), "Unknown node '" + nodeName + "'"};
+                throw ConfigError{"Unknown node '" + nodeName + "'", node.position()};
             try {
                 nodes_.at(nodeName)->load(node);
             }
             catch (const detail::LoadingError& e) {
-                throw ConfigError{node.position(), "Error in node '" + nodeName + "': " + e.what()};
+                throw ConfigError{"Error in node '" + nodeName + "': " + e.what(), node.position()};
             }
         }
 
         for (const auto&[paramName, param] : treeNode.asItem().params()) {
             if (!params_.count(paramName))
-                throw ConfigError{param.position(), "Unknown param '" + paramName + "'"};
+                throw ConfigError{"Unknown param '" + paramName + "'", param.position()};
             params_.at(paramName)->load(param);
         }
 

@@ -31,8 +31,9 @@ private:
         for (const auto& paramValueStr : paramList.valueList()) {
             auto value = T{};
             if (!paramValueFromString(paramValueStr, value))
-                throw ConfigError{paramList.position(),
-                                  "Couldn't set parameter list element'" + name_ + "' value from '" + paramValueStr + "'"};
+                throw ConfigError{
+                        "Couldn't set parameter list element'" + name_ + "' value from '" + paramValueStr + "'",
+                        paramList.position()};
             paramListValue_.emplace_back(std::move(value));
         }
     }

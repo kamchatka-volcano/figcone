@@ -13,14 +13,27 @@ if (NOT figcone_tree_FOUND)
     include (external/figcone_tree)
 endif()
 
+option(USE_ALL  "Enable all supported config formats" ON)
 option(USE_JSON "Enable JSON config format" OFF)
-set(USE_ALL NOT USE_JSON)
+option(USE_TOML "Enable TOML config format" OFF)
+
+if (USE_JSON OR USE_TOML)
+    set(USE_ALL OFF)
+endif()
 
 if(USE_ALL OR USE_JSON)
     find_package(figcone_json 1.0 QUIET)
     if (NOT figcone_json_FOUND)
         message("Configuration info: figcone_json library wasn't found on your system, downloading it from the GitHub repository")
         include (external/figcone_json)
+    endif()
+endif()
+
+if(USE_ALL OR USE_TOML)
+    find_package(figcone_toml 1.0 QUIET)
+    if (NOT figcone_toml_FOUND)
+        message("Configuration info: figcone_toml library wasn't found on your system, downloading it from the GitHub repository")
+        include (external/figcone_toml)
     endif()
 endif()
 

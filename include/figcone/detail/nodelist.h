@@ -37,7 +37,7 @@ public:
                 node.load(treeNode);
                 nodeList_.emplace_back(std::move(cfg));
             } catch (const LoadingError& e) {
-                throw ConfigError{treeNode.position(), "Node list '" + name_ + "': " + e.what()};
+                throw ConfigError{"Node list '" + name_ + "': " + e.what(), treeNode.position()};
             }
         }
     }
