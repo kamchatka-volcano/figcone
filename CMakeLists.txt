@@ -15,9 +15,10 @@ endif()
 
 option(USE_ALL  "Enable all supported config formats" ON)
 option(USE_JSON "Enable JSON config format" OFF)
+option(USE_YAML "Enable YAML config format" OFF)
 option(USE_TOML "Enable TOML config format" OFF)
 
-if (USE_JSON OR USE_TOML)
+if (USE_JSON OR USE_YAML OR USE_TOML)
     set(USE_ALL OFF)
 endif()
 
@@ -26,6 +27,14 @@ if(USE_ALL OR USE_JSON)
     if (NOT figcone_json_FOUND)
         message("Configuration info: figcone_json library wasn't found on your system, downloading it from the GitHub repository")
         include (external/figcone_json)
+    endif()
+endif()
+
+if(USE_ALL OR USE_YAML)
+    find_package(figcone_yaml 1.0 QUIET)
+    if (NOT figcone_yaml_FOUND)
+        message("Configuration info: figcone_yaml library wasn't found on your system, downloading it from the GitHub repository")
+        include (external/figcone_yaml)
     endif()
 endif()
 
@@ -48,7 +57,10 @@ target_include_directories(
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-target_link_libraries(figcone INTERFACE figcone::figcone_tree figcone::figcone_json)
+target_link_libraries(figcone INTERFACE figcone::figcone_tree
+                                        figcone::figcone_json
+                                        figcone::figcone_yaml
+                                        figcone::figcone_toml)
 
 option(ENABLE_TESTS "Enable tests" OFF)
 if (ENABLE_TESTS AND NOT FIGCONE_SUBPROJECT)

@@ -1,0 +1,13 @@
+include(FetchContent)
+Set(FETCHCONTENT_QUIET FALSE)
+set(INSTALL_FIGCONE_YAML ON)
+if (NOT TARGET figcone_yaml AND NOT figcone_yaml_FOUND)
+    FetchContent_Declare(
+            figcone_yaml
+            GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_yaml.git
+            GIT_TAG        master
+            GIT_SHALLOW    ON
+            GIT_PROGRESS TRUE
+    )
+    FetchContent_MakeAvailable(figcone_yaml)
+endif()

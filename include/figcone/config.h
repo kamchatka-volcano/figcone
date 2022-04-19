@@ -12,6 +12,7 @@
 #include "detail/nameconverter.h"
 #include "detail/loadingerror.h"
 #include "detail/figcone_json_import.h"
+#include "detail/figcone_yaml_import.h"
 #include "detail/figcone_toml_import.h"
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
@@ -55,6 +56,22 @@ public:
     {
         auto configStream = std::stringstream{configContent};
         auto parser = figcone::json::Parser{};
+        read(configStream, parser);
+    }
+#endif
+
+#ifdef FIGCONE_YAML_AVAILABLE
+    void readYamlFile(const std::filesystem::path& configFile)
+    {
+        auto configStream = std::ifstream{configFile};
+        auto parser = figcone::yaml::Parser{};
+        read(configStream, parser);
+    }
+
+    void readYaml(const std::string& configContent)
+    {
+        auto configStream = std::stringstream{configContent};
+        auto parser = figcone::yaml::Parser{};
         read(configStream, parser);
     }
 #endif
