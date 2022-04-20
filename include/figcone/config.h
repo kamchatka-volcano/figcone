@@ -14,6 +14,7 @@
 #include "detail/figcone_json_import.h"
 #include "detail/figcone_yaml_import.h"
 #include "detail/figcone_toml_import.h"
+#include "detail/figcone_ini_import.h"
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
 #include <vector>
@@ -88,6 +89,22 @@ public:
     {
         auto configStream = std::stringstream{configContent};
         auto parser = figcone::toml::Parser{};
+        read(configStream, parser);
+    }
+#endif
+
+#ifdef FIGCONE_INI_AVAILABLE
+    void readIniFile(const std::filesystem::path& configFile)
+    {
+        auto configStream = std::ifstream{configFile};
+        auto parser = figcone::ini::Parser{};
+        read(configStream, parser);
+    }
+
+    void readIni(const std::string& configContent)
+    {
+        auto configStream = std::stringstream{configContent};
+        auto parser = figcone::ini::Parser{};
         read(configStream, parser);
     }
 #endif

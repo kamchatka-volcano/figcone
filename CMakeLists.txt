@@ -17,8 +17,9 @@ option(USE_ALL  "Enable all supported config formats" ON)
 option(USE_JSON "Enable JSON config format" OFF)
 option(USE_YAML "Enable YAML config format" OFF)
 option(USE_TOML "Enable TOML config format" OFF)
+option(USE_INI  "Enable INI config format" OFF)
 
-if (USE_JSON OR USE_YAML OR USE_TOML)
+if (USE_JSON OR USE_YAML OR USE_TOML OR USE_INI)
     set(USE_ALL OFF)
 endif()
 
@@ -46,6 +47,13 @@ if(USE_ALL OR USE_TOML)
     endif()
 endif()
 
+if(USE_ALL OR USE_INI)
+    find_package(figcone_ini 1.0 QUIET)
+    if (NOT figcone_ini_FOUND)
+        message("Configuration info: figcone_ini library wasn't found on your system, downloading it from the GitHub repository")
+        include (external/figcone_ini)
+    endif()
+endif()
 
 add_library(figcone INTERFACE)
 add_library(figcone::figcone ALIAS figcone)
@@ -57,10 +65,21 @@ target_include_directories(
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-target_link_libraries(figcone INTERFACE figcone::figcone_tree
-                                        figcone::figcone_json
-                                        figcone::figcone_yaml
-                                        figcone::figcone_toml)
+
+target_link_libraries(figcone INTERFACE figcone::figcone_tree)
+if (USE_ALL OR USE_JSON)
+    target_link_libraries(figcone INTERFACE figcone::figcone_json)
+endif()
+if (USE_ALL OR USE_YAML)
+    target_link_libraries(figcone INTERFACE figcone::figcone_yaml)
+endif()
+if (USE_ALL OR USE_TOML)
+    target_link_libraries(figcone INTERFACE figcone::figcone_toml)
+endif()
+if (USE_ALL OR USE_INI)
+    target_link_libraries(figcone INTERFACE figcone::figcone_ini)
+endif()
+
 
 option(ENABLE_TESTS "Enable tests" OFF)
 if (ENABLE_TESTS AND NOT FIGCONE_SUBPROJECT)

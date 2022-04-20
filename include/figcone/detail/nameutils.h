@@ -4,7 +4,7 @@
 #include <algorithm>
 
 namespace figcone::detail{
-namespace str = sfun::string_utils;
+namespace str = string_utils;
 
 inline std::string formatName(const std::string& name)
 {

@@ -3,8 +3,7 @@
 #include <vector>
 #include <algorithm>
 
-namespace sfun{
-namespace string_utils{
+namespace figcone::detail::string_utils{
 
 inline std::string trimFront(std::string_view str)
 {
@@ -102,6 +101,5 @@ inline std::string between(std::string_view str, std::string_view afterStr, std:
     return before(after(str, afterStr), beforeStr);
 }
 
-}
 }
 
