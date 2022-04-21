@@ -15,6 +15,7 @@
 #include "detail/figcone_yaml_import.h"
 #include "detail/figcone_toml_import.h"
 #include "detail/figcone_ini_import.h"
+#include "detail/figcone_xml_import.h"
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
 #include <vector>
@@ -49,13 +50,17 @@ public:
     void readJsonFile(const std::filesystem::path& configFile)
     {
         auto configStream = std::ifstream{configFile};
-        auto parser = figcone::json::Parser{};
-        read(configStream, parser);
+        readJson(configStream);
     }
 
     void readJson(const std::string& configContent)
     {
         auto configStream = std::stringstream{configContent};
+        readJson(configStream);
+    }
+
+    void readJson(std::istream& configStream)
+    {
         auto parser = figcone::json::Parser{};
         read(configStream, parser);
     }
@@ -65,13 +70,17 @@ public:
     void readYamlFile(const std::filesystem::path& configFile)
     {
         auto configStream = std::ifstream{configFile};
-        auto parser = figcone::yaml::Parser{};
-        read(configStream, parser);
+        readYaml(configStream);
     }
 
     void readYaml(const std::string& configContent)
     {
         auto configStream = std::stringstream{configContent};
+        readYaml(configStream);
+    }
+
+    void readYaml(std::istream& configStream)
+    {
         auto parser = figcone::yaml::Parser{};
         read(configStream, parser);
     }
@@ -81,13 +90,17 @@ public:
     void readTomlFile(const std::filesystem::path& configFile)
     {
         auto configStream = std::ifstream{configFile};
-        auto parser = figcone::toml::Parser{};
-        read(configStream, parser);
+        readToml(configStream);
     }
 
     void readToml(const std::string& configContent)
     {
         auto configStream = std::stringstream{configContent};
+        readToml(configStream);
+    }
+
+    void readToml(std::istream& configStream)
+    {
         auto parser = figcone::toml::Parser{};
         read(configStream, parser);
     }
@@ -97,14 +110,38 @@ public:
     void readIniFile(const std::filesystem::path& configFile)
     {
         auto configStream = std::ifstream{configFile};
-        auto parser = figcone::ini::Parser{};
-        read(configStream, parser);
+        readIni(configStream);
     }
 
     void readIni(const std::string& configContent)
     {
         auto configStream = std::stringstream{configContent};
+        readIni(configStream);
+    }
+
+    void readIni(std::istream& configStream)
+    {
         auto parser = figcone::ini::Parser{};
+        read(configStream, parser);
+    }
+#endif
+
+#ifdef FIGCONE_XML_AVAILABLE
+    void readXmlFile(const std::filesystem::path& configFile)
+    {
+        auto configStream = std::ifstream{configFile};
+        readXml(configStream);
+    }
+
+    void readXml(const std::string& configContent)
+    {
+        auto configStream = std::stringstream{configContent};
+        readXml(configStream);
+    }
+
+    void readXml(std::istream& configStream)
+    {
+        auto parser = figcone::xml::Parser{};
         read(configStream, parser);
     }
 #endif
