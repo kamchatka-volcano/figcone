@@ -5,11 +5,21 @@
 #include <figcone_tree/tree.h>
 #include <filesystem>
 
+#if __has_include(<nameof.hpp>)
+#define NAMEOF_AVAILABLE
+#endif
+
 namespace test_param {
 
+#ifdef NAMEOF_AVAILABLE
 struct SingleParamCfgWithoutMacro : public figcone::Config<figcone::NameFormat::CamelCase> {
-    int test = param(&SingleParamCfgWithoutMacro::test, "test");
+    int test = param<&SingleParamCfgWithoutMacro::test>();
 };
+#else
+struct SingleParamCfgWithoutMacro : public figcone::Config<figcone::NameFormat::CamelCase> {
+    int test = param<&SingleParamCfgWithoutMacro::test>("test");
+};
+#endif
 
 struct SingleParamCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
     FIGCONE_PARAM(test, int);

@@ -4,6 +4,11 @@
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
 
+#if __has_include(<nameof.hpp>)
+#define NAMEOF_AVAILABLE
+#endif
+
+
 namespace test_node {
 
 struct A : public figcone::Config<figcone::NameFormat::CamelCase> {
@@ -53,9 +58,16 @@ struct MultiNodeSingleLevelCfg : public figcone::Config<figcone::NameFormat::Cam
     FIGCONE_NODE(b, B);
 };
 
+#ifdef NAMEOF_AVAILABLE
 struct SingleNodeCfgWithoutMacro : public figcone::Config<figcone::NameFormat::CamelCase> {
-    A a = node(&SingleNodeCfgWithoutMacro::a, "a");
+    A a = node<&SingleNodeCfgWithoutMacro::a>();
 };
+#else
+struct SingleNodeCfgWithoutMacro : public figcone::Config<figcone::NameFormat::CamelCase> {
+    A a = node<&SingleNodeCfgWithoutMacro::a>("a");
+};
+#endif
+
 
 class TreeProvider : public figcone::IParser{
 public:

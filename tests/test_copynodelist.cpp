@@ -4,6 +4,11 @@
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
 
+#if __has_include(<nameof.hpp>)
+#define NAMEOF_AVAILABLE
+#endif
+
+
 namespace test_protonodelist {
 
 struct Node : public figcone::Config<figcone::NameFormat::CamelCase>{
@@ -20,9 +25,15 @@ struct Cfg2: public figcone::Config<figcone::NameFormat::CamelCase>{
     FIGCONE_PARAM(testDouble, double);
 };
 
+#ifdef NAMEOF_AVAILABLE
 struct CfgWithoutMacro: public figcone::Config<figcone::NameFormat::CamelCase>{
-    std::vector<Node> testNodes = copyNodeList(&CfgWithoutMacro::testNodes, "testNodes");
+    std::vector<Node> testNodes = copyNodeList<&CfgWithoutMacro::testNodes>();
 };
+#else
+struct CfgWithoutMacro: public figcone::Config<figcone::NameFormat::CamelCase>{
+    std::vector<Node> testNodes = copyNodeList<&CfgWithoutMacro::testNodes>("testNodes");
+};
+#endif
 
 struct NestedCfgList: public figcone::Config<figcone::NameFormat::CamelCase>{
     FIGCONE_PARAM(testStr, std::string);

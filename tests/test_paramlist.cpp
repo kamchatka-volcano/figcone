@@ -4,6 +4,11 @@
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
 
+#if __has_include(<nameof.hpp>)
+#define NAMEOF_AVAILABLE
+#endif
+
+
 namespace test_paramlist {
 
 struct CfgInt : public figcone::Config<figcone::NameFormat::CamelCase>
@@ -45,10 +50,17 @@ struct ValidatedWithFunctorCfg : public figcone::Config<figcone::NameFormat::Cam
     .ensure<HasNoEmptyElements>();
 };
 
+#ifdef NAMEOF_AVAILABLE
 struct CfgIntWithoutMacro : public figcone::Config<figcone::NameFormat::CamelCase>
 {
-    std::vector<int> testIntList = paramList(&CfgIntWithoutMacro::testIntList, "testIntList");
+    std::vector<int> testIntList = paramList<&CfgIntWithoutMacro::testIntList>();
 };
+#else
+struct CfgIntWithoutMacro : public figcone::Config<figcone::NameFormat::CamelCase>
+{
+    std::vector<int> testIntList = paramList<&CfgIntWithoutMacro::testIntList>("testIntList");
+};
+#endif
 
 struct CfgStr : public figcone::Config<figcone::NameFormat::CamelCase>
 {

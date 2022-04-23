@@ -16,6 +16,7 @@
 #include "detail/figcone_toml_import.h"
 #include "detail/figcone_ini_import.h"
 #include "detail/figcone_xml_import.h"
+#include "detail/nameof_import.h"
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
 #include <vector>
@@ -152,49 +153,135 @@ public:
     }
 
 protected:
-    template<typename TCfg, typename T>
-    auto node(T TCfg::* member, const std::string& name)
+    template<auto member>
+    auto node(const std::string& memberName)
     {
-        static_assert(TCfg::format() == T::format(),
-                      "ConfigNode's config type must have the same name format as its parent.");
-        return detail::ConfigNodeCreator<T>{*this, name, static_cast<TCfg*>(this)->*member};
+        auto ptr = decltype(member){};
+        return node<member>(ptr, memberName);
     }
 
-    template<typename TCfg>
-    auto dict(std::map<std::string, std::string> TCfg::* member, const std::string& name)
+    template<auto member>
+    auto dict(const std::string& memberName)
     {
-        return detail::ConfigDictCreator{*this, name, static_cast<TCfg*>(this)->*member};
+        auto ptr = decltype(member){};
+        return dict<member>(ptr, memberName);
     }
 
-    template<typename TCfg, typename T>
-    auto nodeList(std::vector<T> TCfg::* member, const std::string& name)
+    template<auto member>
+    auto nodeList(const std::string& memberName)
     {
-        static_assert(TCfg::format() == T::format(),
-                      "ConfigNode's config type must have the same name format as its parent.");
-        return detail::ConfigNodeListCreator<T>{*this, name, static_cast<TCfg*>(this)->*member};
+        auto ptr = decltype(member){};
+        return nodeList<member>(ptr, memberName);
     }
 
-    template<typename TCfg, typename T>
-    auto copyNodeList(std::vector<T> TCfg::* member, const std::string& name)
+    template<auto member>
+    auto copyNodeList(const std::string& memberName)
     {
-        static_assert(TCfg::format() == T::format(),
-                      "ConfigNode's config type must have the same name format as its parent.");
-        return detail::ConfigNodeListCreator<T>{*this, name, static_cast<TCfg*>(this)->*member, detail::NodeListType::Copy};
+        auto ptr = decltype(member){};
+        return copyNodeList<member>(ptr, memberName);
     }
 
-    template<typename TCfg, typename T>
-    auto param(T TCfg::* member, const std::string& name)
+    template<auto member>
+    auto param(const std::string& memberName)
     {
-        return detail::ConfigParamCreator<T>{*this, name, static_cast<TCfg*>(this)->*member};
+        auto ptr = decltype(member){};
+        return param<member>(ptr, memberName);
     }
 
-    template<typename TCfg, typename T>
-    auto paramList(std::vector<T> TCfg::* member, const std::string& name)
+    template<auto member>
+    auto paramList(const std::string& memberName)
     {
-        return detail::ConfigParamListCreator<T>{*this, name, static_cast<TCfg*>(this)->*member};
+        auto ptr = decltype(member){};
+        return paramList<member>(ptr, memberName);
     }
+
+#ifdef FIGCONE_NAMEOF_AVAILABLE
+    template<auto member>
+    auto node()
+    {
+        return node<member>(std::string{nameof::nameof_member<member>()});
+    }
+
+    template<auto member>
+    auto dict()
+    {
+        return dict<member>(std::string{nameof::nameof_member<member>()});
+    }
+
+    template<auto member>
+    auto nodeList()
+    {
+        return nodeList<member>(std::string{nameof::nameof_member<member>()});
+    }
+
+    template<auto member>
+    auto copyNodeList()
+    {
+        return copyNodeList<member>(std::string{nameof::nameof_member<member>()});
+    }
+
+    template <auto member>
+    auto param()
+    {
+        return param<member>(std::string{nameof::nameof_member<member>()});
+    }
+
+    template <auto member>
+    auto paramList()
+    {
+        return paramList<member>(std::string{nameof::nameof_member<member>()});
+    }
+#endif
 
 private:
+    template <auto member, typename T, typename TCfg>
+    auto node(T TCfg::*, const std::string& memberName)
+    {
+        static_assert(TCfg::format() == T::format(),
+                      "ConfigNode's config type must have the same name format as its parent.");
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::ConfigNodeCreator<T>{*this, memberName, cfg->*member};
+    }
+
+    template <auto member, typename TCfg>
+    auto dict(std::map<std::string, std::string> TCfg::*, const std::string& memberName)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::ConfigDictCreator{*this, memberName, cfg->*member};
+    }
+
+    template <auto member, typename T, typename TCfg>
+    auto nodeList(std::vector<T> TCfg::*, const std::string& memberName)
+    {
+        static_assert(TCfg::format() == T::format(),
+              "ConfigNode's config type must have the same name format as its parent.");
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::ConfigNodeListCreator<T>{*this, memberName, cfg->*member};
+    }
+
+    template <auto member, typename T, typename TCfg>
+    auto copyNodeList(std::vector<T> TCfg::*, const std::string& memberName)
+    {
+        static_assert(TCfg::format() == T::format(),
+              "ConfigNode's config type must have the same name format as its parent.");
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::ConfigNodeListCreator<T>{*this, memberName, cfg->*member, detail::NodeListType::Copy};
+    }
+
+    template <auto member, typename T, typename TCfg>
+    auto param(T TCfg::*, const std::string& memberName)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::ConfigParamCreator<T>{*this, memberName, cfg->*member};
+    }
+
+    template <auto member, typename T, typename TCfg>
+    auto paramList(std::vector<T> TCfg::*, const std::string& memberName)
+    {
+        auto cfg = static_cast<TCfg*>(this);
+        return detail::ConfigParamListCreator<T>{*this, memberName, cfg->*member};
+    }
+
     void read(std::istream& configStream, IParser& parser)
     {
         auto tree = parser.parse(configStream);

@@ -4,6 +4,11 @@
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
 
+#if __has_include(<nameof.hpp>)
+#define NAMEOF_AVAILABLE
+#endif
+
+
 namespace test_dict {
 
 struct DictCfg : public figcone::Config<> {
@@ -30,9 +35,15 @@ struct ValidatedWithFunctorCfg : public figcone::Config<> {
     FIGCONE_DICT(test).checkedWith<NonEmptyValidator>();
 };
 
-struct DictCfgWithoutMacro : public figcone::Config<> {
-    std::map<std::string, std::string> test = dict(&DictCfgWithoutMacro::test, "test");
+#ifdef NAMEOF_AVAILABLE
+struct DictCfgWithoutMacro : public figcone::Config<>{
+    std::map<std::string, std::string> test = dict<&DictCfgWithoutMacro::test>();
 };
+#else
+struct DictCfgWithoutMacro : public figcone::Config<> {
+    std::map<std::string, std::string> test = dict<&DictCfgWithoutMacro::test>("test");
+};
+#endif
 
 class TreeProvider : public figcone::IParser{
 public:
