@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <figcone/config.h>
 #include <figcone/errors.h>
+#include <figcone/stringconverter.h>
 #include <figcone_tree/tree.h>
 #include <filesystem>
 
@@ -61,10 +62,11 @@ struct UserType {
 }
 
 template<>
-bool figcone::paramValueFromString(const std::string& data, test_param::UserType& value)
+std::optional<test_param::UserType> figcone::StringConverter<test_param::UserType>::fromString(const std::string& data)
 {
-    value.value = data;
-    return true;
+    auto result = test_param::UserType{};
+    result.value = data;
+    return result;
 }
 
 namespace test_param{

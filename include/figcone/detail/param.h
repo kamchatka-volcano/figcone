@@ -1,9 +1,9 @@
 #pragma once
 #include "iparam.h"
 #include "iconfigentity.h"
-#include "paramvaluefromstring.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
+#include <figcone/stringconverter.h>
 #include <string>
 #include <sstream>
 #include <algorithm>
@@ -27,9 +27,10 @@ public:
 private:
     void load(const figcone::TreeParam& param) override
     {
-        const auto& paramVal = param.value();
-        if (!paramValueFromString(paramVal, paramValue_))
-            throw ConfigError{"Couldn't set parameter '" + name_ + "' value from '" + paramVal + "'", param.position()};
+        auto paramVal = detail::convertFromString<T>(param.value());
+        if (!paramVal)
+            throw ConfigError{"Couldn't set parameter '" + name_ + "' value from '" + param.value() + "'", param.position()};
+        paramValue_ = *paramVal;
         hasValue_ = true;
         position_ = param.position();
     }

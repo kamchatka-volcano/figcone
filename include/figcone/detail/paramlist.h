@@ -2,6 +2,7 @@
 #include "iparam.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
+#include <figcone/stringconverter.h>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -24,17 +25,17 @@ public:
     }
 
 private:
-    void load(const figcone::TreeParam& paramList) override
+    void load(const TreeParam& paramList) override
     {
         position_ = paramList.position();
         hasValue_ = true;
         for (const auto& paramValueStr : paramList.valueList()) {
-            auto value = T{};
-            if (!paramValueFromString(paramValueStr, value))
+            auto paramValue = detail::convertFromString<T>(paramValueStr);
+            if (!paramValue)
                 throw ConfigError{
                         "Couldn't set parameter list element'" + name_ + "' value from '" + paramValueStr + "'",
                         paramList.position()};
-            paramListValue_.emplace_back(std::move(value));
+            paramListValue_.emplace_back(std::move(*paramValue));
         }
     }
 
