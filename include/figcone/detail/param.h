@@ -1,6 +1,7 @@
 #pragma once
 #include "iparam.h"
 #include "iconfigentity.h"
+#include "utils.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
 #include <figcone/stringconverter.h>
@@ -37,6 +38,8 @@ private:
 
     bool hasValue() const override
     {
+        if constexpr (detail::is_optional<T>::value)
+            return true;
         return hasValue_;
     }
 

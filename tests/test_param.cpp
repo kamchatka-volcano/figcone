@@ -55,6 +55,7 @@ struct MultiParamCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
     FIGCONE_PARAM(testInt, int);
     FIGCONE_PARAM(testDouble, double)(9.0);
     FIGCONE_PARAM(testString, std::optional<std::string>)();
+    FIGCONE_PARAM(testString2, std::optional<std::string>);
 };
 
 struct UserType {
@@ -181,6 +182,7 @@ TEST(TestParam, MultiParam)
     EXPECT_EQ(cfg.testDouble, 5.0);
     ASSERT_TRUE(cfg.testString.has_value());
     EXPECT_EQ(*cfg.testString, "foo");
+    ASSERT_FALSE(cfg.testString2.has_value());
 }
 
 TEST(TestParam, MultiParamUnspecifiedOptionals)
@@ -196,7 +198,8 @@ TEST(TestParam, MultiParamUnspecifiedOptionals)
 
     EXPECT_EQ(cfg.testInt, 5);
     EXPECT_EQ(cfg.testDouble, 9.0);
-    EXPECT_EQ(cfg.testString.has_value(), false);
+    ASSERT_FALSE(cfg.testString.has_value());
+    ASSERT_FALSE(cfg.testString2.has_value());
 }
 
 TEST(TestParam, ValidationSuccess)
