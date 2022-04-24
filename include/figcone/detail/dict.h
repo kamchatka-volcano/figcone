@@ -13,6 +13,11 @@ public:
         , dictMap_{dictMap}
     {}
 
+    void markValueIsSet()
+    {
+        hasValue_ = true;
+    }
+
 private:
     void load(const figcone::TreeNode& node) override
     {

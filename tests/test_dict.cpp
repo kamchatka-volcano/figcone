@@ -13,6 +13,7 @@ namespace test_dict {
 
 struct DictCfg : public figcone::Config<> {
     FIGCONE_DICT(test);
+    FIGCONE_DICT(optTest)();
 };
 
 struct NonEmptyValidator{
@@ -63,7 +64,44 @@ TEST(TestDict, MultiParam)
 {
     auto cfg = DictCfg{};
 
-///#test:
+///[[test]]
+///  testInt = 5
+///  testDouble = 5.0
+///  testString=foo
+///  testMultilineString = "Hello
+/// world"
+///  testEmpty = ""
+///[[optTest]]
+/// testInt = 100
+    auto tree = figcone::makeTreeRoot();
+    auto& testNode = tree.asItem().addNode("test", {1, 1}).asItem();
+    testNode.addParam("testInt","5", {2,3});
+    testNode.addParam("testDouble","5.0", {3,3});
+    testNode.addParam("testString","foo", {4,3});
+    testNode.addParam("testMultilineString", "Hello\n world", {5,3});
+    testNode.addParam("testEmpty","", {6,3});
+
+    auto& optTestNode = tree.asItem().addNode("optTest", {7, 1}).asItem();
+    optTestNode.addParam("testInt","100", {8,3});
+
+    auto parser = TreeProvider{std::move(tree)};
+    cfg.read("", parser);
+
+    ASSERT_EQ(cfg.test.size(), 5);
+    EXPECT_EQ(cfg.test["testInt"], "5");
+    EXPECT_EQ(cfg.test["testDouble"], "5.0");
+    EXPECT_EQ(cfg.test["testString"], "foo");
+    EXPECT_EQ(cfg.test["testMultilineString"], "Hello\n world");
+    EXPECT_EQ(cfg.test["testEmpty"], "");
+    ASSERT_EQ(cfg.optTest.size(), 1);
+    EXPECT_EQ(cfg.optTest["testInt"], "100");
+}
+
+TEST(TestDict, MultiParamWithoutOptional)
+{
+    auto cfg = DictCfg{};
+
+///[[test]]
 ///  testInt = 5
 ///  testDouble = 5.0
 ///  testString=foo
@@ -87,13 +125,16 @@ TEST(TestDict, MultiParam)
     EXPECT_EQ(cfg.test["testString"], "foo");
     EXPECT_EQ(cfg.test["testMultilineString"], "Hello\n world");
     EXPECT_EQ(cfg.test["testEmpty"], "");
+    ASSERT_EQ(cfg.optTest.size(), 0);
+
 }
+
 
 TEST(TestDict, ValidationSuccess)
 {
     auto cfg = ValidatedCfg{};
 
-///#test:
+///[[test]]
 ///  testInt = 5
     auto tree = figcone::makeTreeRoot();
     auto& testNode = tree.asItem().addNode("test", {1, 1});
@@ -110,7 +151,7 @@ TEST(TestDict, ValidationFailure)
 {
     auto cfg = ValidatedCfg{};
 
-///#test:
+///[[test]]
 ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addNode("test", {1,1});
@@ -127,7 +168,7 @@ TEST(TestDict, ValidationWithFunctorFailure)
 {
     auto cfg = ValidatedWithFunctorCfg{};
 
-///#test:
+///[[test]]
 ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addNode("test", {1,1});
@@ -144,7 +185,7 @@ TEST(TestDict, ParamWithoutMacro)
 {
     auto cfg = DictCfgWithoutMacro{};
 
-///#test:
+///[[test]]
 ///  testInt = 5
 ///  testEmpty = ""
 ///
@@ -165,7 +206,7 @@ TEST(TestDict, EmptyDict)
 {
     auto cfg = DictCfg{};
 
-///#test:
+///[[test]]
 ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addNode("test", {1,1});

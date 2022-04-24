@@ -19,6 +19,12 @@ public:
     {
     }
 
+    ConfigDictCreator& operator()()
+    {
+        dict_->markValueIsSet();
+        return *this;
+    }
+
     operator std::map<std::string, std::string>()
     {
         cfg_.addNode(dictName_, std::move(dict_));

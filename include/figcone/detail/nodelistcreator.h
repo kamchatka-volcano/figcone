@@ -21,6 +21,12 @@ public:
         static_assert(std::is_base_of_v<IConfig, TCfg>, "TNode must be a subclass of figcone::IConfigNode.");
     }
 
+    ConfigNodeListCreator<TCfg>& operator()()
+    {
+        nodeList_->markValueIsSet();
+        return *this;
+    }
+
     operator std::vector<TCfg>()
     {
         cfg_.addNode(nodeListName_, std::move(nodeList_));

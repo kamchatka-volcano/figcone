@@ -22,6 +22,12 @@ public:
         , type_{type}
     {}
 
+    void markValueIsSet()
+    {
+        hasValue_ = true;
+    }
+
+
     void load(const figcone::TreeNode& nodeList) override
     {
         hasValue_ = true;

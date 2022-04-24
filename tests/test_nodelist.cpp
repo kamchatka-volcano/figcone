@@ -16,6 +16,7 @@ struct Node : public figcone::Config<figcone::NameFormat::CamelCase>{
 
 struct Cfg: public figcone::Config<figcone::NameFormat::CamelCase>{
     FIGCONE_NODELIST(testNodes, Node);
+    FIGCONE_NODELIST(optTestNodes, Node)();
     FIGCONE_PARAM(testStr, std::string);
 };
 
@@ -85,7 +86,45 @@ TEST(TestNodeList, Basic)
 ///  testInt = 3
 ///[[testNodes]]
 ///  testInt = 2
-///
+///[[optTestNodes]]
+///   testInt = 100
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("testStr", "Hello", {1,1});
+    auto& testNodes = tree.asItem().addNodeList("testNodes", {2, 1});
+    {
+        auto& node = testNodes.asList().addNode({2, 1});
+        node.asItem().addParam("testInt", "3", {3, 3});
+    }
+    {
+        auto& node = testNodes.asList().addNode({4, 1});
+        node.asItem().addParam("testInt", "2", {5, 3});
+    }
+    auto& optTestNodes = tree.asItem().addNodeList("optTestNodes", {6, 1});
+    {
+        auto& node = optTestNodes.asList().addNode({6, 1});
+        node.asItem().addParam("testInt", "100", {7, 3});
+    }
+
+    auto parser = TreeProvider{std::move(tree)};
+    cfg.read("", parser);
+
+    ASSERT_EQ(cfg.testNodes.size(), 2);
+    EXPECT_EQ(cfg.testNodes[0].testInt, 3);
+    EXPECT_EQ(cfg.testNodes[1].testInt, 2);
+    ASSERT_EQ(cfg.optTestNodes.size(), 1);
+    EXPECT_EQ(cfg.optTestNodes[0].testInt, 100);
+    EXPECT_EQ(cfg.testStr, "Hello");
+}
+
+TEST(TestNodeList, BasicWithoutOptional)
+{
+    auto cfg = Cfg{};
+
+///testStr = Hello
+///[[testNodes]]
+///  testInt = 3
+///[[testNodes]]
+///  testInt = 2
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("testStr", "Hello", {1,1});
     auto& testNodes = tree.asItem().addNodeList("testNodes", {2, 1});
@@ -104,6 +143,7 @@ TEST(TestNodeList, Basic)
     ASSERT_EQ(cfg.testNodes.size(), 2);
     EXPECT_EQ(cfg.testNodes[0].testInt, 3);
     EXPECT_EQ(cfg.testNodes[1].testInt, 2);
+    ASSERT_EQ(cfg.optTestNodes.size(), 0);
     EXPECT_EQ(cfg.testStr, "Hello");
 }
 
