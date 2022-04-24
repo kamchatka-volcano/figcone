@@ -3,6 +3,7 @@
 #include <figcone/config.h>
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
+#include <optional>
 
 #if __has_include(<nameof.hpp>)
 #define NAMEOF_AVAILABLE
@@ -55,7 +56,7 @@ struct MultiNodeSingleLevelCfg : public figcone::Config<figcone::NameFormat::Cam
     FIGCONE_PARAM(foo, int);
     FIGCONE_PARAM(bar, std::string);
     FIGCONE_NODE(a, A);
-    FIGCONE_NODE(b, B);
+    FIGCONE_NODE(b, std::optional<B>);
 };
 
 #ifdef NAMEOF_AVAILABLE
@@ -216,8 +217,34 @@ TEST(TestNode, MultiNodeSingleLevel)
     EXPECT_EQ(cfg.foo, 5);
     EXPECT_EQ(cfg.bar, "test");
     EXPECT_EQ(cfg.a.testInt, 10);
-    EXPECT_EQ(cfg.b.testInt, 11);
-    EXPECT_EQ(cfg.b.testString, "");
+    ASSERT_TRUE(cfg.b.has_value());
+    EXPECT_EQ(cfg.b->testInt, 11);
+    EXPECT_EQ(cfg.b->testString, "");
+}
+
+TEST(TestNode, MultiNodeSingleLevelWithoutOptionalNode)
+{
+    auto cfg = MultiNodeSingleLevelCfg{};
+
+///foo = 5
+///bar = test
+///[a]
+///  testInt = 10
+///
+///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("foo", "5", {1, 1});
+    tree.asItem().addParam("bar", "test", {2, 1});
+    auto& aNode = tree.asItem().addNode("a", {3, 1});
+    aNode.asItem().addParam("testInt", "10", {4, 3});
+
+    auto parser = TreeProvider{std::move(tree)};
+    cfg.read("", parser);
+
+    EXPECT_EQ(cfg.foo, 5);
+    EXPECT_EQ(cfg.bar, "test");
+    EXPECT_EQ(cfg.a.testInt, 10);
+    ASSERT_FALSE(cfg.b.has_value());
 }
 
 struct MultiLevelCfg : public figcone::Config<figcone::NameFormat::CamelCase> {

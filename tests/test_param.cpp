@@ -5,6 +5,7 @@
 #include <figcone/stringconverter.h>
 #include <figcone_tree/tree.h>
 #include <filesystem>
+#include <optional>
 
 #if __has_include(<nameof.hpp>)
 #define NAMEOF_AVAILABLE
@@ -53,7 +54,7 @@ struct StringParamCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
 struct MultiParamCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
     FIGCONE_PARAM(testInt, int);
     FIGCONE_PARAM(testDouble, double)(9.0);
-    FIGCONE_PARAM(testString, std::string)();
+    FIGCONE_PARAM(testString, std::optional<std::string>)();
 };
 
 struct UserType {
@@ -178,7 +179,8 @@ TEST(TestParam, MultiParam)
 
     EXPECT_EQ(cfg.testInt, 5);
     EXPECT_EQ(cfg.testDouble, 5.0);
-    EXPECT_EQ(cfg.testString, "foo");
+    ASSERT_TRUE(cfg.testString.has_value());
+    EXPECT_EQ(*cfg.testString, "foo");
 }
 
 TEST(TestParam, MultiParamUnspecifiedOptionals)
@@ -194,7 +196,7 @@ TEST(TestParam, MultiParamUnspecifiedOptionals)
 
     EXPECT_EQ(cfg.testInt, 5);
     EXPECT_EQ(cfg.testDouble, 9.0);
-    EXPECT_EQ(cfg.testString, "");
+    EXPECT_EQ(cfg.testString.has_value(), false);
 }
 
 TEST(TestParam, ValidationSuccess)

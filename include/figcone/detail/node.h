@@ -2,6 +2,7 @@
 #include "iconfig.h"
 #include "inode.h"
 #include "iconfigentity.h"
+#include "utils.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
 #include <string>
@@ -10,9 +11,10 @@
 
 namespace figcone::detail {
 
+template<typename TCfg>
 class ConfigNode : public IConfigNode{
 public:
-    ConfigNode(std::string name, IConfig& cfg)
+    ConfigNode(std::string name, TCfg& cfg)
         : name_{std::move(name)}
         , cfg_{cfg}
     {
@@ -23,11 +25,22 @@ private:
     {
         hasValue_ = true;
         position_ = node.position();
-        cfg_.load(node);
+        if constexpr (detail::is_optional<TCfg>::value) {
+            cfg_.emplace();
+            auto& icfg = static_cast<IConfig&>(*cfg_);
+            icfg.load(node);
+        }
+        else{
+            auto& icfg = static_cast<IConfig&>(cfg_);
+            icfg.load(node);
+        }
     }
 
     bool hasValue() const override
     {
+        if constexpr (detail::is_optional<TCfg>::value)
+            return true;
+
         return hasValue_;
     }
 
@@ -43,7 +56,7 @@ private:
 
 private:
     std::string name_;
-    IConfig& cfg_;
+    TCfg& cfg_;
     bool hasValue_ = false;
     StreamPosition position_;
 };
