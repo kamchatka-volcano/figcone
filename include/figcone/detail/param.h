@@ -4,7 +4,7 @@
 #include "utils.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
-#include <figcone/stringconverter.h>
+#include <figcone_tree/stringconverter.h>
 #include <string>
 #include <sstream>
 #include <algorithm>
