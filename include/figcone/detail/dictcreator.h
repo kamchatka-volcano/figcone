@@ -7,19 +7,19 @@
 
 namespace figcone::detail{
 
-class ConfigDictCreator{
+class DictCreator{
 public:
-    ConfigDictCreator(IConfig& cfg,
-                      std::string dictName,
-                      std::map<std::string, std::string>& dictMap)
+    DictCreator(IConfig& cfg,
+                std::string dictName,
+                std::map<std::string, std::string>& dictMap)
         : cfg_{cfg}
         , dictName_{(Expects(!dictName.empty()), std::move(dictName))}
-        , dict_{std::make_unique<ConfigDict>(dictName_, dictMap)}
+        , dict_{std::make_unique<Dict>(dictName_, dictMap)}
         , dictMap_{dictMap}
     {
     }
 
-    ConfigDictCreator& operator()()
+    DictCreator& operator()()
     {
         dict_->markValueIsSet();
         return *this;
@@ -31,7 +31,7 @@ public:
         return {};
     }
 
-    ConfigDictCreator& checkedWith(std::function<void(const std::map<std::string, std::string>&)> validatingFunc)
+    DictCreator& checkedWith(std::function<void(const std::map<std::string, std::string>&)> validatingFunc)
     {
         cfg_.addValidator(
                 std::make_unique<Validator<std::map<std::string, std::string>>>(*dict_, dictMap_,
@@ -40,7 +40,7 @@ public:
     }
 
     template <typename TValidator, typename... TArgs>
-    ConfigDictCreator& checkedWith(TArgs&&... args)
+    DictCreator& checkedWith(TArgs&&... args)
     {
         cfg_.addValidator(
                 std::make_unique<Validator<std::map<std::string, std::string>>>(*dict_, dictMap_, TValidator{std::forward<TArgs>(args)...}));
@@ -50,13 +50,13 @@ public:
 private:
     IConfig& cfg_;
     std::string dictName_;
-    std::unique_ptr<ConfigDict> dict_;
+    std::unique_ptr<Dict> dict_;
     std::map<std::string, std::string>& dictMap_;
 };
 
-inline ConfigDictCreator makeDictCreator(IConfig& parentConfig,
-                                         std::string dictName,
-                                         const std::function<std::map<std::string, std::string>&()>& dictMapGetter)
+inline DictCreator makeDictCreator(IConfig& parentConfig,
+                                   std::string dictName,
+                                   const std::function<std::map<std::string, std::string>&()>& dictMapGetter)
 {
     return {parentConfig, std::move(dictName), dictMapGetter()};
 }

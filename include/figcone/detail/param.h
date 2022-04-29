@@ -12,9 +12,9 @@
 namespace figcone::detail {
 
 template<typename T>
-class ConfigParam : public IConfigParam{
+class Param : public IParam{
 public:
-    ConfigParam(std::string name, T& paramValue)
+    Param(std::string name, T& paramValue)
         : name_{std::move(name)}
         , paramValue_{paramValue}
     {
@@ -26,13 +26,13 @@ public:
     }
 
 private:
-    void load(const figcone::TreeParam& param) override
+    void load(const TreeParam& param) override
     {
         hasValue_ = true;
         position_ = param.position();
         if (!param.isItem())
             throw ConfigError{"Parameter '" + name_ + "': config parameter can't be a list.", param.position()};
-        auto paramVal = detail::convertFromString<T>(param.value());
+        auto paramVal = convertFromString<T>(param.value());
         if (!paramVal)
             throw ConfigError{"Couldn't set parameter '" + name_ + "' value from '" + param.value() + "'", param.position()};
         paramValue_ = *paramVal;
@@ -40,7 +40,7 @@ private:
 
     bool hasValue() const override
     {
-        if constexpr (detail::is_optional<T>::value)
+        if constexpr (is_optional<T>::value)
             return true;
         return hasValue_;
     }

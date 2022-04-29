@@ -7,21 +7,21 @@
 namespace figcone::detail{
 
 template<typename TCfg>
-class ConfigNodeListCreator{
+class NodeListCreator{
 public:
-    ConfigNodeListCreator(IConfig& cfg,
-                          std::string nodeListName,
-                          std::vector<TCfg>& nodeList,
-                          NodeListType type = NodeListType::Normal)
+    NodeListCreator(IConfig& cfg,
+                    std::string nodeListName,
+                    std::vector<TCfg>& nodeList,
+                    NodeListType type = NodeListType::Normal)
         : cfg_{cfg}
         , nodeListName_{(Expects(!nodeListName.empty()), std::move(nodeListName))}
-        , nodeList_{std::make_unique<ConfigNodeList<TCfg>>(nodeListName_, nodeList, type)}
+        , nodeList_{std::make_unique<NodeList<TCfg>>(nodeListName_, nodeList, type)}
         , nodeListValue_(nodeList)
     {
-        static_assert(std::is_base_of_v<IConfig, TCfg>, "TNode must be a subclass of figcone::IConfigNode.");
+        static_assert(std::is_base_of_v<IConfig, TCfg>, "TNode must be a subclass of figcone::INode.");
     }
 
-    ConfigNodeListCreator<TCfg>& operator()()
+    NodeListCreator<TCfg>& operator()()
     {
         nodeList_->markValueIsSet();
         return *this;
@@ -33,7 +33,7 @@ public:
         return {};
     }
 
-    ConfigNodeListCreator<TCfg>& ensure(std::function<void(const std::vector<TCfg>&)> validatingFunc)
+    NodeListCreator<TCfg>& ensure(std::function<void(const std::vector<TCfg>&)> validatingFunc)
     {
         cfg_.addValidator(
                 std::make_unique<Validator<std::vector<TCfg>>>(*nodeList_, nodeListValue_, std::move(validatingFunc)));
@@ -41,7 +41,7 @@ public:
     }
 
     template <typename TValidator, typename... TArgs>
-    ConfigNodeListCreator<TCfg>& ensure(TArgs&&... args)
+    NodeListCreator<TCfg>& ensure(TArgs&&... args)
     {
         cfg_.addValidator(std::make_unique<Validator<std::vector<TCfg>>>(*nodeList_, nodeListValue_, TValidator{std::forward<TArgs>(args)...}));
         return *this;
@@ -50,18 +50,18 @@ public:
 private:
     IConfig& cfg_;
     std::string nodeListName_;
-    std::unique_ptr<ConfigNodeList<TCfg>> nodeList_;
+    std::unique_ptr<NodeList<TCfg>> nodeList_;
     std::vector<TCfg>& nodeListValue_;
 };
 
 template<typename TCfg, typename TParentCfg>
-ConfigNodeListCreator <TCfg> makeNodeListCreator(TParentCfg& parentCfg,
-                                                 std::string nodeListName,
-                                                 const std::function<std::vector<TCfg>&()>& nodeListGetter,
-                                                 NodeListType type = NodeListType::Normal)
+NodeListCreator <TCfg> makeNodeListCreator(TParentCfg& parentCfg,
+                                           std::string nodeListName,
+                                           const std::function<std::vector<TCfg>&()>& nodeListGetter,
+                                           NodeListType type = NodeListType::Normal)
 {
     static_assert(TCfg::format() == TParentCfg::format(),
-                  "ConfigNode's config type must have the same name format as its parent.");
+                  "Node's config type must have the same name format as its parent.");
     return {parentCfg, std::move(nodeListName), nodeListGetter(), type};
 }
 

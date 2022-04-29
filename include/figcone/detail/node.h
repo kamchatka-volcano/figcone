@@ -12,23 +12,23 @@
 namespace figcone::detail {
 
 template<typename TCfg>
-class ConfigNode : public IConfigNode{
+class Node : public INode{
 public:
-    ConfigNode(std::string name, TCfg& cfg)
+    Node(std::string name, TCfg& cfg)
         : name_{std::move(name)}
         , cfg_{cfg}
     {
     }
 
 private:
-    void load(const figcone::TreeNode& node) override
+    void load(const TreeNode& node) override
     {
         hasValue_ = true;
         position_ = node.position();
         if (!node.isItem())
            throw ConfigError{"Node '" + name_ + "': config node can't be a list.", node.position()};
 
-        if constexpr (detail::is_optional<TCfg>::value) {
+        if constexpr (is_optional<TCfg>::value) {
             cfg_.emplace();
             auto& icfg = static_cast<IConfig&>(*cfg_);
             icfg.load(node);
@@ -41,7 +41,7 @@ private:
 
     bool hasValue() const override
     {
-        if constexpr (detail::is_optional<TCfg>::value)
+        if constexpr (is_optional<TCfg>::value)
             return true;
 
         return hasValue_;

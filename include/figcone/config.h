@@ -29,7 +29,7 @@
 
 namespace figcone {
 namespace detail {
-class IConfigParam;
+class IParam;
 }
 
 template<NameFormat nameFormat = NameFormat::Original>
@@ -238,48 +238,48 @@ private:
     auto node(T TCfg::*, const std::string& memberName)
     {
         static_assert(TCfg::format() == T::format(),
-                      "ConfigNode's config type must have the same name format as its parent.");
+                      "Node's config type must have the same name format as its parent.");
         auto cfg = static_cast<TCfg*>(this);
-        return detail::ConfigNodeCreator<T>{*this, memberName, cfg->*member};
+        return detail::NodeCreator<T>{*this, memberName, cfg->*member};
     }
 
     template <auto member, typename TCfg>
     auto dict(std::map<std::string, std::string> TCfg::*, const std::string& memberName)
     {
         auto cfg = static_cast<TCfg*>(this);
-        return detail::ConfigDictCreator{*this, memberName, cfg->*member};
+        return detail::DictCreator{*this, memberName, cfg->*member};
     }
 
     template <auto member, typename T, typename TCfg>
     auto nodeList(std::vector<T> TCfg::*, const std::string& memberName)
     {
         static_assert(TCfg::format() == T::format(),
-              "ConfigNode's config type must have the same name format as its parent.");
+              "Node's config type must have the same name format as its parent.");
         auto cfg = static_cast<TCfg*>(this);
-        return detail::ConfigNodeListCreator<T>{*this, memberName, cfg->*member};
+        return detail::NodeListCreator<T>{*this, memberName, cfg->*member};
     }
 
     template <auto member, typename T, typename TCfg>
     auto copyNodeList(std::vector<T> TCfg::*, const std::string& memberName)
     {
         static_assert(TCfg::format() == T::format(),
-              "ConfigNode's config type must have the same name format as its parent.");
+              "Node's config type must have the same name format as its parent.");
         auto cfg = static_cast<TCfg*>(this);
-        return detail::ConfigNodeListCreator<T>{*this, memberName, cfg->*member, detail::NodeListType::Copy};
+        return detail::NodeListCreator<T>{*this, memberName, cfg->*member, detail::NodeListType::Copy};
     }
 
     template <auto member, typename T, typename TCfg>
     auto param(T TCfg::*, const std::string& memberName)
     {
         auto cfg = static_cast<TCfg*>(this);
-        return detail::ConfigParamCreator<T>{*this, memberName, cfg->*member};
+        return detail::ParamCreator<T>{*this, memberName, cfg->*member};
     }
 
     template <auto member, typename T, typename TCfg>
     auto paramList(std::vector<T> TCfg::*, const std::string& memberName)
     {
         auto cfg = static_cast<TCfg*>(this);
-        return detail::ConfigParamListCreator<T>{*this, memberName, cfg->*member};
+        return detail::ParamListCreator<T>{*this, memberName, cfg->*member};
     }
 
     void read(std::istream& configStream, IParser& parser)
@@ -293,7 +293,7 @@ private:
         }
     }
 
-    void load(const figcone::TreeNode& treeNode) override
+    void load(const TreeNode& treeNode) override
     {
         for (const auto& [nodeName, node] : treeNode.asItem().nodes()) {
             if (!nodes_.count(nodeName))
@@ -315,12 +315,12 @@ private:
         checkLoadingResult();
     }
 
-    void addNode(const std::string& name, std::unique_ptr<detail::IConfigNode> node) override
+    void addNode(const std::string& name, std::unique_ptr<detail::INode> node) override
     {
         nodes_.emplace(detail::NameConverter<nameFormat>::name(name), std::move(node));
     }
 
-    void addParam(const std::string& name, std::unique_ptr<detail::IConfigParam> param) override
+    void addParam(const std::string& name, std::unique_ptr<detail::IParam> param) override
     {
         params_.emplace(detail::NameConverter<nameFormat>::name(name), std::move(param));
     }
@@ -344,8 +344,8 @@ private:
     }
 
 private:
-    std::map<std::string, std::unique_ptr<detail::IConfigNode>> nodes_;
-    std::map<std::string, std::unique_ptr<detail::IConfigParam>> params_;
+    std::map<std::string, std::unique_ptr<detail::INode>> nodes_;
+    std::map<std::string, std::unique_ptr<detail::IParam>> params_;
     std::vector<std::unique_ptr<detail::IValidator>> validators_;
 };
 

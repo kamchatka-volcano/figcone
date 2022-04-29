@@ -9,26 +9,26 @@
 namespace figcone::detail{
 
 template<typename T>
-class ConfigParamListCreator{
+class ParamListCreator{
 public:
-    ConfigParamListCreator(IConfig& cfg,
-                           std::string paramListName,
-                           std::vector<T>& paramListValue)
+    ParamListCreator(IConfig& cfg,
+                     std::string paramListName,
+                     std::vector<T>& paramListValue)
         : cfg_{cfg}
         , paramListName_{(Expects(!paramListName.empty()), std::move(paramListName))}
         , paramListValue_{paramListValue}
-        , paramList_{std::make_unique<ConfigParamList<T>>(paramListName_, paramListValue)}
+        , paramList_{std::make_unique<ParamList<T>>(paramListName_, paramListValue)}
     {
     }
 
-    ConfigParamListCreator<T>& operator()(std::vector<T> defaultValue = {})
+    ParamListCreator<T>& operator()(std::vector<T> defaultValue = {})
     {
         defaultValue_ = std::move(defaultValue);
         paramList_->markValueIsSet();
         return *this;
     }
 
-    ConfigParamListCreator<T>& ensure(std::function<void(const std::vector<T>&)> validatingFunc)
+    ParamListCreator<T>& ensure(std::function<void(const std::vector<T>&)> validatingFunc)
     {
         cfg_.addValidator(
                 std::make_unique<Validator<std::vector<T>>>(*paramList_, paramListValue_, std::move(validatingFunc)));
@@ -36,7 +36,7 @@ public:
     }
 
     template <typename TValidator, typename... TArgs>
-    ConfigParamListCreator<T>& ensure(TArgs&&... args)
+    ParamListCreator<T>& ensure(TArgs&&... args)
     {
         cfg_.addValidator(std::make_unique<Validator<std::vector<T>>>(*paramList_, paramListValue_, TValidator{std::forward<TArgs>(args)...}));
         return *this;
@@ -52,14 +52,14 @@ private:
     IConfig& cfg_;
     std::string paramListName_;
     std::vector<T>& paramListValue_;
-    std::unique_ptr<ConfigParamList<T>> paramList_;
+    std::unique_ptr<ParamList<T>> paramList_;
     std::vector<T> defaultValue_;
 };
 
 template<typename T>
-ConfigParamListCreator<T> makeParamListCreator(IConfig& cfg,
-                                               std::string paramListName,
-                                               const std::function<std::vector<T>&()>& paramGetter)
+ParamListCreator<T> makeParamListCreator(IConfig& cfg,
+                                         std::string paramListName,
+                                         const std::function<std::vector<T>&()>& paramGetter)
 {
     return {cfg, std::move(paramListName), paramGetter()};
 }

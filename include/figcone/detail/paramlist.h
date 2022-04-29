@@ -11,9 +11,9 @@
 namespace figcone::detail {
 
 template<typename T>
-class ConfigParamList : public IConfigParam{
+class ParamList : public IParam{
 public:
-    ConfigParamList(std::string name, std::vector<T>& paramValue)
+    ParamList(std::string name, std::vector<T>& paramValue)
         : name_{std::move(name)}
         , paramListValue_{paramValue}
     {
@@ -32,7 +32,7 @@ private:
         if (!paramList.isList())
             throw ConfigError{"Parameter list '" + name_ + "': config parameter must be a list.", paramList.position()};
         for (const auto& paramValueStr : paramList.valueList()) {
-            auto paramValue = detail::convertFromString<T>(paramValueStr);
+            auto paramValue = convertFromString<T>(paramValueStr);
             if (!paramValue)
                 throw ConfigError{
                         "Couldn't set parameter list element'" + name_ + "' value from '" + paramValueStr + "'",

@@ -14,9 +14,9 @@ enum class NodeListType{
 };
 
 template <typename TCfg>
-class ConfigNodeList : public detail::IConfigNode{
+class NodeList : public detail::INode{
 public:
-    ConfigNodeList(std::string name, std::vector<TCfg>& nodeList, NodeListType type = NodeListType::Normal)
+    NodeList(std::string name, std::vector<TCfg>& nodeList, NodeListType type = NodeListType::Normal)
         : name_{std::move(name)}
         , nodeList_{nodeList}
         , type_{type}
@@ -28,7 +28,7 @@ public:
     }
 
 
-    void load(const figcone::TreeNode& nodeList) override
+    void load(const TreeNode& nodeList) override
     {
         hasValue_ = true;
         position_ = nodeList.position();

@@ -6,7 +6,7 @@
 
 namespace figcone::detail {
 
-class IConfigNode : public IConfigEntity {
+class INode : public IConfigEntity {
 public:
     virtual void load(const figcone::TreeNode& node) = 0;
 

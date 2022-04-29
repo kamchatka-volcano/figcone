@@ -4,7 +4,7 @@
 
 namespace figcone::detail{
 
-class IConfigParam : public IConfigEntity{
+class IParam : public IConfigEntity{
 public:
     virtual void load(const figcone::TreeParam& node) = 0;
     virtual bool hasValue() const = 0;

@@ -6,9 +6,9 @@
 
 namespace figcone::detail {
 
-class ConfigDict : public IConfigNode{
+class Dict : public INode{
 public:
-    explicit ConfigDict(std::string name, std::map<std::string, std::string>& dictMap)
+    explicit Dict(std::string name, std::map<std::string, std::string>& dictMap)
         : name_{std::move(name)}
         , dictMap_{dictMap}
     {}
@@ -19,7 +19,7 @@ public:
     }
 
 private:
-    void load(const figcone::TreeNode& node) override
+    void load(const TreeNode& node) override
     {
         hasValue_ = true;
         position_ = node.position();
