@@ -33,6 +33,9 @@ public:
         hasValue_ = true;
         position_ = nodeList.position();
         nodeList_.clear();
+        if (!nodeList.isList())
+            throw ConfigError{"Node list '" + name_ + "': config node must be a list.", nodeList.position()};
+
         for (auto i = 0; i < nodeList.asList().count(); ++i){
             const auto& treeNode = nodeList.asList().node(i);
             try {

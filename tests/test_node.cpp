@@ -314,6 +314,41 @@ TEST(TestNode, UnknownNodeError)
     });
 }
 
+TEST(TestNode, NodeListError)
+{
+ auto cfg = MultiLevelCfg{};
+
+///foo = 5
+///bar = test
+///[c]
+///  testInt = 11
+///  testDouble = 12
+///  [c.b.0]
+///    testInt = 10
+///    testString = 'Hello world'
+///
+///[b]
+///  testInt = 9
+///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("foo", "5", {1, 1});
+    tree.asItem().addParam("bar", "test", {2, 1});
+    auto& cNode = tree.asItem().addNode("c", {3, 1});
+    cNode.asItem().addParam("testInt", "11", {4, 3});
+    cNode.asItem().addParam("testDouble", "12", {5, 3});
+    cNode.asItem().addNodeList("b", {6, 1});
+
+    auto& bNode2 = tree.asItem().addNode("b", {10, 1});
+    bNode2.asItem().addParam("testInt", "9", {11, 3});
+
+    auto parser = TreeProvider{std::move(tree)};
+    assert_exception<figcone::ConfigError>([&] {
+        cfg.read("", parser);
+    }, [](const figcone::ConfigError& error){
+        EXPECT_EQ(std::string{error.what()}, "[line:6, column:1] Node 'b': config node can't be a list.");
+    });
+}
+
 TEST(TestNode, MissingNodeError)
 {
     auto cfg = SingleNodeSingleLevelCfg{};
@@ -360,7 +395,7 @@ TEST(TestNode, MissingNodeError2)
     assert_exception<figcone::ConfigError>([&] {
         cfg.read("", parser);
     }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:3, column:1] Error in node 'c': Node 'b' is missing.");
+        EXPECT_EQ(std::string{error.what()}, "[line:3, column:1] Node 'c': Node 'b' is missing.");
     });
 }
 

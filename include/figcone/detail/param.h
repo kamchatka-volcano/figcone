@@ -28,12 +28,14 @@ public:
 private:
     void load(const figcone::TreeParam& param) override
     {
+        hasValue_ = true;
+        position_ = param.position();
+        if (!param.isItem())
+            throw ConfigError{"Parameter '" + name_ + "': config parameter can't be a list.", param.position()};
         auto paramVal = detail::convertFromString<T>(param.value());
         if (!paramVal)
             throw ConfigError{"Couldn't set parameter '" + name_ + "' value from '" + param.value() + "'", param.position()};
         paramValue_ = *paramVal;
-        hasValue_ = true;
-        position_ = param.position();
     }
 
     bool hasValue() const override

@@ -202,6 +202,23 @@ TEST(TestParamList, MissingParamListError)
     });
 }
 
+TEST(TestParamList, ParamNotListError)
+{
+    auto cfg = CfgInt{};
+
+///testIntList = 1
+///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("testIntList", "1", {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+
+    assert_exception<figcone::ConfigError>([&] {
+        cfg.read("", parser);
+    }, [](const figcone::ConfigError& error){
+        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Parameter list 'testIntList': config parameter must be a list.");
+    });
+}
+
 TEST(TestParamList, DefaultValue)
 {
     auto cfg = CfgStr{};

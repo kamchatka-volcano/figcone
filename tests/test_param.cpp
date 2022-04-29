@@ -284,6 +284,24 @@ TEST(TestParam, UnkownParamError)
     });
 }
 
+TEST(TestParam, ParamListError)
+{
+    auto cfg = SingleParamCfg{};
+
+///test = [1]
+///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParamList("test", {"1"}, {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+
+    assert_exception<figcone::ConfigError>([&] {
+        cfg.read("", parser);
+    }, [](const figcone::ConfigError& error){
+        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Parameter 'test': config parameter can't be a list.");
+    });
+}
+
+
 TEST(TestParam, MissingParamError)
 {
     auto cfg = SingleParamCfg{};

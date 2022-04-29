@@ -25,6 +25,9 @@ private:
     {
         hasValue_ = true;
         position_ = node.position();
+        if (!node.isItem())
+           throw ConfigError{"Node '" + name_ + "': config node can't be a list.", node.position()};
+
         if constexpr (detail::is_optional<TCfg>::value) {
             cfg_.emplace();
             auto& icfg = static_cast<IConfig&>(*cfg_);

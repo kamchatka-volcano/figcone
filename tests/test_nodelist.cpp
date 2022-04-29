@@ -33,7 +33,7 @@ public:
 
     void operator()(const std::vector<Node>& nodeList)
     {
-        if (nodeList.size() < minSize_) throw figcone::ValidationError{"can't have less than 2 elements"};
+        if (static_cast<int>(nodeList.size()) < minSize_) throw figcone::ValidationError{"can't have less than 2 elements"};
     }
 private:
     int minSize_;
@@ -323,6 +323,25 @@ TEST(TestNodeList, MissingNodeListError)
         EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Root node: Node 'testNodes' is missing.");
     });
 }
+
+TEST(TestNodeList, NodeNotListError)
+{
+    auto cfg = Cfg{};
+
+///testStr = Hello
+///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("testStr", "Hello", {1, 1});
+    tree.asItem().addNode("testNodes", {2, 1});
+
+    auto parser = TreeProvider{std::move(tree)};
+    assert_exception<figcone::ConfigError>([&] {
+        cfg.read("", parser);
+    }, [](const figcone::ConfigError& error){
+        EXPECT_EQ(std::string{error.what()}, "[line:2, column:1] Node list 'testNodes': config node must be a list.");
+    });
+}
+
 
 TEST(TestNodeList, InvalidListElementError)
 {

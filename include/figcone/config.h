@@ -302,7 +302,7 @@ private:
                 nodes_.at(nodeName)->load(node);
             }
             catch (const detail::LoadingError& e) {
-                throw ConfigError{"Error in node '" + nodeName + "': " + e.what(), node.position()};
+                throw ConfigError{"Node '" + nodeName + "': " + e.what(), node.position()};
             }
         }
 

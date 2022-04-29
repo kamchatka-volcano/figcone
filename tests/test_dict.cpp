@@ -101,7 +101,7 @@ TEST(TestDict, MultiParamWithoutOptional)
 {
     auto cfg = DictCfg{};
 
-///[[test]]
+///[test]
 ///  testInt = 5
 ///  testDouble = 5.0
 ///  testString=foo
@@ -134,7 +134,7 @@ TEST(TestDict, ValidationSuccess)
 {
     auto cfg = ValidatedCfg{};
 
-///[[test]]
+///[test]
 ///  testInt = 5
     auto tree = figcone::makeTreeRoot();
     auto& testNode = tree.asItem().addNode("test", {1, 1});
@@ -151,7 +151,7 @@ TEST(TestDict, ValidationFailure)
 {
     auto cfg = ValidatedCfg{};
 
-///[[test]]
+///[test]
 ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addNode("test", {1,1});
@@ -168,7 +168,7 @@ TEST(TestDict, ValidationWithFunctorFailure)
 {
     auto cfg = ValidatedWithFunctorCfg{};
 
-///[[test]]
+///[test]
 ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addNode("test", {1,1});
@@ -185,7 +185,7 @@ TEST(TestDict, ParamWithoutMacro)
 {
     auto cfg = DictCfgWithoutMacro{};
 
-///[[test]]
+///[test]
 ///  testInt = 5
 ///  testEmpty = ""
 ///
@@ -206,7 +206,7 @@ TEST(TestDict, EmptyDict)
 {
     auto cfg = DictCfg{};
 
-///[[test]]
+///[test]
 ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addNode("test", {1,1});
@@ -215,6 +215,23 @@ TEST(TestDict, EmptyDict)
     cfg.read("", parser);
 
     ASSERT_EQ(cfg.test.size(), 0);
+}
+
+TEST(TestDict, NodeListDictError)
+{
+    auto cfg = DictCfg{};
+
+///[[test]]
+///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addNodeList("test", {1,1});
+
+    auto parser = TreeProvider{std::move(tree)};
+    assert_exception<figcone::ConfigError>([&] {
+        cfg.read("", parser);
+    }, [](const figcone::ConfigError& error){
+        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Dictionary 'test': config node can't be a list.");
+    });
 }
 
 TEST(TestDict, MissingDictError)

@@ -29,6 +29,8 @@ private:
     {
         position_ = paramList.position();
         hasValue_ = true;
+        if (!paramList.isList())
+            throw ConfigError{"Parameter list '" + name_ + "': config parameter must be a list.", paramList.position()};
         for (const auto& paramValueStr : paramList.valueList()) {
             auto paramValue = detail::convertFromString<T>(paramValueStr);
             if (!paramValue)

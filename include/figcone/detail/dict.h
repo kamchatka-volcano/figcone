@@ -23,6 +23,8 @@ private:
     {
         hasValue_ = true;
         position_ = node.position();
+        if (!node.isItem())
+           throw ConfigError{"Dictionary '" + name_ + "': config node can't be a list.", node.position()};
         for (const auto& [paramName, paramValue] : node.asItem().params())
            dictMap_[paramName] = paramValue.value();
     }
