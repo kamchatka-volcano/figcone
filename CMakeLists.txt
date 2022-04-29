@@ -108,6 +108,11 @@ if (ENABLE_TESTS AND NOT FIGCONE_SUBPROJECT)
     add_subdirectory(tests)
 endif()
 
+option(ENABLE_EXAMPLES "Enable examples" OFF)
+if (ENABLE_EXAMPLES AND NOT FIGCONE_SUBPROJECT)
+    add_subdirectory(examples)
+endif()
+
 option(INSTALL_FIGCONE "Install figcone library unconditionally" OFF)
 if (NOT FIGCONE_SUBPROJECT OR INSTALL_FIGCONE)
     include(GNUInstallDirs)
