@@ -130,8 +130,8 @@ int main()
         std::map<std::string, std::string> testDict = dict<&Cfg::testDict>();
     } cfg;
 ```
-Internally, these methods use the [nameof](https://github.com/Neargye/nameof) library to get config fields' names as strings. By default, **figcone** ships without it and these methods aren't available, to use them, enable `USE_NAMEOF` CMake option to automatically download and configure **nameof** library, or install it on your system by yourself.   
-**nameof** relies on non-standard functionality of C++ compilers, so if you don't like it you can use **figcone**
+Internally, these methods use the [`nameof`](https://github.com/Neargye/nameof) library to get config fields' names as strings. By default, **figcone** ships without it and these methods aren't available, to use them, enable `FIGCONE_USE_NAMEOF` CMake option to automatically download and configure `nameof` library, or install it on your system by yourself.   
+`nameof` relies on non-standard functionality of C++ compilers, so if you don't like it you can use `figcone`
 without it, by providing names by yourself:
 
 ```c++
@@ -647,6 +647,13 @@ add_executable(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} PRIVATE figcone::figcone)
 ```
 
+By default `figcone` fetches all supported configuration format libraries, you can control this with CMake option `FIGCONE_USE_ALL`. Also, you can enable support of a single configuration format or a combination of formats  by setting the following options:
+  * `FIGCONE_USE_JSON` - fetches and configures `figcone_json` library;
+  * `FIGCONE_USE_YAML` - fetches and configures `figcone_yaml` library;
+  * `FIGCONE_USE_TOML` - fetches and configures `figcone_toml` library;
+  * `FIGCONE_USE_XML` - fetches and configures `figcone_xml` library;
+  * `FIGCONE_USE_INI` - fetches and configures `figcone_ini` library;
+
 For the system-wide installation use these commands:
 ```
 git clone https://github.com/kamchatka-volcano/figcone.git
@@ -662,12 +669,15 @@ find_package(figcone 0.9.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE figcone::figcone)   
 ```
 
-By default `figcone` fetch all supported configuration format libraries, you can control this with CMake option `USE_ALL`. Also, you can enable support of a single configuration format or a combination of formats  by setting the following options:
-  * `USE_JSON` - fetches and configures `figcone_json` library;
-  * `USE_YAML` - fetches and configures `figcone_yaml` library;
-  * `USE_TOML` - fetches and configures `figcone_toml` library;
-  * `USE_XML` - fetches and configures `figcone_xml` library;
-  * `USE_INI` - fetches and configures `figcone_ini` library;
+Note, that if your installed `figcone` was configured with a custom combination of supported formats, you need to enable the same CMake configuration options in you project before using `find_package` command. For example, if `figcone` was installed with enabled options `FIGCONE_USE_NAMEOF`,  `FIGCONE_USE_JSON` and `FIGCONE_USE_YAML`, you need to find the package this way:
+```
+set(FIGCONE_USE_NAMEOF ON)
+set(FIGCONE_USE_JSON ON)
+set(FIGCONE_USE_YAML ON)
+find_package(figcone 0.9.0 REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE figcone::figcone)
+```
+
 
 ## Running tests
 ```
