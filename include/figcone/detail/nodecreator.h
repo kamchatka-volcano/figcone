@@ -30,6 +30,12 @@ public:
         node_ = std::make_unique<Node<TCfg>>(nodeName_, nodeCfg_);
     }
 
+    NodeCreator<TCfg>& operator()()
+    {
+        node_->markValueIsSet();
+        return *this;
+    }
+
     operator TCfg()
     {
         cfg_.addNode(nodeName_, std::move(node_));

@@ -27,10 +27,21 @@ struct C : public figcone::Config<figcone::NameFormat::CamelCase> {
     FIGCONE_NODE(b, B);
 };
 
+struct D : public figcone::Config<figcone::NameFormat::CamelCase> {
+    FIGCONE_PARAM(testInt, int)();
+};
+
+
 struct SingleNodeSingleLevelCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
     FIGCONE_PARAM(foo, int);
     FIGCONE_PARAM(bar, std::string);
     FIGCONE_NODE(a, A);
+};
+
+struct OptionalNodeCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
+    FIGCONE_PARAM(foo, int);
+    FIGCONE_PARAM(bar, std::string);
+    FIGCONE_NODE(d, D)();
 };
 
 struct HasNonEmptyFields{
@@ -106,6 +117,49 @@ TEST(TestNode, SingleNodeSingleLevel)
     EXPECT_EQ(cfg.foo, 5);
     EXPECT_EQ(cfg.bar, "test");
     EXPECT_EQ(cfg.a.testInt, 10);
+}
+
+TEST(TestNode, OptionalNode)
+{
+    auto cfg = OptionalNodeCfg{};
+
+///
+///foo = 5
+///bar = test
+///[d]
+///  testInt = 10
+///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("foo", "5", {1, 1});
+    tree.asItem().addParam("bar", "test", {2, 1});
+    auto& aNode = tree.asItem().addNode("d", {3, 1});
+    aNode.asItem().addParam("testInt", "10", {4, 1});
+
+    auto parser = TreeProvider{std::move(tree)};
+    cfg.read("", parser);
+
+    EXPECT_EQ(cfg.foo, 5);
+    EXPECT_EQ(cfg.bar, "test");
+    EXPECT_EQ(cfg.d.testInt, 10);
+}
+
+TEST(TestNode, WithoutOptionalNode)
+{
+    auto cfg = OptionalNodeCfg{};
+///
+///foo = 5
+///bar = test
+///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("foo", "5", {1, 1});
+    tree.asItem().addParam("bar", "test", {2, 1});
+
+    auto parser = TreeProvider{std::move(tree)};
+    cfg.read("", parser);
+
+    EXPECT_EQ(cfg.foo, 5);
+    EXPECT_EQ(cfg.bar, "test");
+    EXPECT_EQ(cfg.d.testInt, 0);
 }
 
 TEST(TestNode, SingleNodeWithoutMacro)
