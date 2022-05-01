@@ -19,14 +19,8 @@ public:
         , nodeName_{(Expects(!nodeName.empty()), std::move(nodeName))}
         , nodeCfg_{nodeCfg}
     {
-        if constexpr (detail::is_optional<TCfg>::value) {
-            static_assert(std::is_base_of_v<IConfig, typename TCfg::value_type>,
-                          "TConfig must be a subclass of figcone::IConfig.");
-            }
-        else {
-            static_assert(std::is_base_of_v<IConfig, TCfg>, "TConfig must be a subclass of figcone::IConfig.");
-
-        }
+        static_assert(std::is_base_of_v<IConfig, maybe_opt_t<TCfg>>,
+                      "TConfig must be a subclass of figcone::IConfig.");
         node_ = std::make_unique<Node<TCfg>>(nodeName_, nodeCfg_);
     }
 
@@ -67,11 +61,7 @@ NodeCreator<TCfg> makeNodeCreator(TParentCfg& parentCfg,
                                   std::string nodeName,
                                   const std::function<TCfg&()>& configGetter)
 {
-    if constexpr (detail::is_optional<TCfg>::value)
-        static_assert(TCfg::value_type::format() == TParentCfg::format(),
-                  "Node's config type must have the same name format as its parent.");
-    else
-        static_assert(TCfg::format() == TParentCfg::format(),
+    static_assert(maybe_opt_t<TCfg>::format() == TParentCfg::format(),
                   "Node's config type must have the same name format as its parent.");
     return {parentCfg, std::move(nodeName), configGetter()};
 }

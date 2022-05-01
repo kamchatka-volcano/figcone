@@ -1,5 +1,6 @@
 #pragma once
 #include "iparam.h"
+#include "utils.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
 #include <figcone_tree/stringconverter.h>
@@ -10,13 +11,15 @@
 
 namespace figcone::detail {
 
-template<typename T>
+template<typename TParamList>
 class ParamList : public IParam{
 public:
-    ParamList(std::string name, std::vector<T>& paramValue)
+    ParamList(std::string name, TParamList& paramValue)
         : name_{std::move(name)}
         , paramListValue_{paramValue}
     {
+        static_assert(is_sequence_container_v<maybe_opt_t<TParamList>>,
+                      "Param list field must be a sequence container or a sequence container placed in std::optional");
     }
 
     void markValueIsSet()
@@ -29,20 +32,25 @@ private:
     {
         position_ = paramList.position();
         hasValue_ = true;
+        if constexpr(is_optional<TParamList>::value)
+            paramListValue_.emplace();
+
         if (!paramList.isList())
             throw ConfigError{"Parameter list '" + name_ + "': config parameter must be a list.", paramList.position()};
         for (const auto& paramValueStr : paramList.valueList()) {
-            auto paramValue = convertFromString<T>(paramValueStr);
+            auto paramValue = convertFromString<typename maybe_opt_t<TParamList>::value_type>(paramValueStr);
             if (!paramValue)
                 throw ConfigError{
                         "Couldn't set parameter list element'" + name_ + "' value from '" + paramValueStr + "'",
                         paramList.position()};
-            paramListValue_.emplace_back(std::move(*paramValue));
+            maybeOptValue(paramListValue_).emplace_back(std::move(*paramValue));
         }
     }
 
     bool hasValue() const override
     {
+         if constexpr (is_optional<TParamList>::value)
+            return true;
         return hasValue_;
     }
 
@@ -59,7 +67,7 @@ private:
 
 private:
     std::string name_;
-    std::vector<T>& paramListValue_;
+    TParamList& paramListValue_;
     bool hasValue_ = false;
     StreamPosition position_;
 };

@@ -3,21 +3,27 @@
 #include <figcone/config.h>
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
+#include <optional>
 
 #if __has_include(<nameof.hpp>)
 #define NAMEOF_AVAILABLE
 #endif
 
-
 namespace test_paramlist {
 
 struct CfgInt : public figcone::Config<figcone::NameFormat::CamelCase>
 {
-    FIGCONE_PARAMLIST(testIntList, int);
+    FIGCONE_PARAMLIST(testIntList, std::deque<int>);
+};
+
+struct CfgOptInt : public figcone::Config<figcone::NameFormat::CamelCase>
+{
+    FIGCONE_PARAMLIST(testIntList, std::optional<std::deque<int>>);
 };
 
 struct NotEmpty{
-    void operator()(const std::vector<std::string>& value)
+    template<typename T>
+    void operator()(const T& value)
     {
         if (value.empty())
             throw figcone::ValidationError{"a list can't be empty"};
@@ -25,7 +31,8 @@ struct NotEmpty{
 };
 
 struct HasNoEmptyElements{
-    void operator()(const std::vector<std::string>& value)
+    template<typename T>
+    void operator()(const T& value)
     {
         if (std::find_if(value.begin(), value.end(), [](const auto& str){
             return str.empty();
@@ -36,7 +43,7 @@ struct HasNoEmptyElements{
 
 struct ValidatedCfg : public figcone::Config<figcone::NameFormat::CamelCase>
 {
-    FIGCONE_PARAMLIST(testStrList, std::string)
+    FIGCONE_PARAMLIST(testStrList, std::vector<std::string>)
         .ensure([](const std::vector<std::string>& value)
         {
             if (value.empty()) throw figcone::ValidationError{"a list can't be empty"};
@@ -45,7 +52,7 @@ struct ValidatedCfg : public figcone::Config<figcone::NameFormat::CamelCase>
 
 struct ValidatedWithFunctorCfg : public figcone::Config<figcone::NameFormat::CamelCase>
 {
-    FIGCONE_PARAMLIST(testStrList, std::string)
+    FIGCONE_PARAMLIST(testStrList, std::vector<std::string>)
     .ensure<NotEmpty>()
     .ensure<HasNoEmptyElements>();
 };
@@ -64,8 +71,8 @@ struct CfgIntWithoutMacro : public figcone::Config<figcone::NameFormat::CamelCas
 
 struct CfgStr : public figcone::Config<figcone::NameFormat::CamelCase>
 {
-    FIGCONE_PARAMLIST(testStrList, std::string);
-    FIGCONE_PARAMLIST(testIntList, int)({1, 2, 3});
+    FIGCONE_PARAMLIST(testStrList, std::vector<std::string>);
+    FIGCONE_PARAMLIST(testIntList, std::vector<int>)({1, 2, 3});
 };
 
 class TreeProvider : public figcone::IParser{
@@ -98,6 +105,37 @@ TEST(TestParamList, Basic)
     EXPECT_EQ(cfg.testIntList.at(0), 1);
     EXPECT_EQ(cfg.testIntList.at(1), 2);
     EXPECT_EQ(cfg.testIntList.at(2), 3);
+}
+
+TEST(TestParamList, BasicOptional)
+{
+    auto cfg = CfgOptInt{};
+
+///testIntList = [1, 2, 3]
+///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParamList("testIntList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+
+    cfg.read("", parser);
+
+    ASSERT_TRUE(cfg.testIntList);
+    ASSERT_EQ(cfg.testIntList->size(), 3);
+    EXPECT_EQ(cfg.testIntList->at(0), 1);
+    EXPECT_EQ(cfg.testIntList->at(1), 2);
+    EXPECT_EQ(cfg.testIntList->at(2), 3);
+}
+
+TEST(TestParamList, BasicMissingOptional)
+{
+    auto cfg = CfgOptInt{};
+
+    auto tree = figcone::makeTreeRoot();
+    auto parser = TreeProvider{std::move(tree)};
+
+    cfg.read("", parser);
+
+    ASSERT_FALSE(cfg.testIntList);
 }
 
 TEST(TestParamList, BasicWithoutMacro)

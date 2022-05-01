@@ -17,6 +17,7 @@
 #include "detail/figcone_ini_import.h"
 #include "detail/figcone_xml_import.h"
 #include "detail/nameof_import.h"
+#include "detail/utils.h"
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
 #include <vector>
@@ -276,8 +277,11 @@ private:
     }
 
     template <auto member, typename T, typename TCfg>
-    auto paramList(std::vector<T> TCfg::*, const std::string& memberName)
+    auto paramList(T TCfg::*, const std::string& memberName)
     {
+        static_assert(detail::is_sequence_container_v<detail::maybe_opt_t<T>>,
+                      "Param list field must be a sequence container or a sequence container placed in std::optional");
+
         auto cfg = static_cast<TCfg*>(this);
         return detail::ParamListCreator<T>{*this, memberName, cfg->*member};
     }
