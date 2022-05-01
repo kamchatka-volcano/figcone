@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <figcone/config.h>
 #include <figcone/errors.h>
-#include <figcone/stringconverter.h>
+#include <figcone_tree/stringconverter.h>
 #include <figcone_tree/tree.h>
 #include <filesystem>
 #include <optional>
