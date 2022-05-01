@@ -442,8 +442,8 @@ Notes:
 * Multiline values aren't supported.
 
 ### Creation of figcone-compatible parsers
-To create a parser compatible with figcone, it's required to use a header-only library [`figcone_tree`](https://github.com/kamchatka-volcano/figcone_tree) providing all necessary types and interfaces for this task.   
-Parsing class should implement the `figcone::IParser` interface and provide the result of configuration parsing in form of tree-like structure, constructed with `figcone::TreeNode` and `figcone::TreeParam` objects. Let's demonstrate how to work with `figcone_tree` library by creating a fake parser providing a configuration tree for demo structure listed  in [`demo.h`](#demoh):
+To create a parser compatible with figcone, it's required to use  [`figcone_tree`](https://github.com/kamchatka-volcano/figcone_tree) library, providing all necessary types and interfaces for this task.   
+Parsing class should implement the `figcone::IParser` interface and provide the result of configuration parsing in the form of a tree-like structure, constructed with `figcone::TreeNode` and `figcone::TreeParam` objects. Let's demonstrate how to work with `figcone_tree` library by creating a fake parser providing a configuration tree for demo structure listed  in [`demo.h`](#demoh):
 
 ```C++
 ///examples/demo_parser.cpp
