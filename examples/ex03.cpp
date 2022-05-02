@@ -2,6 +2,8 @@
 #include <figcone/shortmacros.h> //enables macros without FIGCONE_ prefix
 #include <filesystem>
 #include <iostream>
+#include <vector>
+#include <map>
 
 struct Host{
     std::string ip;
@@ -26,13 +28,14 @@ struct StringConverter<Host>{
 struct SharedAlbumCfg : public figcone::Config<>{
     PARAM(dir, std::filesystem::path);
     PARAM(name, std::string);
-    PARAMLIST(hosts, Host)();
+    PARAMLIST(hosts, std::vector<Host>)();
 };
 struct PhotoViewerCfg : public figcone::Config<>{
     PARAM(rootDir, std::filesystem::path);
-    PARAMLIST(supportedFiles, std::string);
-    COPY_NODELIST(sharedAlbums, SharedAlbumCfg)();
-    DICT(envVars)();
+    PARAMLIST(supportedFiles, std::vector<std::string>);
+    COPY_NODELIST(sharedAlbums, std::vector<SharedAlbumCfg>)();
+    using StringMap = std::map<std::string, std::string>;
+    DICT(envVars, StringMap)();
 };
 
 int main()

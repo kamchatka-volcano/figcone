@@ -3,6 +3,8 @@
 #include <figcone/shortmacros.h>
 #include <filesystem>
 #include <iostream>
+#include <vector>
+#include<map>
 
 struct NotEmpty{
     template<typename TList>
@@ -18,8 +20,9 @@ struct PhotoViewerCfg : public figcone::Config<>{
         if (!std::filesystem::exists(path))
             throw figcone::ValidationError{"a path must exist"};
     });
-    PARAMLIST(supportedFiles, std::string).ensure<NotEmpty>();
-    DICT(envVars)();
+    PARAMLIST(supportedFiles, std::vector<std::string>).ensure<NotEmpty>();
+    using StringMap = std::map<std::string, std::string>;
+    DICT(envVars, StringMap)();
 };
 
 int main()

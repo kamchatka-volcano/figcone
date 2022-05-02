@@ -53,7 +53,7 @@ struct ValidatedWithFunctorCfg : public figcone::Config<> {
 #ifdef NAMEOF_AVAILABLE
 struct DictCfgWithoutMacro : public figcone::Config<>{
     std::map<std::string, std::string> test = dict<&DictCfgWithoutMacro::test>();
-    std::unordered_map<std::string, std::string> optTest = dict<&DictCfgWithoutMacro::optTest>();
+    std::unordered_map<std::string, std::string> optTest = dict<&DictCfgWithoutMacro::optTest>()();
     std::optional<std::map<std::string, std::string>> optTest2 = dict<&DictCfgWithoutMacro::optTest2>();
 };
 #else

@@ -1,6 +1,7 @@
 #include <figcone/config.h>
 #include <filesystem>
 #include <iostream>
+#include <vector>
 
 struct ThumbnailCfg : public figcone::Config<figcone::NameFormat::SnakeCase>
 {   
@@ -10,7 +11,7 @@ struct ThumbnailCfg : public figcone::Config<figcone::NameFormat::SnakeCase>
 struct PhotoViewerCfg : public figcone::Config<figcone::NameFormat::SnakeCase>{
     //config fields can also be created with macros:
     FIGCONE_PARAM(rootDir, std::filesystem::path);
-    FIGCONE_PARAMLIST(supportedFiles, std::string);
+    FIGCONE_PARAMLIST(supportedFiles, std::vector<std::string>);
     FIGCONE_NODE(thumbnailSettings, ThumbnailCfg);
 };
 
