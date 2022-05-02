@@ -10,6 +10,7 @@
 #include <figcone/config.h>
 #include <filesystem>
 #include <iostream>
+#include <vector>
 
 struct ThumbnailCfg : public figcone::Config<>
 {
@@ -19,7 +20,7 @@ struct ThumbnailCfg : public figcone::Config<>
 struct PhotoViewerCfg : public figcone::Config<>{
     //config fields can also be created with macros:
     FIGCONE_PARAM(rootDir, std::filesystem::path);
-    FIGCONE_PARAMLIST(supportedFiles, std::string);
+    FIGCONE_PARAMLIST(supportedFiles, std::vector<std::string>);
     FIGCONE_NODE(thumbnailSettings, ThumbnailCfg);
 };
 
@@ -64,16 +65,22 @@ int main()
 
 To use **figcone** you need to create a structure with fields corresponding to the config's parameters.  
 To do this subclass `figcone::Config` and declare fields with the following macros:
-- **FIGCONE_PARAM(`name`, `type`)** - creates `type name;` config field and registers it in the parser.  
-The declaration form **FIGCONE_PARAM(`name`, `type`)(`default value`)** sets the default value of a parameter, which makes it optional, so it can be omitted from the configuration file without raising an error. To make a parameter optional without providing a default value, place it in `std::optional`.
-- **FIGCONE_PARAMLIST(`name`, `type`)** - creates `std::vector<type> name;` config field and registers it in the parser.    
-The declaration form **FIGCONE_PARAMLIST(`name`, `type`)(`list-initialization`)** sets the default value of a parameter list, which makes it optional, so it can be omitted from the configuration file without raising an error.
-- **FIGCONE_NODE(`name`, `type`)** - creates `type name;` config field for a nested configuration structure and registers it in the parser. To make a node optional, place it in `std::optional`. Node's type must be a subclass of `figcone::Config`.
-- **FIGCONE_NODELIST(`name`, `type`)** - creates `std::vector<type> name;` config field for a list of nested configuration structures and registers it in the parser. The declaration form **FIGCONE_NODELIST(`name`, `type`)()** makes a node list optional. Node's type must be a subclass of `figcone::Config`.
-- **FIGCONE_COPY_NODELIST(`name`, `type`)** - creates `std::vector<type> name;` config field for a list of nested configuration structures and registers it in the parser. The declaration form **FIGCONE_COPY_NODELIST(`name`, `type`)()** makes a node list optional. The first element of this list acts as a template for other elements, which means that all unspecified parameters of the second and following elements will be copied from the first element without raising a parsing error. Node's type must be a subclass of `figcone::Config`.
-- **FIGCONE_DICT(`name`)** - creates `std::map<std::string, std::string> name;` config field for a nested dictionary. The declaration form **FIGCONE_DICT(`name`)()** makes a dictionary optional.
+- **FIGCONE_PARAM(`name`, `type`)** - creates `type name;` config field and registers it in the parser.
+- **FIGCONE_PARAMLIST(`name`, `listType`)** - creates `listType name;` config field and registers it in the parser. `listType` can be any sequence container, supporting `emplace_back` operation, within STL it's `vector`, `deque` or `list`.
+- **FIGCONE_NODE(`name`, `type`)** - creates `type name;` config field for a nested configuration structure and registers it in the parser. Node's type must be a subclass of `figcone::Config`.
+- **FIGCONE_NODELIST(`name`, `listType`)** - creates `listType name;` config field for a list of nested configuration structures and registers it in the parser. `listType` can be any sequence container, supporting `emplace_back` operation, within STL it's `vector`, `deque` or `list`. The type stored in the list (`listType::value_type`) must be a subclass of `figcone::Config`. Be wary of using `vector` and `deque` for your node lists simultaneously, if you end up having a vector-based node list containing a deque-based node list, your code may [fail to compile](https://stackoverflow.com/questions/36367905/compiler-error-with-vector-of-deque-of-unique-ptr) because config nodes contain `unique_ptr`.
+- **FIGCONE_COPY_NODELIST(`name`, `listType`)** - creates `listType name;` config field for a list of nested configuration structures and registers it in the parser. `listType` can be any sequence container, supporting `emplace_back` operation, within STL it's `vector`, `deque` or `list`. The type stored in the list (`listType::value_type`) must be a subclass of `figcone::Config`. The first element of this list acts as a template for other elements, which means that all unspecified parameters of the second and following elements will be copied from the first element without raising a parsing error on missing parameters.
+- **FIGCONE_DICT(`name`, `mapType`)** - creates `mapType name;` config field for a nested dictionary and registers it in the parser. `mapType` can be any associative container, supporting `emplace` operation, within STL it's `map` and `unordered_map`. The key type of the map must be `std::string`.
+The preprocessor doesn't handle commas between template arguments the right way, so you need to create an alias for your map to be able to use it with this macro:
+ ```c++
+    using StringMap = std::map<std::string, std::string>;
+    FIGCONE_DICT(testDict, StringMap);
+ ```
 
- *Note: Types used for config fields must be default constructable and copyable.*  
+Notes:
+* All config entities listed above provide the parenthesis operator `()` which sets the default value, and makes this config field optional, so it can be omitted from the configuration file without raising an error. The empty operator `()` makes a field's value default initialized, otherwise, the passed parameters are used for initialization. `FIGCONE_NODE`, `FIGCONE_NODELIST` and  `FIGCONE_COPY_NODELIST` only support the default initialization.
+* It's also possible to make any config field optional by placing it in `std::optional`, if value for this field is missing from the config file, the field stays uninitialized and no error occurs.
+* Types used for config parameters must be default constructable and copyable.  
 
 
 You don't need to change your code style when declaring config fields - `camelCase`, `snake_case` and `PascalCase` names are supported and can be converted to the format used by parameters names in the config file. To do this, specify the configuration names format with `figcone::NameFormat` enum, by passing its value to `figcone::Config` template argument.
@@ -86,6 +93,7 @@ To demonstrate it, let's change our PhotoViewer example to use snake_case names 
 #include <figcone/config.h>
 #include <filesystem>
 #include <iostream>
+#include <vector>
 
 struct ThumbnailCfg : public figcone::Config<figcone::NameFormat::SnakeCase>
 {   
@@ -95,7 +103,7 @@ struct ThumbnailCfg : public figcone::Config<figcone::NameFormat::SnakeCase>
 struct PhotoViewerCfg : public figcone::Config<figcone::NameFormat::SnakeCase>{
     //config fields can also be created with macros:
     FIGCONE_PARAM(rootDir, std::filesystem::path);
-    FIGCONE_PARAMLIST(supportedFiles, std::string);
+    FIGCONE_PARAMLIST(supportedFiles, std::vector<std::string>);
     FIGCONE_NODE(thumbnailSettings, ThumbnailCfg);
 };
 
@@ -165,6 +173,8 @@ Let's increase complexity of our example config to demonstrate how configuration
 #include <figcone/config.h>
 #include <figcone/shortmacros.h> //enables macros without FIGCONE_ prefix
 #include <string>
+#include <vector>
+#include <map>
 
 struct ThumbnailCfg : public figcone::Config<>
 {
@@ -179,14 +189,15 @@ struct HostCfg : public figcone::Config<>{
 struct SharedAlbumCfg : public figcone::Config<>{
     PARAM(dir, std::filesystem::path);
     PARAM(name, std::string);
-    NODELIST(hosts, HostCfg)();
+    NODELIST(hosts, std::vector<HostCfg>)();
 };
 struct PhotoViewerCfg : public figcone::Config<>{
     PARAM(rootDir, std::filesystem::path);
-    PARAMLIST(supportedFiles, std::string);
+    PARAMLIST(supportedFiles, std::vector<std::string>);
     NODE(thumbnails, ThumbnailCfg);
-    COPY_NODELIST(sharedAlbums, SharedAlbumCfg)();
-    DICT(envVars)();
+    COPY_NODELIST(sharedAlbums, std::vector<SharedAlbumCfg>)();
+    using StringMap = std::map<std::string, std::string>;
+    DICT(envVars, StringMap)();
 };
 ```
 
@@ -514,6 +525,8 @@ Let's replace a HostCfg config structure with a parameter of type Host that is s
 #include <figcone/shortmacros.h> //enables macros without FIGCONE_ prefix
 #include <filesystem>
 #include <iostream>
+#include <vector>
+#include <map>
 
 struct Host{
     std::string ip;
@@ -538,13 +551,14 @@ struct StringConverter<Host>{
 struct SharedAlbumCfg : public figcone::Config<>{
     PARAM(dir, std::filesystem::path);
     PARAM(name, std::string);
-    PARAMLIST(hosts, Host)();
+    PARAMLIST(hosts, std::vector<Host>)();
 };
 struct PhotoViewerCfg : public figcone::Config<>{
     PARAM(rootDir, std::filesystem::path);
-    PARAMLIST(supportedFiles, std::string);
-    COPY_NODELIST(sharedAlbums, SharedAlbumCfg)();
-    DICT(envVars)();
+    PARAMLIST(supportedFiles, std::vector<std::string>);
+    COPY_NODELIST(sharedAlbums, std::vector<SharedAlbumCfg>)();
+    using StringMap = std::map<std::string, std::string>;
+    DICT(envVars, StringMap)();
 };
 
 int main()
@@ -594,6 +608,8 @@ Let's improve the PhotoViewer program by checking that `rootDir` path exists and
 #include <figcone/shortmacros.h>
 #include <filesystem>
 #include <iostream>
+#include <vector>
+#include <map>
 
 struct NotEmpty{
     template<typename TList>
@@ -609,8 +625,9 @@ struct PhotoViewerCfg : public figcone::Config<>{
         if (!std::filesystem::exists(path))
             throw figcone::ValidationError{"a path must exist"};
     });
-    PARAMLIST(supportedFiles, std::string).ensure<NotEmpty>();
-    DICT(envVars)();
+    PARAMLIST(supportedFiles, std::vector<std::string>).ensure<NotEmpty>();
+    using StringMap = std::map<std::string, std::string>;
+    DICT(envVars, StringMap)();
 };
 
 int main()
@@ -690,7 +707,7 @@ cd build/tests && ctest
 ## Building examples
 ```
 cd figcone
-cmake -S . -B build -DENABLE_EXAMPLES=ON
+cmake -S . -B build -DENABLE_EXAMPLES=ON -DFIGCONE_USE_NAMEOF=ON
 cmake --build build
 cd build/examples
 ```

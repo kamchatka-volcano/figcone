@@ -17,6 +17,7 @@
 #include "detail/figcone_ini_import.h"
 #include "detail/figcone_xml_import.h"
 #include "detail/nameof_import.h"
+#include "detail/utils.h"
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
 #include <vector>
@@ -243,29 +244,38 @@ private:
         return detail::NodeCreator<T>{*this, memberName, cfg->*member};
     }
 
-    template <auto member, typename TCfg>
-    auto dict(std::map<std::string, std::string> TCfg::*, const std::string& memberName)
+    template <auto member, typename TMap, typename TCfg>
+    auto dict(TMap TCfg::*, const std::string& memberName)
     {
+         static_assert(detail::is_associative_container_v<detail::maybe_opt_t<TMap>>,
+              "Dictionary field must be an associative container or an associative container placed in std::optional");
+        static_assert(std::is_same_v<typename detail::maybe_opt_t<TMap>::key_type, std::string>,
+                     "Dictionary associative container's key type must be std::string");
+
         auto cfg = static_cast<TCfg*>(this);
-        return detail::DictCreator{*this, memberName, cfg->*member};
+        return detail::DictCreator<TMap>{*this, memberName, cfg->*member};
     }
 
-    template <auto member, typename T, typename TCfg>
-    auto nodeList(std::vector<T> TCfg::*, const std::string& memberName)
+    template <auto member, typename TCfgList, typename TCfg>
+    auto nodeList(TCfgList TCfg::*, const std::string& memberName)
     {
-        static_assert(TCfg::format() == T::format(),
+        static_assert(detail::is_sequence_container_v<detail::maybe_opt_t<TCfgList>>,
+              "Node list field must be a sequence container or a sequence container placed in std::optional");
+        static_assert(TCfg::format() == detail::maybe_opt_t<TCfgList>::value_type::format(),
               "Node's config type must have the same name format as its parent.");
         auto cfg = static_cast<TCfg*>(this);
-        return detail::NodeListCreator<T>{*this, memberName, cfg->*member};
+        return detail::NodeListCreator<TCfgList>{*this, memberName, cfg->*member};
     }
 
-    template <auto member, typename T, typename TCfg>
-    auto copyNodeList(std::vector<T> TCfg::*, const std::string& memberName)
+    template <auto member, typename TCfgList, typename TCfg>
+    auto copyNodeList(TCfgList TCfg::*, const std::string& memberName)
     {
-        static_assert(TCfg::format() == T::format(),
+        static_assert(detail::is_sequence_container_v<detail::maybe_opt_t<TCfgList>>,
+              "Node list field must be a sequence container or a sequence container placed in std::optional");
+        static_assert(TCfg::format() == detail::maybe_opt_t<TCfgList>::value_type::format(),
               "Node's config type must have the same name format as its parent.");
         auto cfg = static_cast<TCfg*>(this);
-        return detail::NodeListCreator<T>{*this, memberName, cfg->*member, detail::NodeListType::Copy};
+        return detail::NodeListCreator<TCfgList>{*this, memberName, cfg->*member, detail::NodeListType::Copy};
     }
 
     template <auto member, typename T, typename TCfg>
@@ -276,8 +286,11 @@ private:
     }
 
     template <auto member, typename T, typename TCfg>
-    auto paramList(std::vector<T> TCfg::*, const std::string& memberName)
+    auto paramList(T TCfg::*, const std::string& memberName)
     {
+        static_assert(detail::is_sequence_container_v<detail::maybe_opt_t<T>>,
+                      "Param list field must be a sequence container or a sequence container placed in std::optional");
+
         auto cfg = static_cast<TCfg*>(this);
         return detail::ParamListCreator<T>{*this, memberName, cfg->*member};
     }

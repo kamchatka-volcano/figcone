@@ -4,13 +4,10 @@
 #include "paramcreator.h"
 #include "paramlistcreator.h"
 #include "dictcreator.h"
-#include <vector>
-#include <string>
-#include <map>
 
 #define FIGCONE_PARAM(name, type) type name = figcone::detail::makeParamCreator<type>(*this, #name, [this]()->type&{return name;})
 #define FIGCONE_NODE(name, type) type name = figcone::detail::makeNodeCreator<type>(*this, #name, [this]()->type&{return name;})
-#define FIGCONE_COPY_NODELIST(name, type) std::vector<type> name = figcone::detail::makeNodeListCreator<type>(*this, #name, [this]()->std::vector<type>&{return name;}, figcone::detail::NodeListType::Copy)
-#define FIGCONE_NODELIST(name, type) std::vector<type> name = figcone::detail::makeNodeListCreator<type>(*this, #name, [this]()->std::vector<type>&{return name;})
-#define FIGCONE_PARAMLIST(name, type) std::vector<type> name = figcone::detail::makeParamListCreator<type>(*this, #name, [this]()->std::vector<type>&{return name;})
-#define FIGCONE_DICT(name) std::map<std::string, std::string> name = figcone::detail::makeDictCreator(*this, #name, [this]()->std::map<std::string, std::string>&{return name;})
+#define FIGCONE_COPY_NODELIST(name, listType) listType name = figcone::detail::makeNodeListCreator<listType>(*this, #name, [this]()->listType&{return name;}, figcone::detail::NodeListType::Copy)
+#define FIGCONE_NODELIST(name, listType) listType name = figcone::detail::makeNodeListCreator<listType>(*this, #name, [this]()->listType&{return name;})
+#define FIGCONE_PARAMLIST(name, listType) listType name = figcone::detail::makeParamListCreator<listType>(*this, #name, [this]()->listType&{return name;})
+#define FIGCONE_DICT(name, mapType) mapType name = figcone::detail::makeDictCreator<mapType>(*this, #name, [this]()->mapType&{return name;})

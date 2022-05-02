@@ -20,6 +20,11 @@ public:
     {
     }
 
+    void markValueIsSet()
+    {
+        hasValue_ = true;
+    }
+
 private:
     void load(const TreeNode& node) override
     {
