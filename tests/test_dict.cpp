@@ -3,6 +3,8 @@
 #include <figcone/config.h>
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
+#include <map>
+#include <string>
 
 #if __has_include(<nameof.hpp>)
 #define NAMEOF_AVAILABLE
@@ -11,9 +13,18 @@
 
 namespace test_dict {
 
+using StringMap = std::map<std::string, std::string>;
+using StringUnorderedMap = std::map<std::string, std::string>;
+using IntMap = std::map<std::string, int>;
+
 struct DictCfg : public figcone::Config<> {
-    FIGCONE_DICT(test);
-    FIGCONE_DICT(optTest)();
+    FIGCONE_DICT(test, StringMap);
+    FIGCONE_DICT(optTest, StringUnorderedMap)();
+    FIGCONE_DICT(optTest2, std::optional<StringMap>);
+};
+
+struct IntDictCfg : public figcone::Config<> {
+    FIGCONE_DICT(test, IntMap)({{"abc", 11}, {"xyz", 12}});
 };
 
 struct NonEmptyValidator{
@@ -27,22 +38,29 @@ public:
 
 
 struct ValidatedCfg : public figcone::Config<> {
-    FIGCONE_DICT(test).checkedWith([](const std::map<std::string, std::string>& dict){
+    FIGCONE_DICT(test, StringMap).checkedWith([](const std::map<std::string, std::string>& dict){
         if (dict.empty()) throw figcone::ValidationError{"can't be empty"};
+    });
+    FIGCONE_DICT(testOpt, std::optional<StringMap>).checkedWith([](const std::optional<StringMap>& dict){
+        if (dict && dict->empty()) throw figcone::ValidationError{"can't be empty"};
     });
 };
 
 struct ValidatedWithFunctorCfg : public figcone::Config<> {
-    FIGCONE_DICT(test).checkedWith<NonEmptyValidator>();
+    FIGCONE_DICT(test, StringMap).checkedWith<NonEmptyValidator>();
 };
 
 #ifdef NAMEOF_AVAILABLE
 struct DictCfgWithoutMacro : public figcone::Config<>{
     std::map<std::string, std::string> test = dict<&DictCfgWithoutMacro::test>();
+    std::unordered_map<std::string, std::string> optTest = dict<&DictCfgWithoutMacro::optTest>();
+    std::optional<std::map<std::string, std::string>> optTest2 = dict<&DictCfgWithoutMacro::optTest2>();
 };
 #else
 struct DictCfgWithoutMacro : public figcone::Config<> {
     std::map<std::string, std::string> test = dict<&DictCfgWithoutMacro::test>("test");
+    std::unordered_map<std::string, std::string> optTest = dict<&DictCfgWithoutMacro::optTest>("optTest")();
+    std::optional<std::map<std::string, std::string>> optTest2 = dict<&DictCfgWithoutMacro::optTest2>("optTest2");
 };
 #endif
 
@@ -73,6 +91,9 @@ TEST(TestDict, MultiParam)
 ///  testEmpty = ""
 ///[[optTest]]
 /// testInt = 100
+///[[optTest2]]
+/// testInt = 200
+
     auto tree = figcone::makeTreeRoot();
     auto& testNode = tree.asItem().addNode("test", {1, 1}).asItem();
     testNode.addParam("testInt","5", {2,3});
@@ -83,6 +104,9 @@ TEST(TestDict, MultiParam)
 
     auto& optTestNode = tree.asItem().addNode("optTest", {7, 1}).asItem();
     optTestNode.addParam("testInt","100", {8,3});
+
+    auto& optTestNode2 = tree.asItem().addNode("optTest2", {9, 1}).asItem();
+    optTestNode2.addParam("testInt","200", {10,3});
 
     auto parser = TreeProvider{std::move(tree)};
     cfg.read("", parser);
@@ -95,6 +119,9 @@ TEST(TestDict, MultiParam)
     EXPECT_EQ(cfg.test["testEmpty"], "");
     ASSERT_EQ(cfg.optTest.size(), 1);
     EXPECT_EQ(cfg.optTest["testInt"], "100");
+    ASSERT_TRUE(cfg.optTest2);
+    ASSERT_EQ(cfg.optTest2->size(), 1);
+    EXPECT_EQ(cfg.optTest2->at("testInt"), "200");
 }
 
 TEST(TestDict, MultiParamWithoutOptional)
@@ -126,7 +153,45 @@ TEST(TestDict, MultiParamWithoutOptional)
     EXPECT_EQ(cfg.test["testMultilineString"], "Hello\n world");
     EXPECT_EQ(cfg.test["testEmpty"], "");
     ASSERT_EQ(cfg.optTest.size(), 0);
+    ASSERT_FALSE(cfg.optTest2);
+}
 
+TEST(TestDict, IntMultiParam)
+{
+    auto cfg = IntDictCfg{};
+
+///[[test]]
+///  foo = 5
+///  bar = 42
+///  baz = 777
+
+    auto tree = figcone::makeTreeRoot();
+    auto& testNode = tree.asItem().addNode("test", {1, 1}).asItem();
+    testNode.addParam("foo","5", {2,3});
+    testNode.addParam("bar","42", {3,3});
+    testNode.addParam("baz","777", {4,3});
+
+    auto parser = TreeProvider{std::move(tree)};
+    cfg.read("", parser);
+
+    ASSERT_EQ(cfg.test.size(), 3);
+    EXPECT_EQ(cfg.test["foo"], 5);
+    EXPECT_EQ(cfg.test["bar"], 42);
+    EXPECT_EQ(cfg.test["baz"], 777);
+}
+
+TEST(TestDict, DefaultValue)
+{
+    auto cfg = IntDictCfg{};
+
+    auto tree = figcone::makeTreeRoot();
+
+    auto parser = TreeProvider{std::move(tree)};
+    cfg.read("", parser);
+
+    ASSERT_EQ(cfg.test.size(), 2);
+    EXPECT_EQ(cfg.test["abc"], 11);
+    EXPECT_EQ(cfg.test["xyz"], 12);
 }
 
 
@@ -136,15 +201,22 @@ TEST(TestDict, ValidationSuccess)
 
 ///[test]
 ///  testInt = 5
+///[testOpt]
+///  testStr = Foo
     auto tree = figcone::makeTreeRoot();
     auto& testNode = tree.asItem().addNode("test", {1, 1});
     testNode.asItem().addParam("testInt","5", {2,3});
+    auto& testNodeOpt = tree.asItem().addNode("testOpt", {3, 1});
+    testNodeOpt.asItem().addParam("testStr","Foo", {4,3});
 
     auto parser = TreeProvider{std::move(tree)};
     cfg.read("", parser);
 
     ASSERT_EQ(cfg.test.size(), 1);
     EXPECT_EQ(cfg.test["testInt"], "5");
+    ASSERT_TRUE(cfg.testOpt);
+    ASSERT_EQ(cfg.testOpt->size(), 1);
+    EXPECT_EQ(cfg.testOpt->at("testStr"), "Foo");
 }
 
 TEST(TestDict, ValidationFailure)
@@ -200,6 +272,8 @@ TEST(TestDict, ParamWithoutMacro)
     ASSERT_EQ(cfg.test.size(), 2);
     EXPECT_EQ(cfg.test["testInt"], "5");
     EXPECT_EQ(cfg.test["testEmpty"], "");
+    ASSERT_EQ(cfg.optTest.size(), 0);
+    ASSERT_FALSE(cfg.optTest2);
 }
 
 TEST(TestDict, EmptyDict)

@@ -19,7 +19,7 @@ public:
         , nodeListValue_(nodeList)
     {
         static_assert(is_sequence_container_v<maybe_opt_t<TCfgList>>,
-              "Node list field must be a sequence container or a sequence container placed in std::optional");
+                      "Node list field must be a sequence container or a sequence container placed in std::optional");
         static_assert(std::is_base_of_v<IConfig, typename maybe_opt_t<TCfgList>::value_type>,
                       "TNode must be a subclass of figcone::INode.");
     }

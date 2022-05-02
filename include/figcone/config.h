@@ -244,11 +244,16 @@ private:
         return detail::NodeCreator<T>{*this, memberName, cfg->*member};
     }
 
-    template <auto member, typename TCfg>
-    auto dict(std::map<std::string, std::string> TCfg::*, const std::string& memberName)
+    template <auto member, typename TMap, typename TCfg>
+    auto dict(TMap TCfg::*, const std::string& memberName)
     {
+         static_assert(detail::is_associative_container_v<detail::maybe_opt_t<TMap>>,
+              "Dictionary field must be an associative container or an associative container placed in std::optional");
+        static_assert(std::is_same_v<typename detail::maybe_opt_t<TMap>::key_type, std::string>,
+                     "Dictionary associative container's key type must be std::string");
+
         auto cfg = static_cast<TCfg*>(this);
-        return detail::DictCreator{*this, memberName, cfg->*member};
+        return detail::DictCreator<TMap>{*this, memberName, cfg->*member};
     }
 
     template <auto member, typename TCfgList, typename TCfg>

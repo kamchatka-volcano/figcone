@@ -26,6 +26,22 @@ struct is_sequence_container<T,
 template <typename T>
 inline constexpr auto is_sequence_container_v = is_sequence_container<T>::value;
 
+template <typename, typename = void>
+struct is_associative_container : std::false_type{};
+
+template <typename T>
+struct is_associative_container<T,
+        std::void_t<typename T::key_type,
+                    typename T::mapped_type,
+                    decltype(std::declval<T>().begin()),
+                    decltype(std::declval<T>().end()),
+                    decltype(std::declval<T>().emplace(std::declval<typename T::key_type>(),
+                                                       std::declval<typename T::mapped_type>()))>
+> : std::true_type{};
+
+template <typename T>
+inline constexpr auto is_associative_container_v = is_associative_container<T>::value;
+
 template<typename T>
 auto& maybeOptValue(T& obj)
 {
