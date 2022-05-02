@@ -4,6 +4,9 @@
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
 #include <optional>
+#include <vector>
+#include <deque>
+#include <list>
 
 #if __has_include(<nameof.hpp>)
 #define NAMEOF_AVAILABLE
@@ -13,7 +16,7 @@ namespace test_paramlist {
 
 struct CfgInt : public figcone::Config<figcone::NameFormat::CamelCase>
 {
-    FIGCONE_PARAMLIST(testIntList, std::deque<int>);
+    FIGCONE_PARAMLIST(testIntList, std::list<int>);
 };
 
 struct CfgOptInt : public figcone::Config<figcone::NameFormat::CamelCase>
@@ -60,12 +63,12 @@ struct ValidatedWithFunctorCfg : public figcone::Config<figcone::NameFormat::Cam
 #ifdef NAMEOF_AVAILABLE
 struct CfgIntWithoutMacro : public figcone::Config<figcone::NameFormat::CamelCase>
 {
-    std::vector<int> testIntList = paramList<&CfgIntWithoutMacro::testIntList>();
+    std::list<int> testIntList = paramList<&CfgIntWithoutMacro::testIntList>();
 };
 #else
 struct CfgIntWithoutMacro : public figcone::Config<figcone::NameFormat::CamelCase>
 {
-    std::vector<int> testIntList = paramList<&CfgIntWithoutMacro::testIntList>("testIntList");
+    std::list<int> testIntList = paramList<&CfgIntWithoutMacro::testIntList>("testIntList");
 };
 #endif
 
@@ -102,9 +105,9 @@ TEST(TestParamList, Basic)
     cfg.read("", parser);
 
     ASSERT_EQ(cfg.testIntList.size(), 3);
-    EXPECT_EQ(cfg.testIntList.at(0), 1);
-    EXPECT_EQ(cfg.testIntList.at(1), 2);
-    EXPECT_EQ(cfg.testIntList.at(2), 3);
+    EXPECT_EQ(*cfg.testIntList.begin(), 1);
+    EXPECT_EQ(*std::next(cfg.testIntList.begin(), 1), 2);
+    EXPECT_EQ(*std::next(cfg.testIntList.begin(), 2), 3);
 }
 
 TEST(TestParamList, BasicOptional)
@@ -151,9 +154,9 @@ TEST(TestParamList, BasicWithoutMacro)
     cfg.read("", parser);
 
     ASSERT_EQ(cfg.testIntList.size(), 3);
-    EXPECT_EQ(cfg.testIntList.at(0), 1);
-    EXPECT_EQ(cfg.testIntList.at(1), 2);
-    EXPECT_EQ(cfg.testIntList.at(2), 3);
+    EXPECT_EQ(*cfg.testIntList.begin(), 1);
+    EXPECT_EQ(*std::next(cfg.testIntList.begin(), 1), 2);
+    EXPECT_EQ(*std::next(cfg.testIntList.begin(), 2), 3);
 }
 
 TEST(TestParamList, ValidationSuccess)

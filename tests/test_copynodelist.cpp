@@ -17,11 +17,11 @@ struct Node : public figcone::Config<figcone::NameFormat::CamelCase>{
 };
 
 struct Cfg: public figcone::Config<figcone::NameFormat::CamelCase>{
-    FIGCONE_COPY_NODELIST(testNodes, Node);
+    FIGCONE_COPY_NODELIST(testNodes, std::vector<Node>);
 };
 
 struct Cfg2: public figcone::Config<figcone::NameFormat::CamelCase>{
-    FIGCONE_COPY_NODELIST(testNodes, Node);
+    FIGCONE_COPY_NODELIST(testNodes, std::vector<Node>);
     FIGCONE_PARAM(testDouble, double);
 };
 
@@ -37,7 +37,7 @@ struct CfgWithoutMacro: public figcone::Config<figcone::NameFormat::CamelCase>{
 
 struct NestedCfgList: public figcone::Config<figcone::NameFormat::CamelCase>{
     FIGCONE_PARAM(testStr, std::string);
-    FIGCONE_COPY_NODELIST(testList, Cfg2);
+    FIGCONE_COPY_NODELIST(testList, std::vector<Cfg2>);
 };
 
 class TreeProvider : public figcone::IParser{
