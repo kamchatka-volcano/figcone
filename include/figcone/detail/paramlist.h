@@ -18,7 +18,7 @@ public:
         : name_{std::move(name)}
         , paramListValue_{paramValue}
     {
-        static_assert(is_sequence_container_v<maybe_opt_t<TParamList>>,
+        static_assert(is_sequence_container_v<remove_optional_t<TParamList>>,
                       "Param list field must be a sequence container or a sequence container placed in std::optional");
     }
 
@@ -38,7 +38,7 @@ private:
         if (!paramList.isList())
             throw ConfigError{"Parameter list '" + name_ + "': config parameter must be a list.", paramList.position()};
         for (const auto& paramValueStr : paramList.valueList()) {
-            auto paramValue = convertFromString<typename maybe_opt_t<TParamList>::value_type>(paramValueStr);
+            auto paramValue = convertFromString<typename remove_optional_t<TParamList>::value_type>(paramValueStr);
             if (!paramValue)
                 throw ConfigError{
                         "Couldn't set parameter list element'" + name_ + "' value from '" + paramValueStr + "'",

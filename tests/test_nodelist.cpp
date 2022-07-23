@@ -1,6 +1,7 @@
 #include "assert_exception.h"
 #include <gtest/gtest.h>
 #include <figcone/config.h>
+#include <figcone/configreader.h>
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
 
@@ -13,18 +14,18 @@
 
 namespace test_nodelist {
 
-struct Node : public figcone::Config<figcone::NameFormat::CamelCase>{
+struct Node : public figcone::Config{ //<figcone::NameFormat::CamelCase>
     FIGCONE_PARAM(testInt, int);
 };
 
-struct Cfg: public figcone::Config<figcone::NameFormat::CamelCase>{
+struct Cfg: public figcone::Config{
     FIGCONE_NODELIST(testNodes, std::vector<Node>);
     FIGCONE_NODELIST(optTestNodes, std::list<Node>)();
-    FIGCONE_NODELIST(optTestNodes2, std::optional<std::deque<Node>>);
+    FIGCONE_NODELIST(optTestNodes2, figcone::optional<std::deque<Node>>);
     FIGCONE_PARAM(testStr, std::string);
 };
 
-struct Cfg2: public figcone::Config<figcone::NameFormat::CamelCase>{
+struct Cfg2: public figcone::Config{
     FIGCONE_PARAM(testDouble, double);
     FIGCONE_NODE(testNode, Node);
 };
@@ -43,7 +44,7 @@ private:
     int minSize_;
 };
 
-struct ValidatedCfg: public figcone::Config<figcone::NameFormat::CamelCase>{
+struct ValidatedCfg: public figcone::Config{
     FIGCONE_NODELIST(testNodes, std::vector<Node>).ensure([](const std::vector<Node>& nodeList){
         if (nodeList.size() < 2) throw figcone::ValidationError{"can't have less than 2 elements"};
     });
@@ -52,21 +53,21 @@ struct ValidatedCfg: public figcone::Config<figcone::NameFormat::CamelCase>{
     });
 };
 
-struct ValidatedWithFunctorCfg: public figcone::Config<figcone::NameFormat::CamelCase>{
+struct ValidatedWithFunctorCfg: public figcone::Config{
     FIGCONE_NODELIST(testNodes, std::vector<Node>).ensure<NotLessThan>(2);
 };
 
 #ifdef NAMEOF_AVAILABLE
-struct CfgWithoutMacro: public figcone::Config<figcone::NameFormat::CamelCase>{
+struct CfgWithoutMacro: public figcone::Config{
     std::vector<Node> testNodes = nodeList<&CfgWithoutMacro::testNodes>();
 };
 #else
-struct CfgWithoutMacro: public figcone::Config<figcone::NameFormat::CamelCase>{
+struct CfgWithoutMacro: public figcone::Config{
     std::vector<Node> testNodes = nodeList<&CfgWithoutMacro::testNodes>("testNodes");
 };
 #endif
 
-struct NestedCfgList: public figcone::Config<figcone::NameFormat::CamelCase>{
+struct NestedCfgList: public figcone::Config{
     FIGCONE_PARAM(testStr, std::string);
     FIGCONE_NODELIST(testList, std::deque<Cfg>);
 };
@@ -86,8 +87,6 @@ public:
 
 TEST(TestNodeList, Basic)
 {
-    auto cfg = Cfg{};
-
 ///testStr = Hello
 ///[[testNodes]]
 ///  testInt = 3
@@ -128,7 +127,8 @@ TEST(TestNodeList, Basic)
     }
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<Cfg>("", parser);
 
     ASSERT_EQ(cfg.testNodes.size(), 2);
     EXPECT_EQ(cfg.testNodes[0].testInt, 3);
@@ -144,7 +144,6 @@ TEST(TestNodeList, Basic)
 
 TEST(TestNodeList, BasicWithoutOptional)
 {
-    auto cfg = Cfg{};
 
 ///testStr = Hello
 ///[[testNodes]]
@@ -164,7 +163,8 @@ TEST(TestNodeList, BasicWithoutOptional)
     }
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<Cfg>("", parser);
 
     ASSERT_EQ(cfg.testNodes.size(), 2);
     EXPECT_EQ(cfg.testNodes[0].testInt, 3);
@@ -176,8 +176,6 @@ TEST(TestNodeList, BasicWithoutOptional)
 
 TEST(TestNodeList, BasicWithoutMacro)
 {
-    auto cfg = CfgWithoutMacro{};
-
 ///[[testNodes]]
 ///  testInt = 3
 ///[[testNodes]]
@@ -195,7 +193,8 @@ TEST(TestNodeList, BasicWithoutMacro)
     }
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<CfgWithoutMacro>("", parser);
 
     ASSERT_EQ(cfg.testNodes.size(), 2);
     EXPECT_EQ(cfg.testNodes[0].testInt, 3);
@@ -204,8 +203,6 @@ TEST(TestNodeList, BasicWithoutMacro)
 
 TEST(TestNodeList, ValidationSuccess)
 {
-    auto cfg = ValidatedCfg{};
-
 ///[[testNodes]]
 ///  testInt = 3
 ///[[testNodes]]
@@ -234,7 +231,8 @@ TEST(TestNodeList, ValidationSuccess)
         node.asItem().addParam("testInt", "6", {8, 3});
     }
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<ValidatedCfg>("", parser);
 
     ASSERT_EQ(cfg.testNodes.size(), 2);
     EXPECT_EQ(cfg.testNodes[0].testInt, 3);
@@ -247,8 +245,6 @@ TEST(TestNodeList, ValidationSuccess)
 
 TEST(TestNodeList, ValidationFailure)
 {
-    auto cfg = ValidatedCfg{};
-
 ///[[testNodes]]
 ///  testInt = 3
 ///
@@ -260,8 +256,9 @@ TEST(TestNodeList, ValidationFailure)
     }
 
     auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
     assert_exception<figcone::ConfigError>([&] {
-        cfg.read("", parser);
+        cfgReader.read<ValidatedCfg>("", parser);
     }, [](const figcone::ConfigError& error){
         EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Node list 'testNodes': can't have less than 2 elements");
     });
@@ -269,8 +266,6 @@ TEST(TestNodeList, ValidationFailure)
 
 TEST(TestNodeList, ValidationWithFunctorFailure)
 {
-    auto cfg = ValidatedWithFunctorCfg{};
-
 ///[[testNodes]]
 ///  testInt = 3
 ///
@@ -282,8 +277,9 @@ TEST(TestNodeList, ValidationWithFunctorFailure)
     }
 
     auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
     assert_exception<figcone::ConfigError>([&] {
-        cfg.read(R"(
+        cfgReader.read<ValidatedWithFunctorCfg>(R"(
         #testNodes:
         ###
             testInt = 3
@@ -295,8 +291,6 @@ TEST(TestNodeList, ValidationWithFunctorFailure)
 
 TEST(TestNodeList, NestedCfgList)
 {
-    auto cfg = NestedCfgList{};
-
 ///testStr = Hello
 ///[[testList]]
 ///  testStr = Hello
@@ -336,7 +330,8 @@ TEST(TestNodeList, NestedCfgList)
     }
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<NestedCfgList>("", parser);
 
     EXPECT_EQ(cfg.testStr, "Hello");
     ASSERT_EQ(cfg.testList.size(), 2);
@@ -351,16 +346,15 @@ TEST(TestNodeList, NestedCfgList)
 
 TEST(TestNodeList, MissingNodeListError)
 {
-    auto cfg = Cfg{};
-
 ///testStr = Hello
 ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("testStr", "Hello", {1, 1});
 
     auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
     assert_exception<figcone::ConfigError>([&] {
-        cfg.read("", parser);
+        auto cfg = cfgReader.read<Cfg>("", parser);
     }, [](const figcone::ConfigError& error){
         EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Root node: Node 'testNodes' is missing.");
     });
@@ -368,8 +362,6 @@ TEST(TestNodeList, MissingNodeListError)
 
 TEST(TestNodeList, NodeNotListError)
 {
-    auto cfg = Cfg{};
-
 ///testStr = Hello
 ///
     auto tree = figcone::makeTreeRoot();
@@ -377,8 +369,9 @@ TEST(TestNodeList, NodeNotListError)
     tree.asItem().addNode("testNodes", {2, 1});
 
     auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
     assert_exception<figcone::ConfigError>([&] {
-        cfg.read("", parser);
+        cfgReader.read<Cfg>("", parser);
     }, [](const figcone::ConfigError& error){
         EXPECT_EQ(std::string{error.what()}, "[line:2, column:1] Node list 'testNodes': config node must be a list.");
     });
@@ -387,8 +380,6 @@ TEST(TestNodeList, NodeNotListError)
 
 TEST(TestNodeList, InvalidListElementError)
 {
-    auto cfg = Cfg{};
-
 ///testStr = Hello
 ///[[testNodes]]
 ///    testInt = error
@@ -408,8 +399,9 @@ TEST(TestNodeList, InvalidListElementError)
     tree.asItem().addParam("testStr", "Hello", {1, 1});
 
     auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
     assert_exception<figcone::ConfigError>([&]{
-        cfg.read("", parser);
+        cfgReader.read<Cfg>("", parser);
     }, [](const figcone::ConfigError& error){
         EXPECT_EQ(std::string{error.what()}, "[line:3, column:3] Couldn't set parameter 'testInt' value from 'error'");
     });
@@ -417,13 +409,10 @@ TEST(TestNodeList, InvalidListElementError)
 
 TEST(TestNodeList, IncompleteListElementError)
 {
-    auto cfg = Cfg{};
-
 ///testStr = Hello
 ///[[testNodes]]
 ///[[testNodes]]
 ///    testInt = 2
-
 
     auto tree = figcone::makeTreeRoot();
     auto& testNodes = tree.asItem().addNodeList("testNodes", {2, 1});
@@ -435,8 +424,9 @@ TEST(TestNodeList, IncompleteListElementError)
     tree.asItem().addParam("testStr", "Hello", {1, 1});
 
     auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
     assert_exception<figcone::ConfigError>([&]{
-        cfg.read("", parser);
+        cfgReader.read<Cfg>("", parser);
     }, [](const figcone::ConfigError& error){
         EXPECT_EQ(std::string{error.what()}, "[line:2, column:1] Node list 'testNodes': Parameter 'testInt' is missing.");
     });

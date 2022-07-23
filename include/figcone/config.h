@@ -1,21 +1,17 @@
 #pragma once
 #include "nameformat.h"
+#include "detail/optionalconfigfield.h"
 #include "detail/configmacros.h"
-#include "detail/iconfig.h"
+#include "detail/configreaderstorage.h"
 #include "detail/inode.h"
 #include "detail/ivalidator.h"
+#include "detail/iconfigreader.h"
 #include "detail/dict.h"
 #include "detail/paramcreator.h"
 #include "detail/nodelistcreator.h"
 #include "detail/paramlistcreator.h"
 #include "detail/dictcreator.h"
 #include "detail/nameconverter.h"
-#include "detail/loadingerror.h"
-#include "detail/figcone_json_import.h"
-#include "detail/figcone_yaml_import.h"
-#include "detail/figcone_toml_import.h"
-#include "detail/figcone_ini_import.h"
-#include "detail/figcone_xml_import.h"
 #include "detail/nameof_import.h"
 #include "detail/utils.h"
 #include <figcone_tree/iparser.h>
@@ -33,127 +29,25 @@ namespace detail {
 class IParam;
 }
 
-template<NameFormat nameFormat = NameFormat::Original>
-class Config : public detail::IConfig {
+class Config : public detail::ConfigReaderStorage{
+
 public:
-    void readFile(const std::filesystem::path& configFile, IParser& parser)
-    {
-        auto configStream = std::ifstream{configFile};
-        read(configStream, parser);
-    }
-
-    void read(const std::string& configContent, IParser& parser)
-    {
-        auto configStream = std::stringstream{configContent};
-        read(configStream, parser);
-    }
-
-#ifdef FIGCONE_JSON_AVAILABLE
-    void readJsonFile(const std::filesystem::path& configFile)
-    {
-        auto configStream = std::ifstream{configFile};
-        readJson(configStream);
-    }
-
-    void readJson(const std::string& configContent)
-    {
-        auto configStream = std::stringstream{configContent};
-        readJson(configStream);
-    }
-
-    void readJson(std::istream& configStream)
-    {
-        auto parser = figcone::json::Parser{};
-        read(configStream, parser);
-    }
-#endif
-
-#ifdef FIGCONE_YAML_AVAILABLE
-    void readYamlFile(const std::filesystem::path& configFile)
-    {
-        auto configStream = std::ifstream{configFile};
-        readYaml(configStream);
-    }
-
-    void readYaml(const std::string& configContent)
-    {
-        auto configStream = std::stringstream{configContent};
-        readYaml(configStream);
-    }
-
-    void readYaml(std::istream& configStream)
-    {
-        auto parser = figcone::yaml::Parser{};
-        read(configStream, parser);
-    }
-#endif
-
-#ifdef FIGCONE_TOML_AVAILABLE
-    void readTomlFile(const std::filesystem::path& configFile)
-    {
-        auto configStream = std::ifstream{configFile};
-        readToml(configStream);
-    }
-
-    void readToml(const std::string& configContent)
-    {
-        auto configStream = std::stringstream{configContent};
-        readToml(configStream);
-    }
-
-    void readToml(std::istream& configStream)
-    {
-        auto parser = figcone::toml::Parser{};
-        read(configStream, parser);
-    }
-#endif
-
-#ifdef FIGCONE_INI_AVAILABLE
-    void readIniFile(const std::filesystem::path& configFile)
-    {
-        auto configStream = std::ifstream{configFile};
-        readIni(configStream);
-    }
-
-    void readIni(const std::string& configContent)
-    {
-        auto configStream = std::stringstream{configContent};
-        readIni(configStream);
-    }
-
-    void readIni(std::istream& configStream)
-    {
-        auto parser = figcone::ini::Parser{};
-        read(configStream, parser);
-    }
-#endif
-
-#ifdef FIGCONE_XML_AVAILABLE
-    void readXmlFile(const std::filesystem::path& configFile)
-    {
-        auto configStream = std::ifstream{configFile};
-        readXml(configStream);
-    }
-
-    void readXml(const std::string& configContent)
-    {
-        auto configStream = std::stringstream{configContent};
-        readXml(configStream);
-    }
-
-    void readXml(std::istream& configStream)
-    {
-        auto parser = figcone::xml::Parser{};
-        read(configStream, parser);
-    }
-#endif
-
-    static constexpr NameFormat format()
-    {
-        return nameFormat;
-    }
+    Config() = default;
+    using detail::ConfigReaderStorage::ConfigReaderStorage;
 
 protected:
+    Config(Config&& other)
+    {
+        if (cfgReader())
+            cfgReader()->swapContents(other.cfgReader());
+    }
+    Config& operator=(Config&& other)
+    {
+        if (cfgReader())
+            cfgReader()->swapContents(other.cfgReader());
+        return *this;
+    }
+
     template<auto member>
     auto node(const std::string& memberName)
     {
@@ -238,128 +132,47 @@ private:
     template <auto member, typename T, typename TCfg>
     auto node(T TCfg::*, const std::string& memberName)
     {
-        static_assert(TCfg::format() == T::format(),
-                      "Node's config type must have the same name format as its parent.");
         auto cfg = static_cast<TCfg*>(this);
-        return detail::NodeCreator<T>{*this, memberName, cfg->*member};
+        return detail::NodeCreator<T>{cfgReader(), memberName, cfg->*member};
     }
 
     template <auto member, typename TMap, typename TCfg>
     auto dict(TMap TCfg::*, const std::string& memberName)
     {
-         static_assert(detail::is_associative_container_v<detail::maybe_opt_t<TMap>>,
-              "Dictionary field must be an associative container or an associative container placed in std::optional");
-        static_assert(std::is_same_v<typename detail::maybe_opt_t<TMap>::key_type, std::string>,
-                     "Dictionary associative container's key type must be std::string");
-
         auto cfg = static_cast<TCfg*>(this);
-        return detail::DictCreator<TMap>{*this, memberName, cfg->*member};
+        return detail::DictCreator<TMap>{cfgReader(), memberName, cfg->*member};
     }
 
     template <auto member, typename TCfgList, typename TCfg>
     auto nodeList(TCfgList TCfg::*, const std::string& memberName)
     {
-        static_assert(detail::is_sequence_container_v<detail::maybe_opt_t<TCfgList>>,
-              "Node list field must be a sequence container or a sequence container placed in std::optional");
-        static_assert(TCfg::format() == detail::maybe_opt_t<TCfgList>::value_type::format(),
-              "Node's config type must have the same name format as its parent.");
         auto cfg = static_cast<TCfg*>(this);
-        return detail::NodeListCreator<TCfgList>{*this, memberName, cfg->*member};
+        return detail::NodeListCreator<TCfgList>{cfgReader(), memberName, cfg->*member};
     }
 
     template <auto member, typename TCfgList, typename TCfg>
     auto copyNodeList(TCfgList TCfg::*, const std::string& memberName)
     {
-        static_assert(detail::is_sequence_container_v<detail::maybe_opt_t<TCfgList>>,
-              "Node list field must be a sequence container or a sequence container placed in std::optional");
-        static_assert(TCfg::format() == detail::maybe_opt_t<TCfgList>::value_type::format(),
-              "Node's config type must have the same name format as its parent.");
         auto cfg = static_cast<TCfg*>(this);
-        return detail::NodeListCreator<TCfgList>{*this, memberName, cfg->*member, detail::NodeListType::Copy};
+        return detail::NodeListCreator<TCfgList>{cfgReader(), memberName, cfg->*member, detail::NodeListType::Copy};
     }
 
     template <auto member, typename T, typename TCfg>
     auto param(T TCfg::*, const std::string& memberName)
     {
         auto cfg = static_cast<TCfg*>(this);
-        return detail::ParamCreator<T>{*this, memberName, cfg->*member};
+        return detail::ParamCreator<T>{cfgReader(), memberName, cfg->*member};
     }
 
     template <auto member, typename T, typename TCfg>
     auto paramList(T TCfg::*, const std::string& memberName)
     {
-        static_assert(detail::is_sequence_container_v<detail::maybe_opt_t<T>>,
-                      "Param list field must be a sequence container or a sequence container placed in std::optional");
-
         auto cfg = static_cast<TCfg*>(this);
-        return detail::ParamListCreator<T>{*this, memberName, cfg->*member};
+        return detail::ParamListCreator<T>{cfgReader(), memberName, cfg->*member};
     }
-
-    void read(std::istream& configStream, IParser& parser)
-    {
-        auto tree = parser.parse(configStream);
-        try {
-            load(tree);
-        }
-        catch (const detail::LoadingError& e) {
-            throw ConfigError{std::string{"Root node: "} + e.what(), tree.position()};
-        }
-    }
-
-    void load(const TreeNode& treeNode) override
-    {
-        for (const auto& [nodeName, node] : treeNode.asItem().nodes()) {
-            if (!nodes_.count(nodeName))
-                throw ConfigError{"Unknown node '" + nodeName + "'", node.position()};
-            try {
-                nodes_.at(nodeName)->load(node);
-            }
-            catch (const detail::LoadingError& e) {
-                throw ConfigError{"Node '" + nodeName + "': " + e.what(), node.position()};
-            }
-        }
-
-        for (const auto&[paramName, param] : treeNode.asItem().params()) {
-            if (!params_.count(paramName))
-                throw ConfigError{"Unknown param '" + paramName + "'", param.position()};
-            params_.at(paramName)->load(param);
-        }
-
-        checkLoadingResult();
-    }
-
-    void addNode(const std::string& name, std::unique_ptr<detail::INode> node) override
-    {
-        nodes_.emplace(detail::NameConverter<nameFormat>::name(name), std::move(node));
-    }
-
-    void addParam(const std::string& name, std::unique_ptr<detail::IParam> param) override
-    {
-        params_.emplace(detail::NameConverter<nameFormat>::name(name), std::move(param));
-    }
-
-    void addValidator(std::unique_ptr<detail::IValidator> validator) override
-    {
-        validators_.emplace_back((std::move(validator)));
-    }
-
-    void checkLoadingResult()
-    {
-        for (const auto&[name, param]: params_)
-            if (!param->hasValue())
-                throw detail::LoadingError{"Parameter '" + name + "' is missing."};
-        for (const auto&[name, node]: nodes_)
-            if (!node->hasValue())
-                throw detail::LoadingError{"Node '" + name + "' is missing."};
-
-        for (const auto& validator: validators_)
-            validator->validate();
-    }
-
-private:
-    std::map<std::string, std::unique_ptr<detail::INode>> nodes_;
-    std::map<std::string, std::unique_ptr<detail::IParam>> params_;
-    std::vector<std::unique_ptr<detail::IValidator>> validators_;
 };
+
+template<typename T>
+using optional = std::conditional_t<std::is_base_of_v<Config, T>, detail::OptionalConfigField<T>, std::optional<T>>;
 
 }

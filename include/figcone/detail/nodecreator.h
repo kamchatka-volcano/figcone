@@ -1,27 +1,32 @@
 #pragma once
 #include "node.h"
 #include "inode.h"
-#include "iconfig.h"
+#include "configreaderstorage.h"
+#include "iconfigreader.h"
 #include "validator.h"
 #include "gsl_assert.h"
 #include "utils.h"
+#include <figcone/config.h>
 #include <figcone/nameformat.h>
 
 namespace figcone::detail{
 
 template<typename TCfg>
 class NodeCreator{
+    static_assert(std::is_base_of_v<ConfigReaderStorage, remove_optional_t<TCfg>>,
+            "TConfig must be a subclass of figcone::Config.");
 public:
-    NodeCreator(IConfig& cfg,
+    NodeCreator(ConfigReaderPtr cfgReader,
                 std::string nodeName,
                 TCfg& nodeCfg)
-        : cfg_{cfg}
+        : cfgReader_{cfgReader}
         , nodeName_{(Expects(!nodeName.empty()), std::move(nodeName))}
         , nodeCfg_{nodeCfg}
+        , nestedCfgReader_{ cfgReader_ ? cfgReader_->makeNestedReader(nodeName_) : ConfigReaderPtr{}}
     {
-        static_assert(std::is_base_of_v<IConfig, maybe_opt_t<TCfg>>,
-                      "TConfig must be a subclass of figcone::IConfig.");
-        node_ = std::make_unique<Node<TCfg>>(nodeName_, nodeCfg_);
+        if constexpr(is_optional_v<TCfg>)
+            static_assert(dependent_false<TCfg>,"TConfig can't be placed in std::optional, use figcone::optional instead.");
+        node_ = std::make_unique<Node<TCfg>>(nodeName_, nodeCfg_, nestedCfgReader_);
     }
 
     NodeCreator<TCfg>& operator()()
@@ -32,38 +37,44 @@ public:
 
     operator TCfg()
     {
-        cfg_.addNode(nodeName_, std::move(node_));
-        return {};
+        if (cfgReader_)
+            cfgReader_->addNode(nodeName_, std::move(node_));
+         if constexpr(is_optional_config_field<TCfg>::value)
+            return TCfg{typename TCfg::value_type{nestedCfgReader_}};
+         else
+            return TCfg{nestedCfgReader_};
     }
 
     NodeCreator<TCfg>& ensure(std::function<void(const TCfg&)> validatingFunc)
     {
-        cfg_.addValidator(std::make_unique<Validator<TCfg>>(*node_, nodeCfg_, std::move(validatingFunc)));
+        if (cfgReader_)
+            cfgReader_->addValidator(std::make_unique<Validator<TCfg>>(*node_, nodeCfg_, std::move(validatingFunc)));
         return *this;
     }
 
     template <typename TValidator, typename... TArgs>
     NodeCreator<TCfg>& ensure(TArgs&&... args)
     {
-        cfg_.addValidator(std::make_unique<Validator<TCfg>>(*node_, nodeCfg_, TValidator{std::forward<TArgs>(args)...}));
+        if (cfgReader_)
+            cfgReader_->addValidator(
+                    std::make_unique<Validator<TCfg>>(*node_, nodeCfg_, TValidator{std::forward<TArgs>(args)...}));
         return *this;
     }
 
 private:
-    IConfig& cfg_;
+    ConfigReaderPtr cfgReader_;
     std::string nodeName_;
     TCfg& nodeCfg_;
+    ConfigReaderPtr nestedCfgReader_;
     std::unique_ptr<Node<TCfg>> node_;
 };
 
-template<typename TCfg, typename TParentCfg>
-NodeCreator<TCfg> makeNodeCreator(TParentCfg& parentCfg,
+template<typename TCfg>
+NodeCreator<TCfg> makeNodeCreator(ConfigReaderPtr cfgReader,
                                   std::string nodeName,
                                   const std::function<TCfg&()>& configGetter)
 {
-    static_assert(maybe_opt_t<TCfg>::format() == TParentCfg::format(),
-                  "Node's config type must have the same name format as its parent.");
-    return {parentCfg, std::move(nodeName), configGetter()};
+    return {cfgReader, std::move(nodeName), configGetter()};
 }
 
 
