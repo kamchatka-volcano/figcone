@@ -48,7 +48,7 @@ struct ValidatedCfg: public figcone::Config{
     FIGCONE_NODELIST(testNodes, std::vector<Node>).ensure([](const std::vector<Node>& nodeList){
         if (nodeList.size() < 2) throw figcone::ValidationError{"can't have less than 2 elements"};
     });
-    FIGCONE_NODELIST(testNodesOpt, std::optional<std::vector<Node>>).ensure([](const std::optional<std::vector<Node>>& nodeList){
+    FIGCONE_NODELIST(testNodesOpt, figcone::optional<std::vector<Node>>).ensure([](const std::optional<std::vector<Node>>& nodeList){
         if (nodeList && nodeList->size() < 2) throw figcone::ValidationError{"can't have less than 2 elements"};
     });
 };

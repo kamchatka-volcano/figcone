@@ -9,19 +9,19 @@ template<typename T, typename = void>
 struct is_optional : std::false_type {};
 
 template<typename T>
-struct is_optional<std::optional<T> > : std::true_type {};
+struct is_optional<std::optional<T>> : std::true_type {};
 
 template <typename T>
 inline constexpr auto is_optional_v = is_optional<T>::value;
 
 template<typename T, typename = void>
-struct is_optional_config_field : std::false_type {};
+struct is_initialized_optional : std::false_type {};
 
 template<typename T>
-struct is_optional_config_field<figcone::detail::OptionalConfigField<T> > : std::true_type {};
+struct is_initialized_optional<figcone::detail::InitializedOptional<T>> : std::true_type {};
 
 template <typename T>
-inline constexpr auto is_optional_config_field_v = is_optional_config_field<T>::value;
+inline constexpr auto is_initialized_optional_v = is_initialized_optional<T>::value;
 
 template <typename, typename = void>
 struct is_sequence_container : std::false_type{};
@@ -73,7 +73,7 @@ struct remove_optional<std::optional<T>>{
 };
 
 template<typename T>
-struct remove_optional<OptionalConfigField<T>>{
+struct remove_optional<InitializedOptional<T>>{
     using type = T;
 };
 

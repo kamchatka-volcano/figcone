@@ -35,7 +35,7 @@ private:
         if (!node.isItem())
            throw ConfigError{"Node '" + name_ + "': config node can't be a list.", node.position()};
 
-        if constexpr (is_optional_config_field<TCfg>::value)
+        if constexpr (is_initialized_optional_v<TCfg>)
             cfg_.emplace();
 
         if (cfgReader_)
@@ -44,7 +44,7 @@ private:
 
     bool hasValue() const override
     {
-        if constexpr (is_optional_config_field<TCfg>::value)
+        if constexpr (is_initialized_optional_v<TCfg>)
             return true;
 
         return hasValue_;

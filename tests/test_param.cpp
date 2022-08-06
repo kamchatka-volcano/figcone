@@ -169,6 +169,7 @@ TEST(TestParam, MultiParam)
     tree.asItem().addParam("testInt", "5", {1, 1});
     tree.asItem().addParam("testDouble", "5.0", {2, 1});
     tree.asItem().addParam("testString", "foo", {3, 1});
+    tree.asItem().addParam("testString2", "Hello world", {4, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
     auto cfg = cfgReader.read<MultiParamCfg>("", parser);
@@ -177,7 +178,8 @@ TEST(TestParam, MultiParam)
     EXPECT_EQ(cfg.testDouble, 5.0);
     ASSERT_TRUE(cfg.testString.has_value());
     EXPECT_EQ(*cfg.testString, "foo");
-    ASSERT_FALSE(cfg.testString2.has_value());
+    ASSERT_TRUE(cfg.testString2.has_value());
+    EXPECT_EQ(*cfg.testString2, "Hello world");
 }
 
 TEST(TestParam, MultiParamUnspecifiedOptionals)

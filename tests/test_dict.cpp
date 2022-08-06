@@ -42,7 +42,7 @@ struct ValidatedCfg : public figcone::Config {
     FIGCONE_DICT(test, StringMap).checkedWith([](const std::map<std::string, std::string>& dict){
         if (dict.empty()) throw figcone::ValidationError{"can't be empty"};
     });
-    FIGCONE_DICT(testOpt, std::optional<StringMap>).checkedWith([](const figcone::optional<StringMap>& dict){
+    FIGCONE_DICT(testOpt, figcone::optional<StringMap>).checkedWith([](const figcone::optional<StringMap>& dict){
         if (dict && dict->empty()) throw figcone::ValidationError{"can't be empty"};
     });
 };

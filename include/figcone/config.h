@@ -1,6 +1,6 @@
 #pragma once
 #include "nameformat.h"
-#include "detail/optionalconfigfield.h"
+#include "detail/initializedoptional.h"
 #include "detail/configmacros.h"
 #include "detail/inode.h"
 #include "detail/ivalidator.h"
@@ -189,6 +189,6 @@ protected:
 };
 
 template<typename T>
-using optional = std::conditional_t<std::is_base_of_v<Config, T>, detail::OptionalConfigField<T>, std::optional<T>>;
+using optional = std::conditional_t<std::is_base_of_v<Config, T>, detail::InitializedOptional<T>, std::optional<T>>;
 
 }

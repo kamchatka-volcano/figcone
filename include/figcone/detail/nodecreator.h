@@ -42,10 +42,7 @@ public:
     {
         if (cfgReader_)
             cfgReader_->addNode(nodeName_, std::move(node_));
-         if constexpr(is_optional_config_field<TCfg>::value)
-            return TCfg{typename TCfg::value_type{nestedCfgReader_}};
-         else
-            return TCfg{nestedCfgReader_};
+        return TCfg{nestedCfgReader_};
     }
 
     NodeCreator<TCfg>& ensure(std::function<void(const TCfg&)> validatingFunc)
