@@ -58,7 +58,7 @@ struct DictCfgWithoutMacro : public figcone::Config{
     figcone::optional<std::map<std::string, std::string>> optTest2 = dict<&DictCfgWithoutMacro::optTest2>();
 };
 #else
-struct DictCfgWithoutMacro : public figcone::Config<> {
+struct DictCfgWithoutMacro : public figcone::Config{
     std::map<std::string, std::string> test = dict<&DictCfgWithoutMacro::test>("test");
     std::unordered_map<std::string, std::string> optTest = dict<&DictCfgWithoutMacro::optTest>("optTest")();
     figcone::optional<std::map<std::string, std::string>> optTest2 = dict<&DictCfgWithoutMacro::optTest2>("optTest2");

@@ -26,20 +26,20 @@ public:
     template<typename TCfg>
     TCfg readFile(const std::filesystem::path& configFile, IParser& parser)
     {
-        auto cfg = TCfg{makePtr()};
+        auto cfg = TCfg{{makePtr()}};
         auto configStream = std::ifstream{configFile};
         read(configStream, parser);
-        clearConfigReaderStorage(cfg);
+        resetConfigReader(cfg);
         return cfg;
     }
 
     template<typename TCfg>
     TCfg read(const std::string& configContent, IParser& parser)
     {
-        auto cfg = TCfg{makePtr()};
+        auto cfg = TCfg{{makePtr()}};
         auto configStream = std::stringstream{configContent};
         read(configStream, parser);
-        clearConfigReaderStorage(cfg);
+        resetConfigReader(cfg);
         return cfg;
     }
 

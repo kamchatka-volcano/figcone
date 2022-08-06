@@ -1,5 +1,4 @@
 #pragma once
-#include "configreaderstorage.h"
 #include "configreaderptr.h"
 #include <figcone_tree/tree.h>
 #include <memory>
@@ -9,7 +8,6 @@ namespace figcone::detail {
 class INode;
 class IParam;
 class IValidator;
-class IConfigReader;
 
 class IConfigReader{
 public:
@@ -27,9 +25,10 @@ protected:
         return this;
     }
 
-    void clearConfigReaderStorage(ConfigReaderStorage& storage)
+    template<typename TCfg>
+    void resetConfigReader(TCfg& cfg)
     {
-        storage.cfgReader_ = ConfigReaderPtr{};
+        cfg.cfgReader_ = ConfigReaderPtr{};
     }
 };
 

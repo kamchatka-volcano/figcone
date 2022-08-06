@@ -1,7 +1,6 @@
 #pragma once
 #include "node.h"
 #include "inode.h"
-#include "configreaderstorage.h"
 #include "iconfigreader.h"
 #include "validator.h"
 #include "gsl_assert.h"
@@ -9,11 +8,15 @@
 #include <figcone/config.h>
 #include <figcone/nameformat.h>
 
+namespace figcone{
+class Config;
+}
+
 namespace figcone::detail{
 
 template<typename TCfg>
 class NodeCreator{
-    static_assert(std::is_base_of_v<ConfigReaderStorage, remove_optional_t<TCfg>>,
+    static_assert(std::is_base_of_v<Config, remove_optional_t<TCfg>>,
             "TConfig must be a subclass of figcone::Config.");
 public:
     NodeCreator(ConfigReaderPtr cfgReader,
@@ -68,14 +71,5 @@ private:
     ConfigReaderPtr nestedCfgReader_;
     std::unique_ptr<Node<TCfg>> node_;
 };
-
-template<typename TCfg>
-NodeCreator<TCfg> makeNodeCreator(ConfigReaderPtr cfgReader,
-                                  std::string nodeName,
-                                  const std::function<TCfg&()>& configGetter)
-{
-    return {cfgReader, std::move(nodeName), configGetter()};
-}
-
 
 }

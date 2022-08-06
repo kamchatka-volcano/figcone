@@ -72,8 +72,8 @@ struct MultiNodeSingleLevelCfg : public figcone::Config {
 };
 
 #ifdef NAMEOF_AVAILABLE
-struct SingleNodeCfgWithoutMacro : public figcone::Config {
-    A a = node<&SingleNodeCfgWithoutMacro::a>();
+struct SingleNodeCfgWithoutMacro : public figcone::ConfigT<SingleNodeCfgWithoutMacro> {
+    A a = node<&T::a>();
 };
 #else
 struct SingleNodeCfgWithoutMacro : public figcone::Config {

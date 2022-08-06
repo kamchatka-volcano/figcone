@@ -2,7 +2,6 @@
 #include "nameformat.h"
 #include "detail/optionalconfigfield.h"
 #include "detail/configmacros.h"
-#include "detail/configreaderstorage.h"
 #include "detail/inode.h"
 #include "detail/ivalidator.h"
 #include "detail/iconfigreader.h"
@@ -29,25 +28,27 @@ namespace detail {
 class IParam;
 }
 
-class Config : public detail::ConfigReaderStorage{
+class Config{
 
 public:
     Config() = default;
-    using detail::ConfigReaderStorage::ConfigReaderStorage;
+    Config(detail::ConfigReaderPtr reader)
+        : cfgReader_{reader}
+    {}
 
-protected:
-    Config(Config&& other)
+     Config(Config&& other)
     {
-        if (cfgReader())
+        if (cfgReader() && other.cfgReader())
             cfgReader()->swapContents(other.cfgReader());
     }
     Config& operator=(Config&& other)
     {
-        if (cfgReader())
+        if (cfgReader() && other.cfgReader())
             cfgReader()->swapContents(other.cfgReader());
         return *this;
     }
 
+protected:
     template<auto member>
     auto node(const std::string& memberName)
     {
@@ -128,6 +129,11 @@ protected:
     }
 #endif
 
+    detail::ConfigReaderPtr cfgReader() const
+    {
+        return cfgReader_;
+    }
+
 private:
     template <auto member, typename T, typename TCfg>
     auto node(T TCfg::*, const std::string& memberName)
@@ -170,6 +176,16 @@ private:
         auto cfg = static_cast<TCfg*>(this);
         return detail::ParamListCreator<T>{cfgReader(), memberName, cfg->*member};
     }
+
+private:
+    detail::ConfigReaderPtr cfgReader_;
+    friend class detail::IConfigReader;
+};
+
+template<class TConfig>
+class ConfigT : public Config{
+protected:
+    using T = TConfig;
 };
 
 template<typename T>

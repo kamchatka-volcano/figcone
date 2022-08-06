@@ -63,17 +63,4 @@ private:
     TMap defaultValue_;
 };
 
-template<typename TMap>
-inline DictCreator<TMap> makeDictCreator(ConfigReaderPtr parentConfig,
-                                         std::string dictName,
-                                         const std::function<TMap&()>& dictMapGetter)
-{
-    static_assert(is_associative_container_v<remove_optional_t<TMap>>,
-                  "Dictionary field must be an associative container or an associative container placed in std::optional");
-    static_assert(std::is_same_v<typename remove_optional_t<TMap>::key_type, std::string>,
-                  "Dictionary associative container's key type must be std::string");
-    return {parentConfig, std::move(dictName), dictMapGetter()};
-}
-
-
 }

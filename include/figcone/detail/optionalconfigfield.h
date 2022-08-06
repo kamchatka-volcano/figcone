@@ -1,15 +1,18 @@
 #pragma once
-#include "configreaderstorage.h"
 #include <utility>
 #include <stdexcept>
 #include <optional>
+
+namespace figcone{
+class Config;
+}
 
 namespace figcone::detail{
 
 template<typename T>
 struct OptionalConfigField
 {
-    static_assert(std::is_base_of_v<ConfigReaderStorage, T>, "T must be a subclass of ConfigReaderStorage");
+    static_assert(std::is_base_of_v<Config, T>, "T must be a subclass of ConfigReaderStorage");
     using value_type = T;
 
     template<class... Args>

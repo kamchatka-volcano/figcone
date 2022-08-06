@@ -36,7 +36,7 @@ private:
            throw ConfigError{"Node '" + name_ + "': config node can't be a list.", node.position()};
 
         if constexpr (is_optional_config_field<TCfg>::value)
-            cfg_.emplace(cfgReader_);
+            cfg_.emplace();
 
         if (cfgReader_)
             cfgReader_->load(node);

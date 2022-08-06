@@ -19,7 +19,7 @@ struct SingleParamCfgWithoutMacro : public figcone::Config{
     int test = param<&SingleParamCfgWithoutMacro::test>();
 };
 #else
-struct SingleParamCfgWithoutMacro : public figcone::Config<figcone::NameFormat::CamelCase> {
+struct SingleParamCfgWithoutMacro : public figcone::Config{
     int test = param<&SingleParamCfgWithoutMacro::test>("test");
 };
 #endif

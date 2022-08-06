@@ -4,13 +4,17 @@
 #include "gsl_assert.h"
 #include <figcone/nameformat.h>
 
+namespace figcone{
+class Config;
+}
+
 namespace figcone::detail{
 
 template<typename TCfgList>
 class NodeListCreator{
     static_assert(is_sequence_container_v<remove_optional_t<TCfgList>>,
             "Node list field must be a sequence container or a sequence container placed in std::optional");
-    static_assert(std::is_base_of_v<ConfigReaderStorage, typename remove_optional_t<TCfgList>::value_type>,
+    static_assert(std::is_base_of_v<Config, typename remove_optional_t<TCfgList>::value_type>,
             "TCfgList::value_type must be a subclass of figcone::Config.");
 public:
     NodeListCreator(ConfigReaderPtr cfgReader,
@@ -63,15 +67,5 @@ private:
     TCfgList& nodeListValue_;
     ConfigReaderPtr nestedCfgReader_;
 };
-
-template<typename TCfgList>
-NodeListCreator <TCfgList> makeNodeListCreator(ConfigReaderPtr cfgReader,
-                                               std::string nodeListName,
-                                               const std::function<TCfgList&()>& nodeListGetter,
-                                               NodeListType type = NodeListType::Normal)
-{
-    return {cfgReader, std::move(nodeListName), nodeListGetter(), type};
-}
-
 
 }
