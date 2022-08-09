@@ -26,120 +26,120 @@ public:
     template<typename TCfg>
     TCfg readFile(const std::filesystem::path& configFile, IParser& parser)
     {
-        auto cfg = TCfg{{makePtr()}};
         auto configStream = std::ifstream{configFile};
-        read(configStream, parser);
-        resetConfigReader(cfg);
-        return cfg;
+        return read<TCfg>(configStream, parser);
     }
 
     template<typename TCfg>
     TCfg read(const std::string& configContent, IParser& parser)
     {
-        auto cfg = TCfg{{makePtr()}};
         auto configStream = std::stringstream{configContent};
-        read(configStream, parser);
-        resetConfigReader(cfg);
-        return cfg;
+        return read<TCfg>(configStream, parser);
     }
 
 #ifdef FIGCONE_JSON_AVAILABLE
-    void readJsonFile(const std::filesystem::path& configFile)
+    template<typename TCfg>
+    TCfg readJsonFile(const std::filesystem::path& configFile)
     {
         auto configStream = std::ifstream{configFile};
-        readJson(configStream);
+        return readJson<TCfg>(configStream);
     }
-
-    void readJson(const std::string& configContent)
+    template<typename TCfg>
+    TCfg readJson(const std::string& configContent)
     {
         auto configStream = std::stringstream{configContent};
-        readJson(configStream);
+        return readJson<TCfg>(configStream);
     }
-
-    void readJson(std::istream& configStream)
+    template<typename TCfg>
+    TCfg readJson(std::istream& configStream)
     {
         auto parser = figcone::json::Parser{};
-        read(configStream, parser);
+        return read<TCfg>(configStream, parser);
     }
 #endif
 
 #ifdef FIGCONE_YAML_AVAILABLE
-    void readYamlFile(const std::filesystem::path& configFile)
+    template<typename TCfg>
+    TCfg readYamlFile(const std::filesystem::path& configFile)
     {
         auto configStream = std::ifstream{configFile};
-        readYaml(configStream);
+        return readYaml<TCfg>(configStream);
     }
-
-    void readYaml(const std::string& configContent)
+    template<typename TCfg>
+    TCfg readYaml(const std::string& configContent)
     {
         auto configStream = std::stringstream{configContent};
-        readYaml(configStream);
+        return readYaml<TCfg>(configStream);
     }
 
-    void readYaml(std::istream& configStream)
+    template<typename TCfg>
+    TCfg readYaml(std::istream& configStream)
     {
         auto parser = figcone::yaml::Parser{};
-        read(configStream, parser);
+        return read<TCfg>(configStream, parser);
     }
 #endif
 
 #ifdef FIGCONE_TOML_AVAILABLE
-    void readTomlFile(const std::filesystem::path& configFile)
+    template<typename TCfg>
+    TCfg readTomlFile(const std::filesystem::path& configFile)
     {
         auto configStream = std::ifstream{configFile};
-        readToml(configStream);
+        return readToml<TCfg>(configStream);
     }
-
-    void readToml(const std::string& configContent)
+    template<typename TCfg>
+    TCfg readToml(const std::string& configContent)
     {
         auto configStream = std::stringstream{configContent};
-        readToml(configStream);
+        return readToml<TCfg>(configStream);
     }
-
-    void readToml(std::istream& configStream)
+    template<typename TCfg>
+    TCfg readToml(std::istream& configStream)
     {
         auto parser = figcone::toml::Parser{};
-        read(configStream, parser);
+        return read<TCfg>(configStream, parser);
     }
 #endif
 
 #ifdef FIGCONE_INI_AVAILABLE
-    void readIniFile(const std::filesystem::path& configFile)
+    template<typename TCfg>
+    TCfg readIniFile(const std::filesystem::path& configFile)
     {
         auto configStream = std::ifstream{configFile};
-        readIni(configStream);
+        return readIni<TCfg>(configStream);
     }
-
-    void readIni(const std::string& configContent)
+    template<typename TCfg>
+    TCfg readIni(const std::string& configContent)
     {
         auto configStream = std::stringstream{configContent};
-        readIni(configStream);
+        return readIni<TCfg>(configStream);
     }
-
-    void readIni(std::istream& configStream)
+    template<typename TCfg>
+    TCfg readIni(std::istream& configStream)
     {
         auto parser = figcone::ini::Parser{};
-        read(configStream, parser);
+        return read<TCfg>(configStream, parser);
     }
 #endif
 
 #ifdef FIGCONE_XML_AVAILABLE
-    void readXmlFile(const std::filesystem::path& configFile)
+    template<typename TCfg>
+    TCfg readXmlFile(const std::filesystem::path& configFile)
     {
         auto configStream = std::ifstream{configFile};
-        readXml(configStream);
+        return readXml<TCfg>(configStream);
     }
-
-    void readXml(const std::string& configContent)
+    template<typename TCfg>
+    TCfg readXml(const std::string& configContent)
     {
         auto configStream = std::stringstream{configContent};
-        readXml(configStream);
+        return readXml<TCfg>(configStream);
     }
-
-    void readXml(std::istream& configStream)
+    template<typename TCfg>
+    TCfg readXml(std::istream& configStream)
     {
         auto parser = figcone::xml::Parser{};
-        read(configStream, parser);
+        return read<TCfg>(configStream, parser);
     }
 #endif
 
@@ -200,8 +200,10 @@ private:
         return nestedReaders_[name]->makePtr();
     }
 
-    void read(std::istream& configStream, IParser& parser)
+    template<typename TCfg>
+    TCfg read(std::istream& configStream, IParser& parser)
     {
+        auto cfg = TCfg{{makePtr()}};
         auto tree = parser.parse(configStream);
         try {
             load(tree);
@@ -209,6 +211,8 @@ private:
         catch (const detail::LoadingError& e) {
             throw ConfigError{std::string{"Root node: "} + e.what(), tree.position()};
         }
+        resetConfigReader(cfg);
+        return cfg;
     }
 
     void swapContents(detail::ConfigReaderPtr otherReader) override
