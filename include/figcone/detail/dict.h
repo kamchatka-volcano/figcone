@@ -3,11 +3,13 @@
 #include "param.h"
 #include "utils.h"
 #include <figcone_tree/tree.h>
+#include <sfun/traits.h>
 #include <map>
 #include <string>
 #include <type_traits>
 
 namespace figcone::detail {
+using namespace sfun::traits;
 
 template<typename TMap>
 class Dict : public INode{
@@ -34,7 +36,7 @@ private:
         position_ = node.position();
         if (!node.isItem())
            throw ConfigError{"Dictionary '" + name_ + "': config node can't be a list.", node.position()};
-        if constexpr(is_optional<TMap>::value)
+        if constexpr(is_optional_v<TMap>)
            dictMap_.emplace();
         maybeOptValue(dictMap_).clear();
 
@@ -52,7 +54,7 @@ private:
 
     bool hasValue() const override
     {
-        if constexpr (is_optional<TMap>::value)
+        if constexpr (is_optional_v<TMap>)
             return true;
         return hasValue_;
     }

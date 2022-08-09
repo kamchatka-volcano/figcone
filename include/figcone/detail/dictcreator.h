@@ -3,9 +3,11 @@
 #include "dict.h"
 #include "gsl_assert.h"
 #include <figcone/nameformat.h>
+#include <sfun/traits.h>
 #include <memory>
 
 namespace figcone::detail{
+using namespace sfun::traits;
 
 template<typename TMap>
 class DictCreator{

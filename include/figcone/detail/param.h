@@ -5,11 +5,13 @@
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
 #include <figcone_tree/stringconverter.h>
+#include <sfun/traits.h>
 #include <string>
 #include <sstream>
 #include <algorithm>
 
 namespace figcone::detail {
+using namespace sfun::traits;
 
 template<typename T>
 class Param : public IParam{
@@ -40,7 +42,7 @@ private:
 
     bool hasValue() const override
     {
-        if constexpr (is_optional<T>::value)
+        if constexpr (is_optional_v<T>)
             return true;
         return hasValue_;
     }

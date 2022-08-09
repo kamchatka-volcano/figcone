@@ -8,6 +8,7 @@ else()
     set(FIGCONE_SUBPROJECT ON)
 endif()
 
+include(external/sfun)
 find_package(figcone_tree 0.10.0 QUIET)
 if (NOT figcone_tree_FOUND)
     message("Configuration info: figcone_tree library wasn't found on your system, downloading it from the GitHub repository")
@@ -92,6 +93,11 @@ if (FIGCONE_USE_NAMEOF)
         $<BUILD_INTERFACE:${nameof_SOURCE_DIR}/include/>
     )
 endif()
+target_include_directories(
+    figcone
+    INTERFACE
+    $<BUILD_INTERFACE:${sfun_SOURCE_DIR}/include/>
+)
 
 target_link_libraries(figcone INTERFACE figcone::figcone_tree)
 if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON)
@@ -125,6 +131,7 @@ endif()
 option(INSTALL_FIGCONE "Install figcone library unconditionally" OFF)
 if (NOT FIGCONE_SUBPROJECT OR INSTALL_FIGCONE)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/figcone DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    install(DIRECTORY ${sfun_SOURCE_DIR}/include/sfun       DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/figcone/detail/external)
     install(FILES ${nameof_SOURCE_DIR}/include/nameof.hpp   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/figcone/detail/external)
 
     set(FIGCONE_PACK_PATH ${CMAKE_INSTALL_LIBDIR}/cmake/figcone)

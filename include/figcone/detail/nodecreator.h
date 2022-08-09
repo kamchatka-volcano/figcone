@@ -7,12 +7,14 @@
 #include "utils.h"
 #include <figcone/config.h>
 #include <figcone/nameformat.h>
+#include <sfun/traits.h>
 
 namespace figcone{
 class Config;
 }
 
 namespace figcone::detail{
+using namespace sfun::traits;
 
 template<typename TCfg>
 class NodeCreator{

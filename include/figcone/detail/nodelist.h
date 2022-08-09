@@ -4,10 +4,12 @@
 #include "utils.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
+#include <sfun/traits.h>
 #include <vector>
 #include <memory>
 
 namespace figcone::detail{
+using namespace sfun::traits;
 
 enum class NodeListType{
     Normal,
@@ -23,7 +25,7 @@ public:
         , type_{type}
         , cfgReader_{cfgReader}
     {
-        static_assert(is_sequence_container_v<remove_optional_t<TCfgList>>,
+        static_assert(is_dynamic_sequence_container_v<remove_optional_t<TCfgList>>,
                       "Node list field must be a sequence container or a sequence container placed in std::optional");
     }
 
@@ -61,7 +63,7 @@ public:
 
     bool hasValue() const override
     {
-        if constexpr (is_optional<TCfgList>::value)
+        if constexpr (is_optional_v<TCfgList>)
             return true;
         return hasValue_;
     }

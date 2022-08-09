@@ -3,16 +3,18 @@
 #include "nodelist.h"
 #include "gsl_assert.h"
 #include <figcone/nameformat.h>
+#include <sfun/traits.h>
 
 namespace figcone{
 class Config;
 }
 
 namespace figcone::detail{
+using namespace sfun::traits;
 
 template<typename TCfgList>
 class NodeListCreator{
-    static_assert(is_sequence_container_v<remove_optional_t<TCfgList>>,
+    static_assert(is_dynamic_sequence_container_v<remove_optional_t<TCfgList>>,
             "Node list field must be a sequence container or a sequence container placed in std::optional");
     static_assert(std::is_base_of_v<Config, typename remove_optional_t<TCfgList>::value_type>,
             "TCfgList::value_type must be a subclass of figcone::Config.");
@@ -65,7 +67,6 @@ private:
     std::string nodeListName_;
     std::unique_ptr<NodeList<TCfgList>> nodeList_;
     TCfgList& nodeListValue_;
-    ConfigReaderPtr nestedCfgReader_;
 };
 
 }

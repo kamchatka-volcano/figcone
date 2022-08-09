@@ -5,13 +5,15 @@
 #include "validator.h"
 #include "gsl_assert.h"
 #include "utils.h"
+#include <sfun/traits.h>
 #include <vector>
 
 namespace figcone::detail{
+using namespace sfun::traits;
 
 template<typename TParamList>
 class ParamListCreator{
-    static_assert(is_sequence_container_v<remove_optional_t<TParamList>>,
+    static_assert(is_dynamic_sequence_container_v<remove_optional_t<TParamList>>,
             "Param list field must be a sequence container or a sequence container placed in std::optional");
 public:
     ParamListCreator(ConfigReaderPtr cfgReader,

@@ -4,12 +4,14 @@
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
 #include <figcone_tree/stringconverter.h>
+#include <sfun/traits.h>
 #include <vector>
 #include <string>
 #include <sstream>
 #include <algorithm>
 
 namespace figcone::detail {
+using namespace sfun::traits;
 
 template<typename TParamList>
 class ParamList : public IParam{
@@ -18,7 +20,7 @@ public:
         : name_{std::move(name)}
         , paramListValue_{paramValue}
     {
-        static_assert(is_sequence_container_v<remove_optional_t<TParamList>>,
+        static_assert(is_dynamic_sequence_container_v<remove_optional_t<TParamList>>,
                       "Param list field must be a sequence container or a sequence container placed in std::optional");
     }
 
@@ -32,7 +34,7 @@ private:
     {
         position_ = paramList.position();
         hasValue_ = true;
-        if constexpr(is_optional<TParamList>::value)
+        if constexpr(is_optional_v<TParamList>)
             paramListValue_.emplace();
 
         if (!paramList.isList())
@@ -49,7 +51,7 @@ private:
 
     bool hasValue() const override
     {
-         if constexpr (is_optional<TParamList>::value)
+         if constexpr (is_optional_v<TParamList>)
             return true;
         return hasValue_;
     }
