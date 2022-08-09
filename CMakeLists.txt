@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(figcone VERSION 1.0.0)
+project(figcone VERSION 2.0.0)
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     set(FIGCONE_SUBPROJECT OFF)
@@ -7,7 +7,7 @@ else()
     set(FIGCONE_SUBPROJECT ON)
 endif()
 
-find_package(figcone_tree 0.9.0 QUIET)
+find_package(figcone_tree 0.10.0 QUIET)
 if (NOT figcone_tree_FOUND)
     message("Configuration info: figcone_tree library wasn't found on your system, downloading it from the GitHub repository")
     include (external/figcone_tree)
@@ -15,11 +15,7 @@ endif()
 
 option(FIGCONE_USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" OFF)
 if (FIGCONE_USE_NAMEOF)
-    find_package(nameof 0.10.1 QUIET)
-    if (NOT nameof_FOUND)
-        set(NAMEOF_OPT_INSTALL ON)
-        include(external/nameof)
-    endif()
+    include(external/nameof)
 endif()
 
 option(FIGCONE_USE_ALL  "Enable all supported config formats" ON)
@@ -34,7 +30,7 @@ if (FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML OR FIGCONE_USE_INI 
 endif()
 
 if(FIGCONE_USE_ALL OR FIGCONE_USE_JSON)
-    find_package(figcone_json 0.9.0 QUIET)
+    find_package(figcone_json 0.10.0 QUIET)
     if (NOT figcone_json_FOUND)
         message("Configuration info: figcone_json library wasn't found on your system, downloading it from the GitHub repository")
         include (external/figcone_json)
@@ -42,7 +38,7 @@ if(FIGCONE_USE_ALL OR FIGCONE_USE_JSON)
 endif()
 
 if(FIGCONE_USE_ALL OR FIGCONE_USE_YAML)
-    find_package(figcone_yaml 0.9.0 QUIET)
+    find_package(figcone_yaml 0.10.0 QUIET)
     if (NOT figcone_yaml_FOUND)
         message("Configuration info: figcone_yaml library wasn't found on your system, downloading it from the GitHub repository")
         include (external/figcone_yaml)
@@ -50,7 +46,7 @@ if(FIGCONE_USE_ALL OR FIGCONE_USE_YAML)
 endif()
 
 if(FIGCONE_USE_ALL OR FIGCONE_USE_TOML)
-    find_package(figcone_toml 0.9.0 QUIET)
+    find_package(figcone_toml 0.10.0 QUIET)
     if (NOT figcone_toml_FOUND)
         message("Configuration info: figcone_toml library wasn't found on your system, downloading it from the GitHub repository")
         include (external/figcone_toml)
@@ -58,7 +54,7 @@ if(FIGCONE_USE_ALL OR FIGCONE_USE_TOML)
 endif()
 
 if(FIGCONE_USE_ALL OR FIGCONE_USE_INI)
-    find_package(figcone_ini 0.9.0 QUIET)
+    find_package(figcone_ini 0.10.0 QUIET)
     if (NOT figcone_ini_FOUND)
         message("Configuration info: figcone_ini library wasn't found on your system, downloading it from the GitHub repository")
         include (external/figcone_ini)
@@ -66,7 +62,7 @@ if(FIGCONE_USE_ALL OR FIGCONE_USE_INI)
 endif()
 
 if(FIGCONE_USE_ALL OR FIGCONE_USE_XML)
-    find_package(figcone_xml 0.9.0 QUIET)
+    find_package(figcone_xml 0.10.0 QUIET)
     if (NOT figcone_xml_FOUND)
         message("Configuration info: figcone_xml library wasn't found on your system, downloading it from the GitHub repository")
         include (external/figcone_xml)
@@ -83,11 +79,20 @@ target_include_directories(
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+target_include_directories(
+    figcone
+    INTERFACE
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/figcone/detail/external>
+)
+if (FIGCONE_USE_NAMEOF)
+    target_include_directories(
+        figcone
+        INTERFACE
+        $<BUILD_INTERFACE:${nameof_SOURCE_DIR}/include/>
+    )
+endif()
 
 target_link_libraries(figcone INTERFACE figcone::figcone_tree)
-if (FIGCONE_USE_NAMEOF)
-    target_link_libraries(figcone INTERFACE nameof::nameof)
-endif()
 if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON)
     target_link_libraries(figcone INTERFACE figcone::figcone_json)
 endif()
@@ -120,6 +125,7 @@ option(INSTALL_FIGCONE "Install figcone library unconditionally" OFF)
 if (NOT FIGCONE_SUBPROJECT OR INSTALL_FIGCONE)
     include(GNUInstallDirs)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/figcone DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    install(FILES ${nameof_SOURCE_DIR}/include/nameof.hpp   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/figcone/detail/external)
 
     set(FIGCONE_PACK_PATH ${CMAKE_INSTALL_LIBDIR}/cmake/figcone)
 
