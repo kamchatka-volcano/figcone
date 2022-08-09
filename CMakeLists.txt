@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 project(figcone VERSION 2.0.0)
+include(GNUInstallDirs)
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     set(FIGCONE_SUBPROJECT OFF)
@@ -123,7 +124,6 @@ endif()
 
 option(INSTALL_FIGCONE "Install figcone library unconditionally" OFF)
 if (NOT FIGCONE_SUBPROJECT OR INSTALL_FIGCONE)
-    include(GNUInstallDirs)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/figcone DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
     install(FILES ${nameof_SOURCE_DIR}/include/nameof.hpp   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/figcone/detail/external)
 
