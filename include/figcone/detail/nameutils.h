@@ -1,10 +1,10 @@
 #pragma once
-#include "string_utils.h"
 #include <string>
 #include <algorithm>
+#include <sfun/string_utils.h>
 
 namespace figcone::detail{
-namespace str = string_utils;
+namespace str = sfun::string_utils;
 
 inline std::string formatName(const std::string& name)
 {

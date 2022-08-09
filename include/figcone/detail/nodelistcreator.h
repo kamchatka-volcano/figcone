@@ -1,9 +1,9 @@
 #pragma once
 #include "iconfigreader.h"
 #include "nodelist.h"
-#include "gsl_assert.h"
 #include <figcone/nameformat.h>
 #include <sfun/traits.h>
+#include <gsl/assert>
 
 namespace figcone{
 class Config;

@@ -2,8 +2,7 @@
 #include "iconfigreader.h"
 #include "param.h"
 #include "validator.h"
-#include "gsl_assert.h"
-#include "figcone/config.h"
+#include <gsl/assert>
 
 namespace figcone::detail{
 

@@ -3,11 +3,11 @@
 #include "inode.h"
 #include "iconfigreader.h"
 #include "validator.h"
-#include "gsl_assert.h"
 #include "utils.h"
 #include <figcone/config.h>
 #include <figcone/nameformat.h>
 #include <sfun/traits.h>
+#include <gsl/assert>
 
 namespace figcone{
 class Config;

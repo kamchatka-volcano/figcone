@@ -3,9 +3,9 @@
 #include "iconfigreader.h"
 #include "inode.h"
 #include "validator.h"
-#include "gsl_assert.h"
 #include "utils.h"
 #include <sfun/traits.h>
+#include <gsl/assert>
 #include <vector>
 
 namespace figcone::detail{
