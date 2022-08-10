@@ -34,8 +34,9 @@ public:
     Config(detail::ConfigReaderPtr reader)
         : cfgReader_{reader}
     {}
-
-     Config(Config&& other)
+    Config(const Config&) = default;
+    Config& operator=(const Config&) = default;
+    Config(Config&& other)
     {
         if (cfgReader() && other.cfgReader())
             cfgReader()->swapContents(other.cfgReader());
@@ -179,12 +180,6 @@ private:
 private:
     detail::ConfigReaderPtr cfgReader_;
     friend class detail::IConfigReader;
-};
-
-template<class TConfig>
-class ConfigT : public Config{
-protected:
-    using T = TConfig;
 };
 
 template<typename T>

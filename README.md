@@ -79,7 +79,7 @@ The preprocessor doesn't handle commas between template arguments the right way,
 
 Notes:
 * All config entities listed above provide the parenthesis operator `()` which sets the default value, and makes this config field optional, so it can be omitted from the configuration file without raising an error. The empty operator `()` makes a field's value default initialized, otherwise, the passed parameters are used for initialization. `FIGCONE_NODE`, `FIGCONE_NODELIST` and  `FIGCONE_COPY_NODELIST` only support the default initialization.
-* It's also possible to make any config field optional by placing it in `std::optional`, if value for this field is missing from the config file, the field stays uninitialized and no error occurs.
+* It's also possible to make any config field optional by placing it in `figcone::optional` (std::optional-like wrapper with similar interface), if value for this field is missing from the config file, the field stays uninitialized and no error occurs.
 * Types used for config parameters must be default constructable and copyable.  
 
 
@@ -130,10 +130,10 @@ int main()
     struct Cfg : public figcone::Config{
         int testParam                      = param<&Cfg::testParam>();
         int testParam2                     = param<&Cfg::testParam2>()(100);
-        std::optional<int> testParam3      = param<&Cfg::testParam3>();
+        figcone::optional<int> testParam3      = param<&Cfg::testParam3>();
         std::vector<double> testParamList  = paramList<&Cfg::testParamList>();
         TestNode testNode                  = node<&Cfg::testNode>();
-        std::optional<TestNode> testNode2  = node<&Cfg::testNode2>();
+        figcone::optional<TestNode> testNode2  = node<&Cfg::testNode2>();
         std::vector<TestNode> testNodeList = nodeList<&Cfg::testNodeList>();
         std::vector<TestNode> copyTestNodeList = copyNodeList<&Cfg::copyTestNodeList>();
         std::map<std::string, std::string> testDict = dict<&Cfg::testDict>();
@@ -147,10 +147,10 @@ without it, by providing names by yourself:
     struct Cfg : public figcone::Config{
         int testParam                      = param<&Cfg::testParam>("testParam");
         int testParam2                     = param<&Cfg::testParam2>("testParam2")(100);
-        std::optional<int> testParam3      = param<&Cfg::testParam3>("testParam3");
+        figcone::optional<int> testParam3      = param<&Cfg::testParam3>("testParam3");
         std::vector<double> testParamList  = paramList<&Cfg::testParamList>("testParamList");
         TestNode testNode                  = node<&Cfg::testNode>("testNode");
-        std::optional<TestNode> testNode2  = node<&Cfg::testNode2>("testNode2");
+        figcone::optional<TestNode> testNode2  = node<&Cfg::testNode2>("testNode2");
         std::vector<TestNode> testNodeList = nodeList<&Cfg::testNodeList>("testNodeList");
         std::vector<TestNode> copyTestNodeList = copyNodeList<&Cfg::copyTestNodeList>("copyTestNodeList");
         std::map<std::string, std::string> testDict = dict<&Cfg::testDict>("testDict");
