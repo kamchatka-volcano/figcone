@@ -2,6 +2,7 @@
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
 #include <figcone_tree/errors.h>
+#include <figcone/configreader.h>
 
 class DemoTreeProvider : public figcone::IParser
 {
@@ -44,9 +45,9 @@ class DemoTreeProvider : public figcone::IParser
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
+    auto cfgReader = figcone::ConfigReader{};
     auto parser = DemoTreeProvider{};
-    cfg.read("", parser);
+    auto cfg = cfgReader.read<PhotoViewerCfg>("", parser);
     std::cout << "Launching PhotoViewer in directory " << cfg.rootDir;
     return 0;
 }

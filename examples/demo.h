@@ -5,22 +5,22 @@
 #include <vector>
 #include <map>
 
-struct ThumbnailCfg : public figcone::Config<>
+struct ThumbnailCfg : public figcone::Config
 {
     PARAM(enabled, bool)(true);
     PARAM(maxWidth, int);
     PARAM(maxHeight, int);
 };
-struct HostCfg : public figcone::Config<>{
+struct HostCfg : public figcone::Config{
     PARAM(ip, std::string);
     PARAM(port, int);
 };
-struct SharedAlbumCfg : public figcone::Config<>{
+struct SharedAlbumCfg : public figcone::Config{
     PARAM(dir, std::filesystem::path);
     PARAM(name, std::string);
     NODELIST(hosts, std::vector<HostCfg>)();
 };
-struct PhotoViewerCfg : public figcone::Config<>{
+struct PhotoViewerCfg : public figcone::Config{
     PARAM(rootDir, std::filesystem::path);
     PARAMLIST(supportedFiles, std::vector<std::string>);
     NODE(thumbnails, ThumbnailCfg);

@@ -1,5 +1,4 @@
-#include <figcone/config.h>
-#include <figcone/errors.h>
+#include <figcone/configreader.h>
 #include <figcone/shortmacros.h>
 #include <filesystem>
 #include <iostream>
@@ -15,7 +14,7 @@ struct NotEmpty{
     }
 };
 
-struct PhotoViewerCfg : public figcone::Config<>{
+struct PhotoViewerCfg : public figcone::Config{
     PARAM(rootDir, std::filesystem::path).ensure([](const auto& path) {
         if (!std::filesystem::exists(path))
             throw figcone::ValidationError{"a path must exist"};
@@ -27,8 +26,8 @@ struct PhotoViewerCfg : public figcone::Config<>{
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
-    cfg.readYaml(R"(
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.readYaml<PhotoViewerCfg>(R"(
       rootDir: ~/Photos
       supportedFiles: []
     )");

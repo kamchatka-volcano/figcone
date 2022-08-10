@@ -1,14 +1,14 @@
-#include <figcone/config.h>
+#include <figcone/configreader.h>
 #include <filesystem>
 #include <iostream>
 #include <vector>
 
-struct ThumbnailCfg : public figcone::Config<>
+struct ThumbnailCfg : public figcone::Config
 {
     int maxWidth = param<&ThumbnailCfg::maxWidth>();
     int maxHeight = param<&ThumbnailCfg::maxHeight>();
 };
-struct PhotoViewerCfg : public figcone::Config<>{
+struct PhotoViewerCfg : public figcone::Config{
     //config fields can also be created with macros:
     FIGCONE_PARAM(rootDir, std::filesystem::path);
     FIGCONE_PARAMLIST(supportedFiles, std::vector<std::string>);
@@ -17,8 +17,8 @@ struct PhotoViewerCfg : public figcone::Config<>{
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
-    cfg.readToml(R"(
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.readToml<PhotoViewerCfg>(R"(
         rootDir = "~/Photos"
         supportedFiles = [".jpg", ".png"]
         [thumbnailSettings]

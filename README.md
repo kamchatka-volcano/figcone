@@ -7,17 +7,17 @@
 ```C++
 ///examples/ex01.cpp
 ///
-#include <figcone/config.h>
+#include <figcone/configreader.h>
 #include <filesystem>
 #include <iostream>
 #include <vector>
 
-struct ThumbnailCfg : public figcone::Config<>
+struct ThumbnailCfg : public figcone::Config
 {
     int maxWidth = param<&ThumbnailCfg::maxWidth>();
     int maxHeight = param<&ThumbnailCfg::maxHeight>();
 };
-struct PhotoViewerCfg : public figcone::Config<>{
+struct PhotoViewerCfg : public figcone::Config{
     //config fields can also be created with macros:
     FIGCONE_PARAM(rootDir, std::filesystem::path);
     FIGCONE_PARAMLIST(supportedFiles, std::vector<std::string>);
@@ -26,8 +26,8 @@ struct PhotoViewerCfg : public figcone::Config<>{
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
-    cfg.readToml(R"(
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.readToml<PhotoViewerCfg>(R"(
         rootDir = "~/Photos"
         supportedFiles = [".jpg", ".png"]
         [thumbnailSettings]
@@ -68,7 +68,7 @@ To do this subclass `figcone::Config` and declare fields with the following macr
 - **FIGCONE_PARAM(`name`, `type`)** - creates `type name;` config field and registers it in the parser.
 - **FIGCONE_PARAMLIST(`name`, `listType`)** - creates `listType name;` config field and registers it in the parser. `listType` can be any sequence container, supporting `emplace_back` operation, within STL it's `vector`, `deque` or `list`.
 - **FIGCONE_NODE(`name`, `type`)** - creates `type name;` config field for a nested configuration structure and registers it in the parser. Node's type must be a subclass of `figcone::Config`.
-- **FIGCONE_NODELIST(`name`, `listType`)** - creates `listType name;` config field for a list of nested configuration structures and registers it in the parser. `listType` can be any sequence container, supporting `emplace_back` operation, within STL it's `vector`, `deque` or `list`. The type stored in the list (`listType::value_type`) must be a subclass of `figcone::Config`. Be wary of using `vector` and `deque` for your node lists simultaneously, if you end up having a vector-based node list containing a deque-based node list, your code may [fail to compile](https://stackoverflow.com/questions/36367905/compiler-error-with-vector-of-deque-of-unique-ptr) because config nodes contain `unique_ptr`.
+- **FIGCONE_NODELIST(`name`, `listType`)** - creates `listType name;` config field for a list of nested configuration structures and registers it in the parser. `listType` can be any sequence container, supporting `emplace_back` operation, within STL it's `vector`, `deque` or `list`. The type stored in the list (`listType::value_type`) must be a subclass of `figcone::Config`.
 - **FIGCONE_COPY_NODELIST(`name`, `listType`)** - creates `listType name;` config field for a list of nested configuration structures and registers it in the parser. `listType` can be any sequence container, supporting `emplace_back` operation, within STL it's `vector`, `deque` or `list`. The type stored in the list (`listType::value_type`) must be a subclass of `figcone::Config`. The first element of this list acts as a template for other elements, which means that all unspecified parameters of the second and following elements will be copied from the first element without raising a parsing error on missing parameters.
 - **FIGCONE_DICT(`name`, `mapType`)** - creates `mapType name;` config field for a nested dictionary and registers it in the parser. `mapType` can be any associative container, supporting `emplace` operation, within STL it's `map` and `unordered_map`. The key type of the map must be `std::string`.
 The preprocessor doesn't handle commas between template arguments the right way, so you need to create an alias for your map to be able to use it with this macro:
@@ -83,24 +83,25 @@ Notes:
 * Types used for config parameters must be default constructable and copyable.  
 
 
-You don't need to change your code style when declaring config fields - `camelCase`, `snake_case` and `PascalCase` names are supported and can be converted to the format used by parameters names in the config file. To do this, specify the configuration names format with `figcone::NameFormat` enum, by passing its value to `figcone::Config` template argument.
+You don't need to change your code style when declaring config fields - `camelCase`, `snake_case` and `PascalCase` names are supported and can be converted to the format used by parameters names in the config file. To do this, specify the configuration names format with `figcone::NameFormat` enum, by passing its value to `figcone::ConfigReader` template argument.
 
 To demonstrate it, let's change our PhotoViewer example to use snake_case names in the configuration:
 
 ```C++
 ///examples/ex02.cpp
 ///
-#include <figcone/config.h>
+#include <figcone/configreader.h>
 #include <filesystem>
 #include <iostream>
 #include <vector>
 
-struct ThumbnailCfg : public figcone::Config<figcone::NameFormat::SnakeCase>
-{   
+struct ThumbnailCfg : public figcone::Config
+{
     int maxWidth = param<&ThumbnailCfg::maxWidth>();
     int maxHeight = param<&ThumbnailCfg::maxHeight>();
 };
-struct PhotoViewerCfg : public figcone::Config<figcone::NameFormat::SnakeCase>{
+struct PhotoViewerCfg : public figcone::Config
+{
     //config fields can also be created with macros:
     FIGCONE_PARAM(rootDir, std::filesystem::path);
     FIGCONE_PARAMLIST(supportedFiles, std::vector<std::string>);
@@ -109,8 +110,8 @@ struct PhotoViewerCfg : public figcone::Config<figcone::NameFormat::SnakeCase>{
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
-    cfg.readToml(R"(
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::SnakeCase>{};
+    auto cfg = cfgReader.readToml<PhotoViewerCfg>(R"(
         root_dir = "/home/kamchatka-volcano/photos"
         supported_files = [".jpg", ".png"]
         [thumbnail_settings]
@@ -118,7 +119,7 @@ int main()
           max_height = 256
     )");
     //At this point your config is ready to use
-    std::cout << "Launching PhotoViewer in directory " << cfg.rootDir;
+    std::cout << "Launching PhotoViewer in directory " << cfg.rootDir << std::endl;
     return 0;
 }
 ```
@@ -126,7 +127,7 @@ int main()
 ### Registration without macros
 **figcone** can be used without macros, as every configuration entity described earlier can be registered with the similarly named `figcone::Config`'s member templates:
 ```c++
-    struct Cfg : public figcone::Config<>{
+    struct Cfg : public figcone::Config{
         int testParam                      = param<&Cfg::testParam>();
         int testParam2                     = param<&Cfg::testParam2>()(100);
         std::optional<int> testParam3      = param<&Cfg::testParam3>();
@@ -136,14 +137,14 @@ int main()
         std::vector<TestNode> testNodeList = nodeList<&Cfg::testNodeList>();
         std::vector<TestNode> copyTestNodeList = copyNodeList<&Cfg::copyTestNodeList>();
         std::map<std::string, std::string> testDict = dict<&Cfg::testDict>();
-    } cfg;
+    };
 ```
 Internally, these methods use the [`nameof`](https://github.com/Neargye/nameof) library to get config fields' names as strings. By default, **figcone** ships without it and these methods aren't available, to use them, enable `FIGCONE_USE_NAMEOF` CMake option to automatically download and configure `nameof` library, or install it on your system by yourself.   
 `nameof` relies on non-standard functionality of C++ compilers, so if you don't like it you can use `figcone`
 without it, by providing names by yourself:
 
 ```c++
-    struct Cfg : public figcone::Config<>{
+    struct Cfg : public figcone::Config{
         int testParam                      = param<&Cfg::testParam>("testParam");
         int testParam2                     = param<&Cfg::testParam2>("testParam2")(100);
         std::optional<int> testParam3      = param<&Cfg::testParam3>("testParam3");
@@ -153,7 +154,7 @@ without it, by providing names by yourself:
         std::vector<TestNode> testNodeList = nodeList<&Cfg::testNodeList>("testNodeList");
         std::vector<TestNode> copyTestNodeList = copyNodeList<&Cfg::copyTestNodeList>("copyTestNodeList");
         std::map<std::string, std::string> testDict = dict<&Cfg::testDict>("testDict");
-    } cfg;
+    };
 ```
 
 Config structures declared using the macros-free methods are fully compatible with all **figcone**'s functionality. 
@@ -176,22 +177,22 @@ Let's increase complexity of our example config to demonstrate how configuration
 #include <vector>
 #include <map>
 
-struct ThumbnailCfg : public figcone::Config<>
+struct ThumbnailCfg : public figcone::Config
 {
     PARAM(enabled, bool)(true);
     PARAM(maxWidth, int);
     PARAM(maxHeight, int);
 };
-struct HostCfg : public figcone::Config<>{
+struct HostCfg : public figcone::Config{
     PARAM(ip, std::string);
     PARAM(port, int);
 };
-struct SharedAlbumCfg : public figcone::Config<>{
+struct SharedAlbumCfg : public figcone::Config{
     PARAM(dir, std::filesystem::path);
     PARAM(name, std::string);
     NODELIST(hosts, std::vector<HostCfg>)();
 };
-struct PhotoViewerCfg : public figcone::Config<>{
+struct PhotoViewerCfg : public figcone::Config{
     PARAM(rootDir, std::filesystem::path);
     PARAMLIST(supportedFiles, std::vector<std::string>);
     NODE(thumbnails, ThumbnailCfg);
@@ -241,13 +242,14 @@ JSON config, matching the configuration listed in [`demo.h`](#demoh) earlier, lo
 ///examples/demo_json.cpp
 ///
 #include "demo.h"
+#include <figcone/configreader.h>
 #include <iostream>
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
-    cfg.readJsonFile(std::filesystem::canonical("../../examples/demo.json"));
-    std::cout << "Launching PhotoViewer in directory" << cfg.rootDir;
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.readJsonFile<PhotoViewerCfg>(std::filesystem::canonical("../../examples/demo.json"));
+    std::cout << "Launching PhotoViewer in directory" << cfg.rootDir << std::endl;
     return 0;
 }
 ```
@@ -285,13 +287,14 @@ YAML config, matching the configuration listed in [`demo.h`](#demoh) earlier, lo
 ///examples/demo_yaml.cpp
 ///
 #include "demo.h"
+#include <figcone/configreader.h>
 #include <iostream>
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
-    cfg.readYamlFile(std::filesystem::canonical("../../examples/demo.yaml"));
-    std::cout << "Launching PhotoViewer in directory " << cfg.rootDir;
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.readYamlFile<PhotoViewerCfg>(std::filesystem::canonical("../../examples/demo.yaml"));
+    std::cout << "Launching PhotoViewer in directory" << cfg.rootDir << std::endl;
     return 0;
 }
 ```
@@ -334,13 +337,14 @@ TOML config, matching the configuration listed in [`demo.h`](#demoh) earlier, lo
 ///examples/demo_toml.cpp
 ///
 #include "demo.h"
+#include <figcone/configreader.h>
 #include <iostream>
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
-    cfg.readTomlFile(std::filesystem::canonical("../../examples/demo.toml"));
-    std::cout << "Launching PhotoViewer in directory " << cfg.rootDir;
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.readTomlFile<PhotoViewerCfg>(std::filesystem::canonical("../../examples/demo.toml"));
+    std::cout << "Launching PhotoViewer in directory" << cfg.rootDir << std::endl;
     return 0;
 }
 ```
@@ -351,7 +355,7 @@ Notes:
 #include <figcone/config.h>
 #include <figcone_toml/datetime.h>
 
-struct Cfg: figcone::Config<>
+struct Cfg: figcone::Config
 {   
     FICONE_PARAM(date, figcone::toml::DateTimePoint);
     FICONE_PARAM(time, figcone::toml::TimeDuration);
@@ -393,13 +397,14 @@ XML config, matching the configuration listed in [`demo.h`](#demoh) earlier, loo
 ///examples/demo_xml.cpp
 ///
 #include "demo.h"
+#include <figcone/configreader.h>
 #include <iostream>
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
-    cfg.readXmlFile(std::filesystem::canonical("../../examples/demo.xml"));
-    std::cout << "Launching PhotoViewer in directory " << cfg.rootDir;
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.readXmlFile<PhotoViewerCfg>(std::filesystem::canonical("../../examples/demo.xml"));
+    std::cout << "Launching PhotoViewer in directory" << cfg.rootDir << std::endl;
     return 0;
 }
 ```
@@ -436,13 +441,14 @@ DISPLAY = "0.1"
 ///examples/demo_ini.cpp
 ///
 #include "demo.h"
+#include <figcone/configreader.h>
 #include <iostream>
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
-    cfg.readIniFile(std::filesystem::canonical("../../examples/demo.ini"));
-    std::cout << "Launching PhotoViewer in directory " << cfg.rootDir;
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.readIniFile<PhotoViewerCfg>(std::filesystem::canonical("../../examples/demo.ini"));
+    std::cout << "Launching PhotoViewer in directory" << cfg.rootDir << std::endl;
     return 0;
 }
 ```
@@ -463,6 +469,7 @@ Parsing class should implement the `figcone::IParser` interface and provide the 
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
 #include <figcone_tree/errors.h>
+#include <figcone/configreader.h>
 
 class DemoTreeProvider : public figcone::IParser
 {
@@ -505,9 +512,9 @@ class DemoTreeProvider : public figcone::IParser
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
+    auto cfgReader = figcone::ConfigReader{};
     auto parser = DemoTreeProvider{};
-    cfg.read("", parser);
+    auto cfg = cfgReader.read<PhotoViewerCfg>("", parser);
     std::cout << "Launching PhotoViewer in directory " << cfg.rootDir;
     return 0;
 }
@@ -521,7 +528,7 @@ Let's replace a HostCfg config structure with a parameter of type Host that is s
 ```C++
 ///examples/ex03.cpp
 ///
-#include <figcone/config.h>
+#include <figcone/configreader.h>
 #include <figcone/shortmacros.h> //enables macros without FIGCONE_ prefix
 #include <filesystem>
 #include <iostream>
@@ -548,12 +555,12 @@ struct StringConverter<Host>{
     }
 };
 }
-struct SharedAlbumCfg : public figcone::Config<>{
+struct SharedAlbumCfg : public figcone::Config{
     PARAM(dir, std::filesystem::path);
     PARAM(name, std::string);
     PARAMLIST(hosts, std::vector<Host>)();
 };
-struct PhotoViewerCfg : public figcone::Config<>{
+struct PhotoViewerCfg : public figcone::Config{
     PARAM(rootDir, std::filesystem::path);
     PARAMLIST(supportedFiles, std::vector<std::string>);
     COPY_NODELIST(sharedAlbums, std::vector<SharedAlbumCfg>)();
@@ -563,8 +570,8 @@ struct PhotoViewerCfg : public figcone::Config<>{
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
-    cfg.readYaml(R"(
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.readYaml<PhotoViewerCfg>(R"(
       rootDir: ~/Photos
       supportedFiles: [ ".jpg", "png"]
       sharedAlbums:
@@ -575,11 +582,19 @@ int main()
     )");
 
     std::cout << "Launching PhotoViewer in directory " << cfg.rootDir << std::endl;
+
+    if (!cfg.supportedFiles.empty())
+        std::cout << "Supported files:" << std::endl;
+    for (const auto& file : cfg.supportedFiles)
+        std::cout << "  " << file << std::endl;
+
+    if (!cfg.sharedAlbums.empty())
+        std::cout << "Shared albums:" << std::endl;
     for (const auto& album : cfg.sharedAlbums){
-        std::cout << "Album:" << album.name << std::endl;
-        std::cout << "Hosts:" << std::endl;
+        std::cout << "  Album:" << album.name << std::endl;
+        std::cout << "    Hosts:" << std::endl;
         for (const auto& host : album.hosts)
-            std::cout << host.ip << ":" << host.port << std::endl;
+            std::cout << "      " << host.ip << ":" << host.port << std::endl;
     }
 
     return 0;
@@ -603,13 +618,12 @@ Let's improve the PhotoViewer program by checking that `rootDir` path exists and
 ```c++
 ///examples/ex04.cpp
 ///
-#include <figcone/config.h>
-#include <figcone/errors.h>
+#include <figcone/configreader.h>
 #include <figcone/shortmacros.h>
 #include <filesystem>
 #include <iostream>
 #include <vector>
-#include <map>
+#include<map>
 
 struct NotEmpty{
     template<typename TList>
@@ -620,7 +634,7 @@ struct NotEmpty{
     }
 };
 
-struct PhotoViewerCfg : public figcone::Config<>{
+struct PhotoViewerCfg : public figcone::Config{
     PARAM(rootDir, std::filesystem::path).ensure([](const auto& path) {
         if (!std::filesystem::exists(path))
             throw figcone::ValidationError{"a path must exist"};
@@ -632,13 +646,19 @@ struct PhotoViewerCfg : public figcone::Config<>{
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
-    cfg.readYaml(R"(
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.readYaml<PhotoViewerCfg>(R"(
       rootDir: ~/Photos
       supportedFiles: []
     )");
 
     std::cout << "Launching PhotoViewer in directory " << cfg.rootDir << std::endl;
+
+    if (!cfg.supportedFiles.empty())
+        std::cout << "Supported files:" << std::endl;
+    for (const auto& file : cfg.supportedFiles)
+        std::cout << "  " << file << std::endl;
+
     return 0;
 }
 ```
@@ -682,7 +702,7 @@ cmake --install build
 
 Afterwards, you can use find_package() command to make the installed library available inside your project:
 ```
-find_package(figcone 0.9.0 REQUIRED)
+find_package(figcone 2.0.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE figcone::figcone)   
 ```
 
@@ -691,7 +711,7 @@ Note, that if your installed `figcone` was configured with a custom combination 
 set(FIGCONE_USE_NAMEOF ON)
 set(FIGCONE_USE_JSON ON)
 set(FIGCONE_USE_YAML ON)
-find_package(figcone 0.9.0 REQUIRED)
+find_package(figcone 2.0.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE figcone::figcone)
 ```
 

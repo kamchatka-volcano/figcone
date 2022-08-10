@@ -15,13 +15,13 @@ using namespace sfun::traits;
 
 template<typename TParamList>
 class ParamList : public IParam{
+    static_assert(is_dynamic_sequence_container_v<remove_optional_t<TParamList>>,
+                  "Param list field must be a sequence container or a sequence container placed in std::optional");
 public:
     ParamList(std::string name, TParamList& paramValue)
         : name_{std::move(name)}
         , paramListValue_{paramValue}
     {
-        static_assert(is_dynamic_sequence_container_v<remove_optional_t<TParamList>>,
-                      "Param list field must be a sequence container or a sequence container placed in std::optional");
     }
 
     void markValueIsSet()

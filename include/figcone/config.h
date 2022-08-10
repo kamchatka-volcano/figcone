@@ -1,5 +1,4 @@
 #pragma once
-#include "nameformat.h"
 #include "detail/initializedoptional.h"
 #include "detail/configmacros.h"
 #include "detail/inode.h"

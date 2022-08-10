@@ -1,14 +1,15 @@
-#include <figcone/config.h>
+#include <figcone/configreader.h>
 #include <filesystem>
 #include <iostream>
 #include <vector>
 
-struct ThumbnailCfg : public figcone::Config<figcone::NameFormat::SnakeCase>
-{   
+struct ThumbnailCfg : public figcone::Config
+{
     int maxWidth = param<&ThumbnailCfg::maxWidth>();
     int maxHeight = param<&ThumbnailCfg::maxHeight>();
 };
-struct PhotoViewerCfg : public figcone::Config<figcone::NameFormat::SnakeCase>{
+struct PhotoViewerCfg : public figcone::Config
+{
     //config fields can also be created with macros:
     FIGCONE_PARAM(rootDir, std::filesystem::path);
     FIGCONE_PARAMLIST(supportedFiles, std::vector<std::string>);
@@ -17,8 +18,8 @@ struct PhotoViewerCfg : public figcone::Config<figcone::NameFormat::SnakeCase>{
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
-    cfg.readToml(R"(
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::SnakeCase>{};
+    auto cfg = cfgReader.readToml<PhotoViewerCfg>(R"(
         root_dir = "/home/kamchatka-volcano/photos"
         supported_files = [".jpg", ".png"]
         [thumbnail_settings]

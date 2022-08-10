@@ -1,5 +1,7 @@
 #pragma once
+#include "config.h"
 #include "nameformat.h"
+#include "errors.h"
 #include "detail/inode.h"
 #include "detail/iparam.h"
 #include "detail/ivalidator.h"

@@ -1,4 +1,4 @@
-#include <figcone/config.h>
+#include <figcone/configreader.h>
 #include <figcone/shortmacros.h> //enables macros without FIGCONE_ prefix
 #include <filesystem>
 #include <iostream>
@@ -25,12 +25,12 @@ struct StringConverter<Host>{
     }
 };
 }
-struct SharedAlbumCfg : public figcone::Config<>{
+struct SharedAlbumCfg : public figcone::Config{
     PARAM(dir, std::filesystem::path);
     PARAM(name, std::string);
     PARAMLIST(hosts, std::vector<Host>)();
 };
-struct PhotoViewerCfg : public figcone::Config<>{
+struct PhotoViewerCfg : public figcone::Config{
     PARAM(rootDir, std::filesystem::path);
     PARAMLIST(supportedFiles, std::vector<std::string>);
     COPY_NODELIST(sharedAlbums, std::vector<SharedAlbumCfg>)();
@@ -40,8 +40,8 @@ struct PhotoViewerCfg : public figcone::Config<>{
 
 int main()
 {
-    auto cfg = PhotoViewerCfg{};
-    cfg.readYaml(R"(
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.readYaml<PhotoViewerCfg>(R"(
       rootDir: ~/Photos
       supportedFiles: [ ".jpg", "png"]
       sharedAlbums:
