@@ -1,16 +1,17 @@
 #include "assert_exception.h"
 #include <gtest/gtest.h>
 #include <figcone/config.h>
+#include <figcone/configreader.h>
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
 
 namespace test_nameformat {
 
-struct OriginalNamesInnerCfg : public figcone::Config<figcone::NameFormat::Original> {
+struct OriginalNamesInnerCfg : public figcone::Config {
     FIGCONE_PARAM(testStr, std::string);
 };
 
-struct OriginalNamesCfg : public figcone::Config<figcone::NameFormat::Original> {
+struct OriginalNamesCfg : public figcone::Config {
     FIGCONE_PARAM(test_int_, int);
     FIGCONE_NODE(test_Inner, OriginalNamesInnerCfg);
 };
@@ -31,8 +32,6 @@ public:
 
 TEST(NameFormat, OriginalNames)
 {
-    auto cfg = OriginalNamesCfg{};
-
 ///test_int = 10
 ///#test_Inner:
 ///  testStr = Hello
@@ -43,24 +42,25 @@ TEST(NameFormat, OriginalNames)
     node.asItem().addParam("testStr", "Hello", {3,3});
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::Original>{};
+
+    auto cfg = cfgReader.read<OriginalNamesCfg>("", parser);
 
     EXPECT_EQ(cfg.test_int_, 10);
     EXPECT_EQ(cfg.test_Inner.testStr, "Hello");
 }
 
-struct InnerSnakeStructCamelCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
+struct InnerSnakeStructCamelCfg : public figcone::Config {
     FIGCONE_PARAM(test_str, std::string);
 };
 
-struct SnakeStructCamelCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
+struct SnakeStructCamelCfg : public figcone::Config {
     FIGCONE_PARAM(test_int, int);
     FIGCONE_NODE(test_inner, InnerSnakeStructCamelCfg);
 };
 
 TEST(NameFormat, SnakeStructCamelCfg)
 {
-    auto cfg = SnakeStructCamelCfg{};
 ///testInt = 10
 ///#testInner:
 ///  testStr = Hello
@@ -71,24 +71,23 @@ TEST(NameFormat, SnakeStructCamelCfg)
     node.asItem().addParam("testStr", "Hello", {3,3});
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<SnakeStructCamelCfg>("", parser);
     EXPECT_EQ(cfg.test_int, 10);
     EXPECT_EQ(cfg.test_inner.test_str, "Hello");
 }
 
-struct InnerSnakeStructSnakeCfg : public figcone::Config<figcone::NameFormat::SnakeCase> {
+struct InnerSnakeStructSnakeCfg : public figcone::Config {
     FIGCONE_PARAM(test_str, std::string);
 };
 
-struct SnakeStructSnakeCfg : public figcone::Config<figcone::NameFormat::SnakeCase> {
+struct SnakeStructSnakeCfg : public figcone::Config {
     FIGCONE_PARAM(test_int, int);
     FIGCONE_NODE(test_inner, InnerSnakeStructSnakeCfg);
 };
 
 TEST(NameFormat, SnakeStructSnakeCfg)
 {
-    auto cfg = SnakeStructSnakeCfg{};
-
 ///test_int = 10
 ///#test_inner:
 ///  test_str = Hello
@@ -99,24 +98,23 @@ TEST(NameFormat, SnakeStructSnakeCfg)
     node.asItem().addParam("test_str", "Hello", {3,3});
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::SnakeCase>{};
+    auto cfg = cfgReader.read<SnakeStructSnakeCfg>("", parser);
     EXPECT_EQ(cfg.test_int, 10);
     EXPECT_EQ(cfg.test_inner.test_str, "Hello");
 }
 
-struct InnerSnakeStructKebabCfg : public figcone::Config<figcone::NameFormat::KebabCase> {
+struct InnerSnakeStructKebabCfg : public figcone::Config{
     FIGCONE_PARAM(test_str, std::string);
 };
 
-struct SnakeStructKebabCfg : public figcone::Config<figcone::NameFormat::KebabCase> {
+struct SnakeStructKebabCfg : public figcone::Config{
     FIGCONE_PARAM(test_int, int);
     FIGCONE_NODE(test_inner, InnerSnakeStructKebabCfg);
 };
 
 TEST(NameFormat, SnakeStructKebabCfg)
 {
-    auto cfg = SnakeStructKebabCfg{};
-
 ///test-int = 10
 ///#test-inner:
 ///  test-str = Hello
@@ -127,25 +125,24 @@ TEST(NameFormat, SnakeStructKebabCfg)
     node.asItem().addParam("test-str", "Hello", {3,3});
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::KebabCase>{};
+    auto cfg = cfgReader.read<SnakeStructKebabCfg>("", parser);
     EXPECT_EQ(cfg.test_int, 10);
     EXPECT_EQ(cfg.test_inner.test_str, "Hello");
 }
 
 
-struct InnerCamelStructCamelCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
+struct InnerCamelStructCamelCfg : public figcone::Config {
     FIGCONE_PARAM(testStr, std::string);
 };
 
-struct CamelStructCamelCfg : public figcone::Config<figcone::NameFormat::CamelCase> {
+struct CamelStructCamelCfg : public figcone::Config {
     FIGCONE_PARAM(testInt, int);
     FIGCONE_NODE(testInner, InnerCamelStructCamelCfg);
 };
 
 TEST(NameFormat, CamelStructCamelCfg)
 {
-    auto cfg = CamelStructCamelCfg{};
-
 ///testInt = 10
 ///#testInner:
 ///  testStr = Hello
@@ -156,25 +153,24 @@ TEST(NameFormat, CamelStructCamelCfg)
     node.asItem().addParam("testStr", "Hello", {3,3});
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<CamelStructCamelCfg>("", parser);
     EXPECT_EQ(cfg.testInt, 10);
     EXPECT_EQ(cfg.testInner.testStr, "Hello");
 }
 
 
-struct InnerCamelStructSnakeCfg : public figcone::Config<figcone::NameFormat::SnakeCase> {
+struct InnerCamelStructSnakeCfg : public figcone::Config{
     FIGCONE_PARAM(testStr, std::string);
 };
 
-struct CamelStructSnakeCfg : public figcone::Config<figcone::NameFormat::SnakeCase> {
+struct CamelStructSnakeCfg : public figcone::Config{
     FIGCONE_PARAM(testInt, int);
     FIGCONE_NODE(testInner, InnerCamelStructSnakeCfg);
 };
 
 TEST(NameFormat, CamelStructSnakeCfg)
 {
-    auto cfg = CamelStructSnakeCfg{};
-
 ///test_int = 10
 ///#test_inner:
 ///  test_str = Hello
@@ -186,25 +182,24 @@ TEST(NameFormat, CamelStructSnakeCfg)
 
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::SnakeCase>{};
+    auto cfg = cfgReader.read<CamelStructCamelCfg>("", parser);
     EXPECT_EQ(cfg.testInt, 10);
     EXPECT_EQ(cfg.testInner.testStr, "Hello");
 }
 
 
-struct InnerCamelStructKebabCfg : public figcone::Config<figcone::NameFormat::KebabCase> {
+struct InnerCamelStructKebabCfg : public figcone::Config {
     FIGCONE_PARAM(testStr, std::string);
 };
 
-struct CamelStructKebabCfg : public figcone::Config<figcone::NameFormat::KebabCase> {
+struct CamelStructKebabCfg : public figcone::Config {
     FIGCONE_PARAM(testInt, int);
     FIGCONE_NODE(testInner, InnerCamelStructKebabCfg);
 };
 
 TEST(NameFormat, CamelStructKebabCfg)
 {
-    auto cfg = CamelStructKebabCfg{};
-
 ///test-int = 10
 ///#test-inner:
 ///  test-str = Hello
@@ -216,7 +211,8 @@ TEST(NameFormat, CamelStructKebabCfg)
 
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::KebabCase>{};
+    auto cfg = cfgReader.read<CamelStructKebabCfg>("", parser);
     EXPECT_EQ(cfg.testInt, 10);
     EXPECT_EQ(cfg.testInner.testStr, "Hello");
 }

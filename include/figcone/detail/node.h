@@ -1,7 +1,8 @@
 #pragma once
-#include "iconfig.h"
+#include "iconfigreader.h"
 #include "inode.h"
 #include "iconfigentity.h"
+#include "iconfigreader.h"
 #include "utils.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
@@ -14,9 +15,10 @@ namespace figcone::detail {
 template<typename TCfg>
 class Node : public INode{
 public:
-    Node(std::string name, TCfg& cfg)
+    Node(std::string name, TCfg& cfg, ConfigReaderPtr cfgReader)
         : name_{std::move(name)}
         , cfg_{cfg}
+        , cfgReader_{cfgReader}
     {
     }
 
@@ -33,20 +35,16 @@ private:
         if (!node.isItem())
            throw ConfigError{"Node '" + name_ + "': config node can't be a list.", node.position()};
 
-        if constexpr (is_optional<TCfg>::value) {
+        if constexpr (is_initialized_optional_v<TCfg>)
             cfg_.emplace();
-            auto& icfg = static_cast<IConfig&>(*cfg_);
-            icfg.load(node);
-        }
-        else{
-            auto& icfg = static_cast<IConfig&>(cfg_);
-            icfg.load(node);
-        }
+
+        if (cfgReader_)
+            cfgReader_->load(node);
     }
 
     bool hasValue() const override
     {
-        if constexpr (is_optional<TCfg>::value)
+        if constexpr (is_initialized_optional_v<TCfg>)
             return true;
 
         return hasValue_;
@@ -65,6 +63,7 @@ private:
 private:
     std::string name_;
     TCfg& cfg_;
+    ConfigReaderPtr cfgReader_;
     bool hasValue_ = false;
     StreamPosition position_;
 };

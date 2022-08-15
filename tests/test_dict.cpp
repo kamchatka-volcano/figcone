@@ -1,6 +1,7 @@
 #include "assert_exception.h"
 #include <gtest/gtest.h>
 #include <figcone/config.h>
+#include <figcone/configreader.h>
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
 #include <map>
@@ -17,13 +18,13 @@ using StringMap = std::map<std::string, std::string>;
 using StringUnorderedMap = std::map<std::string, std::string>;
 using IntMap = std::map<std::string, int>;
 
-struct DictCfg : public figcone::Config<> {
+struct DictCfg : public figcone::Config {
     FIGCONE_DICT(test, StringMap);
     FIGCONE_DICT(optTest, StringUnorderedMap)();
-    FIGCONE_DICT(optTest2, std::optional<StringMap>);
+    FIGCONE_DICT(optTest2, figcone::optional<StringMap>);
 };
 
-struct IntDictCfg : public figcone::Config<> {
+struct IntDictCfg : public figcone::Config {
     FIGCONE_DICT(test, IntMap)({{"abc", 11}, {"xyz", 12}});
 };
 
@@ -37,30 +38,30 @@ public:
 };
 
 
-struct ValidatedCfg : public figcone::Config<> {
+struct ValidatedCfg : public figcone::Config {
     FIGCONE_DICT(test, StringMap).checkedWith([](const std::map<std::string, std::string>& dict){
         if (dict.empty()) throw figcone::ValidationError{"can't be empty"};
     });
-    FIGCONE_DICT(testOpt, std::optional<StringMap>).checkedWith([](const std::optional<StringMap>& dict){
+    FIGCONE_DICT(testOpt, figcone::optional<StringMap>).checkedWith([](const figcone::optional<StringMap>& dict){
         if (dict && dict->empty()) throw figcone::ValidationError{"can't be empty"};
     });
 };
 
-struct ValidatedWithFunctorCfg : public figcone::Config<> {
+struct ValidatedWithFunctorCfg : public figcone::Config {
     FIGCONE_DICT(test, StringMap).checkedWith<NonEmptyValidator>();
 };
 
 #ifdef NAMEOF_AVAILABLE
-struct DictCfgWithoutMacro : public figcone::Config<>{
+struct DictCfgWithoutMacro : public figcone::Config{
     std::map<std::string, std::string> test = dict<&DictCfgWithoutMacro::test>();
     std::unordered_map<std::string, std::string> optTest = dict<&DictCfgWithoutMacro::optTest>()();
-    std::optional<std::map<std::string, std::string>> optTest2 = dict<&DictCfgWithoutMacro::optTest2>();
+    figcone::optional<std::map<std::string, std::string>> optTest2 = dict<&DictCfgWithoutMacro::optTest2>();
 };
 #else
-struct DictCfgWithoutMacro : public figcone::Config<> {
+struct DictCfgWithoutMacro : public figcone::Config{
     std::map<std::string, std::string> test = dict<&DictCfgWithoutMacro::test>("test");
     std::unordered_map<std::string, std::string> optTest = dict<&DictCfgWithoutMacro::optTest>("optTest")();
-    std::optional<std::map<std::string, std::string>> optTest2 = dict<&DictCfgWithoutMacro::optTest2>("optTest2");
+    figcone::optional<std::map<std::string, std::string>> optTest2 = dict<&DictCfgWithoutMacro::optTest2>("optTest2");
 };
 #endif
 
@@ -80,7 +81,6 @@ public:
 
 TEST(TestDict, MultiParam)
 {
-    auto cfg = DictCfg{};
 
 ///[[test]]
 ///  testInt = 5
@@ -109,7 +109,8 @@ TEST(TestDict, MultiParam)
     optTestNode2.addParam("testInt","200", {10,3});
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.read<DictCfg>("", parser);
 
     ASSERT_EQ(cfg.test.size(), 5);
     EXPECT_EQ(cfg.test["testInt"], "5");
@@ -126,8 +127,6 @@ TEST(TestDict, MultiParam)
 
 TEST(TestDict, MultiParamWithoutOptional)
 {
-    auto cfg = DictCfg{};
-
 ///[test]
 ///  testInt = 5
 ///  testDouble = 5.0
@@ -144,7 +143,9 @@ TEST(TestDict, MultiParamWithoutOptional)
     testNode.addParam("testEmpty","", {6,3});
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.read<DictCfg>("", parser);
+
 
     ASSERT_EQ(cfg.test.size(), 5);
     EXPECT_EQ(cfg.test["testInt"], "5");
@@ -158,8 +159,6 @@ TEST(TestDict, MultiParamWithoutOptional)
 
 TEST(TestDict, IntMultiParam)
 {
-    auto cfg = IntDictCfg{};
-
 ///[[test]]
 ///  foo = 5
 ///  bar = 42
@@ -172,7 +171,8 @@ TEST(TestDict, IntMultiParam)
     testNode.addParam("baz","777", {4,3});
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.read<IntDictCfg>("", parser);
 
     ASSERT_EQ(cfg.test.size(), 3);
     EXPECT_EQ(cfg.test["foo"], 5);
@@ -182,12 +182,11 @@ TEST(TestDict, IntMultiParam)
 
 TEST(TestDict, DefaultValue)
 {
-    auto cfg = IntDictCfg{};
-
     auto tree = figcone::makeTreeRoot();
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.read<IntDictCfg>("", parser);
 
     ASSERT_EQ(cfg.test.size(), 2);
     EXPECT_EQ(cfg.test["abc"], 11);
@@ -197,8 +196,6 @@ TEST(TestDict, DefaultValue)
 
 TEST(TestDict, ValidationSuccess)
 {
-    auto cfg = ValidatedCfg{};
-
 ///[test]
 ///  testInt = 5
 ///[testOpt]
@@ -210,7 +207,8 @@ TEST(TestDict, ValidationSuccess)
     testNodeOpt.asItem().addParam("testStr","Foo", {4,3});
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.read<ValidatedCfg>("", parser);
 
     ASSERT_EQ(cfg.test.size(), 1);
     EXPECT_EQ(cfg.test["testInt"], "5");
@@ -221,16 +219,14 @@ TEST(TestDict, ValidationSuccess)
 
 TEST(TestDict, ValidationFailure)
 {
-    auto cfg = ValidatedCfg{};
-
 ///[test]
 ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addNode("test", {1,1});
-
+    auto cfgReader = figcone::ConfigReader{};
     auto parser = TreeProvider{std::move(tree)};
     assert_exception<figcone::ConfigError>([&] {
-        cfg.read("", parser);
+        auto cfg = cfgReader.read<ValidatedCfg>("", parser);
     }, [](const figcone::ConfigError& error){
         EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Dictionary 'test': can't be empty");
     });
@@ -238,16 +234,15 @@ TEST(TestDict, ValidationFailure)
 
 TEST(TestDict, ValidationWithFunctorFailure)
 {
-    auto cfg = ValidatedWithFunctorCfg{};
-
 ///[test]
 ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addNode("test", {1,1});
+    auto cfgReader = figcone::ConfigReader{};
 
     auto parser = TreeProvider{std::move(tree)};
     assert_exception<figcone::ConfigError>([&] {
-        cfg.read("", parser);
+        cfgReader.read<ValidatedWithFunctorCfg>("", parser);
     }, [](const figcone::ConfigError& error){
         EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Dictionary 'test': can't be empty");
     });
@@ -255,8 +250,6 @@ TEST(TestDict, ValidationWithFunctorFailure)
 
 TEST(TestDict, ParamWithoutMacro)
 {
-    auto cfg = DictCfgWithoutMacro{};
-
 ///[test]
 ///  testInt = 5
 ///  testEmpty = ""
@@ -267,7 +260,8 @@ TEST(TestDict, ParamWithoutMacro)
     testNode.asItem().addParam("testEmpty","", {3,3});
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.read<DictCfgWithoutMacro>("", parser);
 
     ASSERT_EQ(cfg.test.size(), 2);
     EXPECT_EQ(cfg.test["testInt"], "5");
@@ -278,7 +272,6 @@ TEST(TestDict, ParamWithoutMacro)
 
 TEST(TestDict, EmptyDict)
 {
-    auto cfg = DictCfg{};
 
 ///[test]
 ///
@@ -286,23 +279,23 @@ TEST(TestDict, EmptyDict)
     tree.asItem().addNode("test", {1,1});
 
     auto parser = TreeProvider{std::move(tree)};
-    cfg.read("", parser);
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.read<DictCfg>("", parser);
 
     ASSERT_EQ(cfg.test.size(), 0);
 }
 
 TEST(TestDict, NodeListDictError)
 {
-    auto cfg = DictCfg{};
-
 ///[[test]]
 ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addNodeList("test", {1,1});
 
     auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader{};
     assert_exception<figcone::ConfigError>([&] {
-        cfg.read("", parser);
+        auto cfg = cfgReader.read<DictCfg>("", parser);
     }, [](const figcone::ConfigError& error){
         EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Dictionary 'test': config node can't be a list.");
     });
@@ -310,12 +303,11 @@ TEST(TestDict, NodeListDictError)
 
 TEST(TestDict, MissingDictError)
 {
-    auto cfg = DictCfg{};
-
     auto tree = figcone::makeTreeRoot();
     auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader{};
     assert_exception<figcone::ConfigError>([&] {
-        cfg.read("", parser);
+        auto cfg = cfgReader.read<DictCfg>("", parser);
     }, [](const figcone::ConfigError& error){
         EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Root node: Node 'test' is missing.");
     });

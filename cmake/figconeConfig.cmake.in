@@ -3,10 +3,6 @@
 include(CMakeFindDependencyMacro)
 find_dependency(figcone_tree)
 
-if(FIGCONE_USE_NAMEOF)
-    find_dependency(nameof)
-endif()
-
 if (NOT DEFINED FIGCONE_USE_ALL)
     if(FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML OR FIGCONE_USE_INI OR FIGCONE_USE_XML)
         set(FIGCONE_USE_ALL OFF)

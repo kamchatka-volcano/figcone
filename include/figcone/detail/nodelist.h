@@ -4,10 +4,12 @@
 #include "utils.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
+#include <sfun/traits.h>
 #include <vector>
 #include <memory>
 
 namespace figcone::detail{
+using namespace sfun::traits;
 
 enum class NodeListType{
     Normal,
@@ -17,12 +19,13 @@ enum class NodeListType{
 template <typename TCfgList>
 class NodeList : public detail::INode{
 public:
-    NodeList(std::string name, TCfgList& nodeList, NodeListType type = NodeListType::Normal)
+    NodeList(std::string name, TCfgList& nodeList, ConfigReaderPtr cfgReader, NodeListType type = NodeListType::Normal)
         : name_{std::move(name)}
         , nodeList_{nodeList}
         , type_{type}
+        , cfgReader_{cfgReader}
     {
-        static_assert(is_sequence_container_v<maybe_opt_t<TCfgList>>,
+        static_assert(is_dynamic_sequence_container_v<remove_optional_t<TCfgList>>,
                       "Node list field must be a sequence container or a sequence container placed in std::optional");
     }
 
@@ -45,11 +48,12 @@ public:
         for (auto i = 0; i < nodeList.asList().count(); ++i){
             const auto& treeNode = nodeList.asList().node(i);
             try {
-                auto cfg = typename maybe_opt_t<TCfgList>::value_type{};
-                auto& node = static_cast<IConfig&>(cfg);
-                if (type_ == NodeListType::Copy && i > 0)
-                    node.load(nodeList.asList().node(0));
-                node.load(treeNode);
+                auto cfg = typename remove_optional_t<TCfgList>::value_type{cfgReader_};
+                if (cfgReader_) {
+                    if (type_ == NodeListType::Copy && i > 0)
+                        cfgReader_->load(nodeList.asList().node(0));
+                    cfgReader_->load(treeNode);
+                }
                 maybeOptValue(nodeList_).emplace_back(std::move(cfg));
             } catch (const LoadingError& e) {
                 throw ConfigError{"Node list '" + name_ + "': " + e.what(), treeNode.position()};
@@ -59,7 +63,7 @@ public:
 
     bool hasValue() const override
     {
-        if constexpr (is_optional<TCfgList>::value)
+        if constexpr (is_optional_v<TCfgList>)
             return true;
         return hasValue_;
     }
@@ -80,6 +84,7 @@ private:
     bool hasValue_ = false;
     StreamPosition position_;
     NodeListType type_;
+    ConfigReaderPtr cfgReader_;
 };
 
 }
