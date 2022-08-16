@@ -2,7 +2,7 @@
   <img height="128" src="doc/logo.jpg"/>  
 </p>
 
-**figcone** - is a C++17 header-only library, providing a convenient declarative interface for configuration parsers and built-in support for reading JSON, YAML, TOML, XML and INI config files. To use it, create a configuration schema by declaring a structure for each level of your config file and load it by calling a method, matching the preferred configuration format:
+**figcone** - is a C++17 header-only library, providing a convenient declarative interface for configuration parsers and built-in support for reading `JSON`, `YAML`, `TOML`, `XML`, `INI` and `shoal` config files. To use it, create a configuration schema by declaring a structure for each level of your config file and load it by calling a method, matching the preferred configuration format:
 
 ```C++
 ///examples/ex01.cpp
@@ -49,7 +49,8 @@ int main()
           * [YAML](#yaml)
           * [TOML](#toml)
           * [XML](#xml)
-          * [INI](#ini) 
+          * [INI](#ini)
+          * [shoal](#shoal)
      * [Creation of figcone-compatible parsers](#creation-of-figcone-compatible-parsers)  
      * [User defined types](#user-defined-types) 
      * [Validators](#validators)
@@ -163,7 +164,7 @@ Examples use registration with macros as it's the least verbose method.
 
 ### Supported formats
  
-Internally, **figcone** library works on a tree-like structure provided by [`figcone_tree`](https://github.com/kamchatka-volcano/figcone_tree) library, and it's not aware of different configuration formats. User needs to provide a parser implementing `figcone_tree::IParser` interface to convert configuration file to a tree structure based on `figcone_tree::TreeNode` class. It's also possible to create a `figcone` compatible parser adapter which transform the parsing result of some 3rd party configuration  parsing library to the tree using `figcone_tree::TreeNode`. Five such adapters for popular configuration formats are created for `figcone`, they're fetched and configured by CMake and added to the library's interface.
+Internally, **figcone** library works on a tree-like structure provided by [`figcone_tree`](https://github.com/kamchatka-volcano/figcone_tree) library, and it's not aware of different configuration formats. User needs to provide a parser implementing `figcone_tree::IParser` interface to convert configuration file to a tree structure based on `figcone_tree::TreeNode` class. It's also possible to create a `figcone` compatible parser adapter which transform the parsing result of some 3rd party configuration  parsing library to the tree using `figcone_tree::TreeNode`. Five such adapters for popular configuration formats are created for `figcone`, they're fetched and configured by CMake and added to the library's interface. An obscure configuration format [`shoal`](https://github.com/kamchatka-volcano/figcone_shoal) designed by the author of `figcone` is also available and can be used as an example of an original parser implementation compatible with `figcone`. 
 
 Let's increase complexity of our example config to demonstrate how configuration elements work with each format:
 #### demo.h
@@ -458,6 +459,56 @@ Notes:
 * Parameter lists have the format: `[value1, value2, ...]`
 * Multiline values aren't supported.
 
+#### shoal
+
+[`shoal`](https://github.com/kamchatka-volcano/shoal) support is provided by [`figcone_shoal`](https://github.com/kamchatka-volcano/figcone_shoal) library.
+
+shoal config, matching the configuration listed in [`demo.h`](#demoh) earlier, looks like this:  
+`demo.shoal`
+```
+rootDir = "~/Photos"
+supportedFiles = [ ".jpg", "png"]
+#thumbnails:
+  enabled = 1
+  maxWidth = 128
+  maxHeight = 128
+---
+
+#sharedAlbums:
+###
+  dir  = "summer_2019"
+  name = "Summer (2019)"
+  #hosts:
+  ###
+    ip = "127.0.0.1"
+    port = 8080
+  -
+###
+  dir  = "misc"
+  name = "Misc"
+---
+
+#envVars:
+  DISPLAY = "0.1"
+```
+```c++
+///examples/demo_shoal.cpp
+///
+#include "demo.h"
+#include "print_demo.h"
+#include <figcone/configreader.h>
+#include <iostream>
+
+int main()
+{
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfg = cfgReader.readShoalFile<PhotoViewerCfg>(std::filesystem::canonical("../../examples/demo.shoal"));
+    std::cout << "Launching PhotoViewer in directory" << cfg.rootDir << std::endl;
+    printDemoConfig(cfg);
+    return 0;
+}
+```
+
 ### Creation of figcone-compatible parsers
 To create a parser compatible with figcone, it's required to use  [`figcone_tree`](https://github.com/kamchatka-volcano/figcone_tree) library, providing all necessary types and interfaces for this task.   
 Parsing class should implement the `figcone::IParser` interface and provide the result of configuration parsing in the form of a tree-like structure, constructed with `figcone::TreeNode` and `figcone::TreeParam` objects. Let's demonstrate how to work with `figcone_tree` library by creating a fake parser providing a configuration tree for demo structure listed  in [`demo.h`](#demoh):
@@ -690,6 +741,7 @@ By default `figcone` fetches all supported configuration format libraries, you c
   * `FIGCONE_USE_TOML` - fetches and configures `figcone_toml` library;
   * `FIGCONE_USE_XML` - fetches and configures `figcone_xml` library;
   * `FIGCONE_USE_INI` - fetches and configures `figcone_ini` library;
+  * `FIGCONE_USE_SHOAL` - fetches and configures `figcone_shoal` library;
 
 For the system-wide installation use these commands:
 ```
