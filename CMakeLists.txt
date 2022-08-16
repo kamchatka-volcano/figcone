@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(figcone VERSION 2.0.0)
+project(figcone VERSION 2.1.0)
 include(GNUInstallDirs)
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -27,8 +27,9 @@ option(FIGCONE_USE_YAML "Enable YAML config format" OFF)
 option(FIGCONE_USE_TOML "Enable TOML config format" OFF)
 option(FIGCONE_USE_INI  "Enable INI config format" OFF)
 option(FIGCONE_USE_XML  "Enable XML config format" OFF)
+option(FIGCONE_USE_SHOAL "Enable shoal config format" OFF)
 
-if (FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML OR FIGCONE_USE_INI OR FIGCONE_USE_XML)
+if (FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML OR FIGCONE_USE_INI OR FIGCONE_USE_XML OR FIGCONE_USE_SHOAL)
     set(FIGCONE_USE_ALL OFF)
 endif()
 
@@ -69,6 +70,14 @@ if(FIGCONE_USE_ALL OR FIGCONE_USE_XML)
     if (NOT figcone_xml_FOUND)
         message("Configuration info: figcone_xml library wasn't found on your system, downloading it from the GitHub repository")
         include (external/figcone_xml)
+    endif()
+endif()
+
+if(FIGCONE_USE_ALL OR FIGCONE_USE_SHOAL)
+    find_package(figcone_shoal 0.1.0 QUIET)
+    if (NOT figcone_shoal_FOUND)
+        message("Configuration info: figcone_shoal library wasn't found on your system, downloading it from the GitHub repository")
+        include (external/figcone_shoal)
     endif()
 endif()
 
@@ -121,6 +130,10 @@ endif()
 if (FIGCONE_USE_ALL OR FIGCONE_USE_XML)
     target_link_libraries(figcone INTERFACE figcone::figcone_xml)
 endif()
+if (FIGCONE_USE_ALL OR FIGCONE_USE_SHOAL)
+    target_link_libraries(figcone INTERFACE figcone::figcone_shoal)
+endif()
+
 
 
 option(ENABLE_TESTS "Enable tests" OFF)

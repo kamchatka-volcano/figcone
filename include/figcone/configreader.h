@@ -13,6 +13,7 @@
 #include "detail/figcone_toml_import.h"
 #include "detail/figcone_ini_import.h"
 #include "detail/figcone_xml_import.h"
+#include "detail/figcone_shoal_import.h"
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
 #include <map>
@@ -141,6 +142,27 @@ public:
     TCfg readXml(std::istream& configStream)
     {
         auto parser = figcone::xml::Parser{};
+        return read<TCfg>(configStream, parser);
+    }
+#endif
+
+#ifdef FIGCONE_SHOAL_AVAILABLE
+    template<typename TCfg>
+    TCfg readShoalFile(const std::filesystem::path& configFile)
+    {
+        auto configStream = std::ifstream{configFile};
+        return readShoal<TCfg>(configStream);
+    }
+    template<typename TCfg>
+    TCfg readShoal(const std::string& configContent)
+    {
+        auto configStream = std::stringstream{configContent};
+        return readShoal<TCfg>(configStream);
+    }
+    template<typename TCfg>
+    TCfg readShoal(std::istream& configStream)
+    {
+        auto parser = figcone::shoal::Parser{};
         return read<TCfg>(configStream, parser);
     }
 #endif

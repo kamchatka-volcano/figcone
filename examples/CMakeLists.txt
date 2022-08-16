@@ -37,6 +37,10 @@ add_executable(demo_ini demo_ini.cpp)
 target_compile_features(demo_ini PUBLIC cxx_std_17)
 target_link_libraries(demo_ini PRIVATE figcone::figcone)
 
+add_executable(demo_shoal demo_shoal.cpp)
+target_compile_features(demo_shoal PUBLIC cxx_std_17)
+target_link_libraries(demo_shoal PRIVATE figcone::figcone)
+
 add_executable(demo_parser demo_parser.cpp)
 target_compile_features(demo_parser PUBLIC cxx_std_17)
 target_link_libraries(demo_parser PRIVATE figcone::figcone)
