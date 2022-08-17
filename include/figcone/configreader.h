@@ -239,15 +239,6 @@ private:
         return cfg;
     }
 
-    void swapContents(detail::ConfigReaderPtr otherReader) override
-    {
-        auto& reader = static_cast<ConfigReader<nameFormat>&>(*otherReader);
-        std::swap(nodes_, reader.nodes_);
-        std::swap(params_, reader.params_);
-        std::swap(nestedReaders_, reader.nestedReaders_);
-        std::swap(validators_, reader.validators_);
-    }
-
 private:
     std::map<std::string, std::unique_ptr<detail::INode>> nodes_;
     std::map<std::string, std::unique_ptr<detail::IParam>> params_;
