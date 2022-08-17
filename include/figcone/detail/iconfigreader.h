@@ -17,7 +17,6 @@ public:
     virtual void addNode(const std::string& name, std::unique_ptr<INode> cfg) = 0;
     virtual void addParam(const std::string& name, std::unique_ptr<IParam> param) = 0;
     virtual void addValidator(std::unique_ptr<IValidator> validator) = 0;
-    virtual void swapContents(ConfigReaderPtr) = 0;
 
 protected:
     ConfigReaderPtr makePtr()

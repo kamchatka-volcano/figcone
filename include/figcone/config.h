@@ -36,17 +36,8 @@ public:
     {}
     Config(const Config&) = default;
     Config& operator=(const Config&) = default;
-    Config(Config&& other)
-    {
-        if (cfgReader() && other.cfgReader())
-            cfgReader()->swapContents(other.cfgReader());
-    }
-    Config& operator=(Config&& other)
-    {
-        if (cfgReader() && other.cfgReader())
-            cfgReader()->swapContents(other.cfgReader());
-        return *this;
-    }
+    Config(Config&&){};
+    Config& operator=(Config&&){return *this;};
 
 protected:
     template<auto member>
