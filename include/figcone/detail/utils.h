@@ -1,4 +1,5 @@
 #pragma once
+#include "initializedoptional.h"
 #include <optional>
 #include <vector>
 #include <type_traits>

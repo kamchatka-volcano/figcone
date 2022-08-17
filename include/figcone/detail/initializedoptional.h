@@ -12,9 +12,16 @@ class InitializedOptional
 public:
     using value_type = T;
 
-    template<typename... TArgs>
+    InitializedOptional()   = default;
+    InitializedOptional(std::nullopt_t){};
+    template<typename... TArgs, std::enable_if_t<(sizeof...(TArgs)>1)>* = nullptr>
     InitializedOptional(TArgs&&... args)
         : value_{std::forward<TArgs>(args)...}
+    {
+    }
+    template<typename TArg, std::enable_if_t<!std::is_base_of_v<InitializedOptional<T>, std::remove_reference_t<TArg>>>* = nullptr>
+    InitializedOptional(TArg&& arg)
+        : value_{std::forward<TArg>(arg)}
     {
     }
 
@@ -23,6 +30,15 @@ public:
     {
         value_ = T{std::forward<Args>(args)...};
         hasValue_ = true;
+    }
+
+    template<typename TArg, std::enable_if_t<!std::is_base_of_v<InitializedOptional<T>, std::remove_reference_t<TArg>> &&
+                                             !std::is_same_v<std::nullopt_t, std::remove_cv_t<std::remove_reference_t<TArg>>>>* = nullptr>
+    InitializedOptional& operator=(TArg&& arg)
+    {
+        value_ = std::forward<TArg>(arg);
+        hasValue_ = true;
+        return *this;
     }
 
     void reset()
@@ -66,12 +82,6 @@ public:
         if (!hasValue_)
             throw std::bad_optional_access{};
         return value_;
-    }
-
-    InitializedOptional<T>& operator=(std::nullopt_t)
-    {
-        hasValue_ = false;
-        return *this;
     }
 
     T& value()
