@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(figcone VERSION 2.1.1)
+project(figcone VERSION 2.1.2)
 include(GNUInstallDirs)
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)

@@ -5,7 +5,7 @@ if (NOT TARGET figcone_json AND NOT figcone_json_FOUND)
     FetchContent_Declare(
             figcone_json
             GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_json.git
-            GIT_TAG        v0.10.0
+            GIT_TAG        v0.10.1
             GIT_SHALLOW    ON
             GIT_PROGRESS TRUE
     )

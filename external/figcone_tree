@@ -5,7 +5,7 @@ if (NOT TARGET figcone_tree AND NOT figcone_tree_FOUND)
     FetchContent_Declare(
             figcone_tree
             GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_tree.git
-            GIT_TAG        v0.10.0
+            GIT_TAG        v0.10.1
             GIT_SHALLOW    ON
             GIT_PROGRESS TRUE
     )

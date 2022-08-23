@@ -5,7 +5,7 @@ if (NOT TARGET figcone_xml AND NOT figcone_xml_FOUND)
     FetchContent_Declare(
             figcone_xml
             GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_xml.git
-            GIT_TAG        v0.10.0
+            GIT_TAG        v0.10.1
             GIT_SHALLOW    ON
             GIT_PROGRESS TRUE
     )

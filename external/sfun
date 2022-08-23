@@ -4,7 +4,7 @@ if (NOT sfun_FOUND)
     FetchContent_Declare(
             sfun
             GIT_REPOSITORY https://github.com/kamchatka-volcano/sfun.git
-            GIT_TAG        v2.1.0
+            GIT_TAG        v2.1.1
             GIT_SHALLOW    ON
             GIT_PROGRESS TRUE
     )
