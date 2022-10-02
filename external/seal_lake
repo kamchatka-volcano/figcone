@@ -1,0 +1,8 @@
+include(FetchContent)
+Set(FETCHCONTENT_QUIET FALSE)
+FetchContent_Declare(seal_lake
+    GIT_REPOSITORY "https://github.com/kamchatka-volcano/seal_lake.git"
+    GIT_TAG "origin/master"
+)
+FetchContent_MakeAvailable(seal_lake)
+include(${seal_lake_SOURCE_DIR}/seal_lake.cmake)
