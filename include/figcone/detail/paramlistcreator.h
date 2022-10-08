@@ -4,8 +4,8 @@
 #include "inode.h"
 #include "validator.h"
 #include "utils.h"
-#include <sfun/traits.h>
-#include <gsl/assert>
+#include "external/sfun/traits.h"
+#include "external/sfun/asserts.h"
 #include <vector>
 
 namespace figcone::detail{
@@ -20,7 +20,7 @@ public:
                      std::string paramListName,
                      TParamList& paramListValue)
         : cfgReader_{cfgReader}
-        , paramListName_{(Expects(!paramListName.empty()), std::move(paramListName))}
+        , paramListName_{(sfunPrecondition(!paramListName.empty()), std::move(paramListName))}
         , paramListValue_{paramListValue}
         , paramList_{std::make_unique<ParamList<TParamList>>(paramListName_, paramListValue)}
     {

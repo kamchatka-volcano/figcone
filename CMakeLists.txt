@@ -3,19 +3,8 @@ project(figcone VERSION 2.2.0)
 include(GNUInstallDirs)
 include(external/seal_lake)
 
-SealLake_FindOrDownload(
-        sfun 2.4.0
-        GIT_REPOSITORY https://github.com/kamchatka-volcano/sfun.git
-        GIT_TAG        cmake_maintenance
-)
-SealLake_FindOrDownload(
-        GSL 4.0.0
-        GIT_REPOSITORY https://github.com/microsoft/GSL
-        GIT_TAG        v4.0.0
-)
-
 set(INSTALL_FIGCONE_TREE ON)
-SealLake_FindOrDownload(
+SealLake_Import(
         figcone_tree 0.11.0
         GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_tree.git
         GIT_TAG      cmake_maintenance
@@ -23,119 +12,53 @@ SealLake_FindOrDownload(
 
 option(FIGCONE_USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" OFF)
 if (FIGCONE_USE_NAMEOF)
-    SealLake_FindOrDownload(
-            nameof 0.10.1
+    set(NAMEOF_OPT_INSTALL ON)
+    SealLake_Import(
+            nameof 0.10.2
             GIT_REPOSITORY https://github.com/Neargye/nameof.git
-            GIT_TAG        v0.10.1
+            GIT_TAG        v0.10.2
     )
 endif()
 
-option(FIGCONE_USE_ALL  "Enable all supported config formats" ON)
-option(FIGCONE_USE_JSON "Enable JSON config format" OFF)
-option(FIGCONE_USE_YAML "Enable YAML config format" OFF)
-option(FIGCONE_USE_TOML "Enable TOML config format" OFF)
-option(FIGCONE_USE_INI  "Enable INI config format" OFF)
-option(FIGCONE_USE_XML  "Enable XML config format" OFF)
-option(FIGCONE_USE_SHOAL "Enable shoal config format" OFF)
+SealLake_Bundle(
+        NAME figcone_sfun
+        GIT_REPOSITORY https://github.com/kamchatka-volcano/sfun.git
+        GIT_TAG        cmake_maintenance
+        DESTINATION include/figcone/detail/external
+        DIRECTORIES include/sfun
+        TEXT_REPLACEMENTS
+            "namespace sfun" "namespace figcone::sfun"
+            "SFUN_" "FIGCONE_SFUN_"
+)
 
-if (FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML OR FIGCONE_USE_INI OR FIGCONE_USE_XML OR FIGCONE_USE_SHOAL)
-    set(FIGCONE_USE_ALL OFF)
-endif()
-
-if(FIGCONE_USE_ALL OR FIGCONE_USE_JSON)
-    set(INSTALL_FIGCONE_JSON ON)
-    SealLake_FindOrDownload(
-            figcone_json 0.11.0
-            GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_json.git
-            GIT_TAG        cmake_maintenance
-    )
-endif()
-
-if(FIGCONE_USE_ALL OR FIGCONE_USE_YAML)
-    set(INSTALL_FIGCONE_YAML ON)
-    SealLake_FindOrDownload(
-            figcone_yaml 0.11.0
-            GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_yaml.git
-            GIT_TAG        cmake_maintenance
-    )
-endif()
-
-if(FIGCONE_USE_ALL OR FIGCONE_USE_TOML)
-    set(INSTALL_FIGCONE_TOML ON)
-    SealLake_FindOrDownload(
-            figcone_toml 0.11.0
-            GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_toml.git
-            GIT_TAG        cmake_maintenance
-    )
-endif()
-
-if(FIGCONE_USE_ALL OR FIGCONE_USE_INI)
-    set(INSTALL_FIGCONE_INI ON)
-    SealLake_FindOrDownload(
-            figcone_ini 0.11.0
-            GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_ini.git
-            GIT_TAG        cmake_maintenance
-    )
-endif()
-
-if(FIGCONE_USE_ALL OR FIGCONE_USE_XML)
-    set(INSTALL_FIGCONE_XML ON)
-    SealLake_FindOrDownload(
-            figcone_xml 0.11.0
-            GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_xml.git
-            GIT_TAG        cmake_maintenance
-    )
-endif()
-
-if(FIGCONE_USE_ALL OR FIGCONE_USE_SHOAL)
-    set(INSTALL_FIGCONE_SHOAL ON)
-    SealLake_FindOrDownload(
-            figcone_shoal 0.2.0
-            GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_shoal.git
-            GIT_TAG        cmake_maintenance
-    )
-endif()
+set(INSTALL_FIGCONE_FORMATS ON)
+add_subdirectory(formats)
 
 SealLake_HeaderOnlyLibrary(
-        COMPILE_FEATURES cxx_std_17
-        INCLUDES figcone/detail/external
-        BUILD_STAGE_INCLUDES
-            ${sfun_SOURCE_DIR}/include/
-            ${gsl_SOURCE_DIR}/include/
+        COMPILE_FEATURES
+            cxx_std_17
         LIBRARIES
             figcone::figcone_tree
+        DEPENDENCIES
+            figcone_tree 0.11.0
 )
 
 if (FIGCONE_USE_NAMEOF)
-    SealLake_BuildStageIncludes(${nameof_SOURCE_DIR}/include/)
+    SealLake_Libraries(
+            nameof::nameof
+    )
+    SealLake_Dependencies(
+            nameof 0.10.2
+    )
 endif()
 
-if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON)
-    SealLake_Libraries(figcone::figcone_json)
-endif()
-if (FIGCONE_USE_ALL OR FIGCONE_USE_YAML)
-    SealLake_Libraries(figcone::figcone_yaml)
-endif()
-if (FIGCONE_USE_ALL OR FIGCONE_USE_TOML)
-    SealLake_Libraries(figcone::figcone_toml)
-endif()
-if (FIGCONE_USE_ALL OR FIGCONE_USE_INI)
-    SealLake_Libraries(figcone::figcone_ini)
-endif()
-if (FIGCONE_USE_ALL OR FIGCONE_USE_XML)
-    SealLake_Libraries(figcone::figcone_xml)
-endif()
-if (FIGCONE_USE_ALL OR FIGCONE_USE_SHOAL)
-    SealLake_Libraries(figcone::figcone_shoal)
+if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML OR FIGCONE_USE_INI OR FIGCONE_USE_XML OR FIGCONE_USE_SHOAL)
+    SealLake_Libraries(
+            figcone::figcone_formats
+    )
+    SealLake_Dependencies(
+            figcone_formats 0.11.0
+    )
 endif()
 
 SealLake_OptionalBuildSteps(tests examples)
-
-SealLake_Install(
-        PATH figcone/detail/external
-        DIRECTORIES
-            ${sfun_SOURCE_DIR}/include/sfun
-            ${gsl_SOURCE_DIR}/include/gsl
-        FILES
-            ${nameof_SOURCE_DIR}/include/nameof.hpp
-)

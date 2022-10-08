@@ -4,10 +4,10 @@
 #include "iconfigreader.h"
 #include "validator.h"
 #include "utils.h"
+#include "external/sfun/asserts.h"
+#include "external/sfun/traits.h"
 #include <figcone/config.h>
 #include <figcone/nameformat.h>
-#include <sfun/traits.h>
-#include <gsl/assert>
 
 namespace figcone{
 class Config;
@@ -25,7 +25,7 @@ public:
                 std::string nodeName,
                 TCfg& nodeCfg)
         : cfgReader_{cfgReader}
-        , nodeName_{(Expects(!nodeName.empty()), std::move(nodeName))}
+        , nodeName_{(sfunPrecondition(!nodeName.empty()), std::move(nodeName))}
         , nodeCfg_{nodeCfg}
         , nestedCfgReader_{ cfgReader_ ? cfgReader_->makeNestedReader(nodeName_) : ConfigReaderPtr{}}
     {

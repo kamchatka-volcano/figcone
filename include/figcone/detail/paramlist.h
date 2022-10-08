@@ -1,10 +1,10 @@
 #pragma once
 #include "iparam.h"
 #include "utils.h"
+#include "external/sfun/traits.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
 #include <figcone_tree/stringconverter.h>
-#include <sfun/traits.h>
 #include <vector>
 #include <string>
 #include <sstream>

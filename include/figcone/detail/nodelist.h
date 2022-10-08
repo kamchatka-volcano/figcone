@@ -2,9 +2,9 @@
 #include "inode.h"
 #include "loadingerror.h"
 #include "utils.h"
+#include "external/sfun/traits.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
-#include <sfun/traits.h>
 #include <vector>
 #include <memory>
 

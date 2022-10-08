@@ -1,9 +1,9 @@
 #pragma once
 #include "iconfigreader.h"
 #include "dict.h"
+#include "external/sfun/asserts.h"
+#include "external/sfun/traits.h"
 #include <figcone/nameformat.h>
-#include <sfun/traits.h>
-#include <gsl/assert>
 #include <memory>
 
 namespace figcone::detail{
@@ -16,7 +16,7 @@ public:
                 std::string dictName,
                 TMap& dictMap)
         : cfgReader_{cfgReader}
-        , dictName_{(Expects(!dictName.empty()), std::move(dictName))}
+        , dictName_{(sfunPrecondition(!dictName.empty()), std::move(dictName))}
         , dict_{std::make_unique<Dict<TMap>>(dictName_, dictMap)}
         , dictMap_{dictMap}
     {

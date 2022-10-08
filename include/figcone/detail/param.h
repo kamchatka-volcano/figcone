@@ -2,10 +2,10 @@
 #include "iparam.h"
 #include "iconfigentity.h"
 #include "utils.h"
+#include "external/sfun/traits.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
 #include <figcone_tree/stringconverter.h>
-#include <sfun/traits.h>
 #include <string>
 #include <sstream>
 #include <algorithm>
