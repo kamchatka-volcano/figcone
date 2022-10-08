@@ -227,6 +227,7 @@ private:
     template<typename TCfg>
     TCfg read(std::istream& configStream, IParser& parser)
     {
+        clear();
         auto cfg = TCfg{{makePtr()}};
         auto tree = parser.parse(configStream);
         try {
@@ -237,6 +238,14 @@ private:
         }
         resetConfigReader(cfg);
         return cfg;
+    }
+
+    void clear()
+    {
+        nodes_.clear();
+        params_.clear();
+        nestedReaders_.clear();
+        validators_.clear();
     }
 
 private:

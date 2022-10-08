@@ -114,10 +114,15 @@ TEST(TestNode, SingleNodeSingleLevel)
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
     auto cfg = cfgReader.read<SingleNodeSingleLevelCfg>("", parser);
+    auto cfg2 = cfgReader.read<SingleNodeSingleLevelCfg>("", parser);
 
     EXPECT_EQ(cfg.foo, 5);
     EXPECT_EQ(cfg.bar, "test");
     EXPECT_EQ(cfg.a.testInt, 10);
+
+    EXPECT_EQ(cfg2.foo, 5);
+    EXPECT_EQ(cfg2.bar, "test");
+    EXPECT_EQ(cfg2.a.testInt, 10);
 }
 
 TEST(TestNode, OptionalNode)
