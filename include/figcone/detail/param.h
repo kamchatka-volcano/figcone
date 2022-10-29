@@ -44,7 +44,8 @@ private:
     {
         if constexpr (is_optional_v<T>)
             return true;
-        return hasValue_;
+        else
+            return hasValue_;
     }
 
     StreamPosition position() override

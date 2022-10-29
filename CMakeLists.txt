@@ -5,16 +5,16 @@ include(external/seal_lake)
 
 set(INSTALL_FIGCONE_TREE ON)
 SealLake_Import(
-        figcone_tree 0.11.0
+        figcone_tree   0.12.0
         GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_tree.git
-        GIT_TAG      cmake_maintenance
+        GIT_TAG        v0.12.0
 )
 
 option(FIGCONE_USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" OFF)
 if (FIGCONE_USE_NAMEOF)
     set(NAMEOF_OPT_INSTALL ON)
     SealLake_Import(
-            nameof 0.10.2
+            nameof         0.10.2
             GIT_REPOSITORY https://github.com/Neargye/nameof.git
             GIT_TAG        v0.10.2
     )
@@ -23,7 +23,7 @@ endif()
 SealLake_Bundle(
         NAME figcone_sfun
         GIT_REPOSITORY https://github.com/kamchatka-volcano/sfun.git
-        GIT_TAG        cmake_maintenance
+        GIT_TAG        v2.4.0
         DESTINATION include/figcone/detail/external
         DIRECTORIES include/sfun
         TEXT_REPLACEMENTS
@@ -40,7 +40,7 @@ SealLake_HeaderOnlyLibrary(
         LIBRARIES
             figcone::figcone_tree
         DEPENDENCIES
-            figcone_tree 0.11.0
+            figcone_tree 0.12.0
 )
 
 if (FIGCONE_USE_NAMEOF)
@@ -57,7 +57,7 @@ if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML 
             figcone::figcone_formats
     )
     SealLake_Dependencies(
-            figcone_formats 0.11.0
+            figcone_formats 0.12.0
     )
 endif()
 

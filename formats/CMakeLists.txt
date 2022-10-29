@@ -1,4 +1,4 @@
-project(figcone_formats VERSION 0.11.0)
+project(figcone_formats VERSION 0.12.0)
 
 option(FIGCONE_USE_ALL  "Enable all supported config formats" ON)
 option(FIGCONE_USE_JSON "Enable JSON config format" OFF)
@@ -15,9 +15,9 @@ file(REMOVE_RECURSE ${figcone_SOURCE_DIR}/include/figcone/format)
 
 if(FIGCONE_USE_ALL OR FIGCONE_USE_JSON)
     SealLake_Import(
-            figcone_json 0.11.0
+            figcone_json   0.12.0
             GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_json.git
-            GIT_TAG        cmake_maintenance
+            GIT_TAG        v0.12.0
     )
     SealLake_Copy(
             WILDCARDS ${figcone_json_SOURCE_DIR}/include/figcone_json/*
@@ -27,9 +27,9 @@ endif()
 
 if(FIGCONE_USE_ALL OR FIGCONE_USE_YAML)
     SealLake_Import(
-            figcone_yaml 0.11.0
+            figcone_yaml   0.12.0
             GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_yaml.git
-            GIT_TAG        cmake_maintenance
+            GIT_TAG        v0.12.0
     )
     SealLake_Copy(
             WILDCARDS ${figcone_yaml_SOURCE_DIR}/include/figcone_yaml/*
@@ -39,9 +39,9 @@ endif()
 
 if(FIGCONE_USE_ALL OR FIGCONE_USE_TOML)
     SealLake_Import(
-            figcone_toml 0.11.0
+            figcone_toml   0.12.0
             GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_toml.git
-            GIT_TAG        cmake_maintenance
+            GIT_TAG        v0.12.0
     )
     SealLake_Copy(
             WILDCARDS ${figcone_toml_SOURCE_DIR}/include/figcone_toml/*
@@ -51,9 +51,9 @@ endif()
 
 if(FIGCONE_USE_ALL OR FIGCONE_USE_INI)
     SealLake_Import(
-            figcone_ini 0.11.0
+            figcone_ini    0.12.0
             GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_ini.git
-            GIT_TAG        cmake_maintenance
+            GIT_TAG        v0.12.0
     )
     SealLake_Copy(
             WILDCARDS ${figcone_ini_SOURCE_DIR}/include/figcone_ini/*
@@ -64,9 +64,9 @@ endif()
 
 if(FIGCONE_USE_ALL OR FIGCONE_USE_XML)
     SealLake_Import(
-            figcone_xml 0.11.0
+            figcone_xml    0.12.0
             GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_xml.git
-            GIT_TAG        cmake_maintenance
+            GIT_TAG        v0.12.0
     )
     SealLake_Copy(
             WILDCARDS ${figcone_xml_SOURCE_DIR}/include/figcone_xml/*
@@ -76,9 +76,9 @@ endif()
 
 if(FIGCONE_USE_ALL OR FIGCONE_USE_SHOAL)
     SealLake_Import(
-            figcone_shoal 0.2.0
+            figcone_shoal  0.2.0
             GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_shoal.git
-            GIT_TAG        cmake_maintenance
+            GIT_TAG        v0.2.0
     )
     SealLake_Copy(
             WILDCARDS ${figcone_shoal_SOURCE_DIR}/include/figcone_shoal/*
@@ -93,7 +93,7 @@ SealLake_StaticLibrary(
         INTERFACE_LIBRARIES
             figcone::figcone_tree
         DEPENDENCIES
-            figcone_tree 0.11.0
+            figcone_tree 0.12.0
 )
 
 if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON)

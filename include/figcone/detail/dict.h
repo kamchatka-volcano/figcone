@@ -56,7 +56,8 @@ private:
     {
         if constexpr (is_optional_v<TMap>)
             return true;
-        return hasValue_;
+        else
+            return hasValue_;
     }
 
     StreamPosition position() override

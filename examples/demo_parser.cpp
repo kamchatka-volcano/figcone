@@ -3,6 +3,7 @@
 #include <figcone_tree/tree.h>
 #include <figcone_tree/errors.h>
 #include <figcone/configreader.h>
+#include <iostream>
 
 class DemoTreeProvider : public figcone::IParser
 {

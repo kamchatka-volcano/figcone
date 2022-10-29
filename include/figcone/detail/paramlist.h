@@ -51,9 +51,10 @@ private:
 
     bool hasValue() const override
     {
-         if constexpr (is_optional_v<TParamList>)
+        if constexpr (is_optional_v<TParamList>)
             return true;
-        return hasValue_;
+        else
+            return hasValue_;
     }
 
     StreamPosition position() override

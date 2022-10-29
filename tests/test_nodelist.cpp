@@ -79,7 +79,7 @@ public:
 
     figcone::TreeNode parse(std::istream&) override
     {
-        return tree_;
+        return std::move(tree_);
     }
 
     figcone::TreeNode tree_;
