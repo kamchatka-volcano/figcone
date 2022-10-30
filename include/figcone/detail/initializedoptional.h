@@ -106,7 +106,7 @@ public:
     }
 
 private:
-    T value_;
+    T value_{};
     bool hasValue_ = false;
 };
 

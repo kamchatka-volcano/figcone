@@ -228,7 +228,7 @@ private:
     TCfg read(std::istream& configStream, IParser& parser)
     {
         clear();
-        auto cfg = TCfg{{makePtr()}};
+        auto cfg = TCfg{makePtr()};
         auto tree = parser.parse(configStream);
         try {
             load(tree);

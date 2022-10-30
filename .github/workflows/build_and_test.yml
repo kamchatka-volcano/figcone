@@ -44,6 +44,16 @@ jobs:
             cxx: "cl",
             flags: "/EHsc /W4 /WX /wd4267"
           }
+        exclude:
+          -
+            config: {
+              name: "Windows Latest MSVC",
+              os: windows-latest,
+              cc: "cl",
+              cxx: "cl",
+              flags: "/EHsc /W4 /WX /wd4267"
+            }
+            use_nameof: "ON"
 
     steps:
     - uses: actions/checkout@v3
