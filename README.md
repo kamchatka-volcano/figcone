@@ -2,7 +2,9 @@
   <img height="128" src="doc/logo.jpg"/>  
 </p>
 
-**figcone** - is a C++17 header-only library, providing a convenient declarative interface for configuration parsers and built-in support for reading `JSON`, `YAML`, `TOML`, `XML`, `INI` and `shoal` config files. To use it, create a configuration schema by declaring a structure for each level of your config file and load it by calling a method, matching the preferred configuration format:
+[![build & test (clang, gcc, MSVC)](https://github.com/kamchatka-volcano/figcone/actions/workflows/build_and_test.yml/badge.svg?branch=master)](https://github.com/kamchatka-volcano/figcone/actions/workflows/build_and_test.yml)
+
+**figcone** - is a C++17 library, providing a convenient declarative interface for configuration parsers and built-in support for reading `JSON`, `YAML`, `TOML`, `XML`, `INI` and `shoal` config files. To use it, create a configuration schema by declaring a structure for each level of your config file and load it by calling a method, matching the preferred configuration format:
 
 ```C++
 ///examples/ex01.cpp
@@ -140,7 +142,7 @@ int main()
         std::map<std::string, std::string> testDict = dict<&Cfg::testDict>();
     };
 ```
-Internally, these methods use the [`nameof`](https://github.com/Neargye/nameof) library to get config fields' names as strings. By default, **figcone** ships without it and these methods aren't available, to use them, enable `FIGCONE_USE_NAMEOF` CMake option to automatically download and configure `nameof` library, or install it on your system by yourself.   
+Internally, these methods use the [`nameof`](https://github.com/Neargye/nameof) library to get config fields' names as strings. By default, **figcone** ships without it and these methods aren't available, to use them, enable `FIGCONE_USE_NAMEOF` CMake option to automatically download and configure `nameof` library, or install it on your system by yourself.  
 `nameof` relies on non-standard functionality of C++ compilers, so if you don't like it you can use `figcone`
 without it, by providing names by yourself:
 
@@ -157,6 +159,7 @@ without it, by providing names by yourself:
         std::map<std::string, std::string> testDict = dict<&Cfg::testDict>("testDict");
     };
 ```
+Please note, that currently functionality provided by `nameof` isn't compatible with MSVC compiler. 
 
 Config structures declared using the macros-free methods are fully compatible with all **figcone**'s functionality. 
 Examples use registration with macros as it's the least verbose method.
@@ -164,7 +167,7 @@ Examples use registration with macros as it's the least verbose method.
 
 ### Supported formats
  
-Internally, **figcone** library works on a tree-like structure provided by [`figcone_tree`](https://github.com/kamchatka-volcano/figcone_tree) library, and it's not aware of different configuration formats. User needs to provide a parser implementing `figcone_tree::IParser` interface to convert configuration file to a tree structure based on `figcone_tree::TreeNode` class. It's also possible to create a `figcone` compatible parser adapter which transform the parsing result of some 3rd party configuration  parsing library to the tree using `figcone_tree::TreeNode`. Five such adapters for popular configuration formats are created for `figcone`, they're fetched and configured by CMake and added to the library's interface. An obscure configuration format [`shoal`](https://github.com/kamchatka-volcano/figcone_shoal) designed by the author of `figcone` is also available and can be used as an example of an original parser implementation compatible with `figcone`. 
+Internally, **figcone** library works on a tree-like structure provided by [`figcone_tree`](https://github.com/kamchatka-volcano/figcone_tree) library, and it's not aware of different configuration formats. User needs to provide a parser implementing `figcone_tree::IParser` interface to convert configuration file to a tree structure based on `figcone_tree::TreeNode` class. It's also possible to create a `figcone` compatible parser adapter which transform the parsing result of some 3rd party configuration  parsing library to the tree using `figcone_tree::TreeNode`. Five such adapters for popular configuration formats are created for `figcone`, they're fetched and built into static library `figcone_formats` which is automatically configured and linked by `figcone` CMake configuration. An obscure configuration format [`shoal`](https://github.com/kamchatka-volcano/figcone_shoal) designed by the author of `figcone` is also available and can be used as an example of an original parser implementation compatible with `figcone`. 
 
 Let's increase complexity of our example config to demonstrate how configuration elements work with each format:
 #### demo.h
@@ -351,10 +354,10 @@ int main()
 ```
 Notes:
 * TOML nested arrays aren't supported, as they can't be represented within `figcone` configuration tree.
-* TOML datetime types can be used in the config by including `<figcone_toml/datetime.h>` header:
+* TOML datetime types can be used in the config by including `<figcone/format/toml/datetime.h>` header:
 ```C++
 #include <figcone/config.h>
-#include <figcone_toml/datetime.h>
+#include <figcone/format/toml/datetime.h>
 
 struct Cfg: figcone::Config
 {   
@@ -410,7 +413,7 @@ int main()
 }
 ```
 Notes:
-* Node list elements are placed in XML elements with tag name `_` : `<_> </_>`
+* Node lists are created by adding an attribute `_list="1"` or placing child elements in XML elements with tag name `_` : `<_> </_>`
 * Parameter lists are stored in attributes and have the format: `[value1, value2, ...]`
 
 #### INI
@@ -756,15 +759,6 @@ Afterwards, you can use find_package() command to make the installed library ava
 ```
 find_package(figcone 2.0.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE figcone::figcone)   
-```
-
-Note, that if your installed `figcone` was configured with a custom combination of supported formats, you need to enable the same CMake configuration options in you project before using `find_package` command. For example, if `figcone` was installed with enabled options `FIGCONE_USE_NAMEOF`,  `FIGCONE_USE_JSON` and `FIGCONE_USE_YAML`, you need to find the package this way:
-```
-set(FIGCONE_USE_NAMEOF ON)
-set(FIGCONE_USE_JSON ON)
-set(FIGCONE_USE_YAML ON)
-find_package(figcone 2.0.0 REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE figcone::figcone)
 ```
 
 
