@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <algorithm>
-#include <sfun/string_utils.h>
+#include "external/sfun/string_utils.h"
 
 namespace figcone::detail{
 namespace str = sfun::string_utils;

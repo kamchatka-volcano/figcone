@@ -1,0 +1,70 @@
+name: build & test (clang, gcc, MSVC)
+
+on:
+  push:
+    branches: [ "master", "dev" ]
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches: [ "master", "dev" ]
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }} (nameof = ${{ matrix.use_nameof }})
+    runs-on: ${{ matrix.config.os }}
+    env:
+      CC: ${{ matrix.config.cc }}
+      CXX: ${{ matrix.config.cxx }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        use_nameof: ["ON", "OFF"]
+        config:
+          - {
+            name: "Ubuntu Latest gcc",
+            os: ubuntu-latest,
+            cc: "gcc",
+            cxx: "g++",
+            flags: "-Wall -Werror -Wextra -Wpedantic -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused"
+          }
+          - {
+            name: "Ubuntu Latest clang",
+            os: ubuntu-latest,
+            cc: "clang",
+            cxx: "clang++",
+            flags: "-Wall -Werror -Wextra -Wpedantic -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused"
+          }
+          - {
+            name: "Windows Latest MSVC",
+            os: windows-latest,
+            cc: "cl",
+            cxx: "cl",
+            flags: "/EHsc /W4 /WX /wd4267"
+          }
+        exclude:
+          -
+            config: {
+              name: "Windows Latest MSVC",
+              os: windows-latest,
+              cc: "cl",
+              cxx: "cl",
+              flags: "/EHsc /W4 /WX /wd4267"
+            }
+            use_nameof: "ON"
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure CMake
+      run: cmake -B ${{github.workspace}}/build -DENABLE_TESTS=ON -DENABLE_EXAMPLES=ON -DFIGCONE_USE_NAMEOF=${{ matrix.use_nameof }} -DCMAKE_CXX_FLAGS="${{ matrix.config.flags }}"
+
+    - name: Build
+      run: cmake --build ${{github.workspace}}/build
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest
+

@@ -1,9 +1,9 @@
 #pragma once
 #include "initializedoptional.h"
+#include "external/sfun/traits.h"
 #include <optional>
 #include <vector>
 #include <type_traits>
-#include <sfun/traits.h>
 
 namespace figcone::detail {
 using namespace sfun::traits;
@@ -30,7 +30,7 @@ auto& maybeOptValue(T& obj)
 
 }
 
-namespace sfun::traits {
+namespace figcone::sfun::traits {
 template<typename T>
 struct remove_optional<figcone::detail::InitializedOptional<T>> {
     using type = T;

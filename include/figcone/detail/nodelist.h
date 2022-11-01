@@ -2,9 +2,9 @@
 #include "inode.h"
 #include "loadingerror.h"
 #include "utils.h"
+#include "external/sfun/traits.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
-#include <sfun/traits.h>
 #include <vector>
 #include <memory>
 
@@ -65,7 +65,8 @@ public:
     {
         if constexpr (is_optional_v<TCfgList>)
             return true;
-        return hasValue_;
+        else
+            return hasValue_;
     }
 
     StreamPosition position() override

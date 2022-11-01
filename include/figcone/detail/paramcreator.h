@@ -2,7 +2,7 @@
 #include "iconfigreader.h"
 #include "param.h"
 #include "validator.h"
-#include <gsl/assert>
+#include "external/sfun/asserts.h"
 
 namespace figcone::detail{
 
@@ -13,7 +13,7 @@ public:
                  std::string paramName,
                  T& paramValue)
         : cfgReader_{cfgReader}
-        , paramName_{(Expects(!paramName.empty()), std::move(paramName))}
+        , paramName_{(sfunPrecondition(!paramName.empty()), std::move(paramName))}
         , paramValue_{paramValue}
         , param_{std::make_unique<Param<T>>(paramName_, paramValue)}
     {

@@ -89,7 +89,7 @@ public:
 
     figcone::TreeNode parse(std::istream&) override
     {
-        return tree_;
+        return std::move(tree_);
     }
 
     figcone::TreeNode tree_;
@@ -105,16 +105,20 @@ TEST(TestNode, SingleNodeSingleLevel)
 ///[a]
 ///  testInt = 10
 ///
-    auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("foo", "5", {1, 1});
-    tree.asItem().addParam("bar", "test", {2, 1});
-    auto& aNode = tree.asItem().addNode("a", {3, 1});
-    aNode.asItem().addParam("testInt", "10", {4, 1});
+    auto makeTreeProvider = [] {
+        auto tree = figcone::makeTreeRoot();
+        tree.asItem().addParam("foo", "5", {1, 1});
+        tree.asItem().addParam("bar", "test", {2, 1});
+        auto& aNode = tree.asItem().addNode("a", {3, 1});
+        aNode.asItem().addParam("testInt", "10", {4, 1});
+        return TreeProvider{std::move(tree)};
+    };
 
-    auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto parser = makeTreeProvider();
     auto cfg = cfgReader.read<SingleNodeSingleLevelCfg>("", parser);
-    auto cfg2 = cfgReader.read<SingleNodeSingleLevelCfg>("", parser);
+    auto parser2 = makeTreeProvider();
+    auto cfg2 = cfgReader.read<SingleNodeSingleLevelCfg>("", parser2);
 
     EXPECT_EQ(cfg.foo, 5);
     EXPECT_EQ(cfg.bar, "test");

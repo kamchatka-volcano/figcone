@@ -1,10 +1,10 @@
 #pragma once
 #include "iparam.h"
 #include "utils.h"
+#include "external/sfun/traits.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
 #include <figcone_tree/stringconverter.h>
-#include <sfun/traits.h>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -51,9 +51,10 @@ private:
 
     bool hasValue() const override
     {
-         if constexpr (is_optional_v<TParamList>)
+        if constexpr (is_optional_v<TParamList>)
             return true;
-        return hasValue_;
+        else
+            return hasValue_;
     }
 
     StreamPosition position() override

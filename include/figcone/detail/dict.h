@@ -2,8 +2,8 @@
 #include "inode.h"
 #include "param.h"
 #include "utils.h"
+#include "external/sfun/traits.h"
 #include <figcone_tree/tree.h>
-#include <sfun/traits.h>
 #include <map>
 #include <string>
 #include <type_traits>
@@ -56,7 +56,8 @@ private:
     {
         if constexpr (is_optional_v<TMap>)
             return true;
-        return hasValue_;
+        else
+            return hasValue_;
     }
 
     StreamPosition position() override

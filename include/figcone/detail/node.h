@@ -46,8 +46,8 @@ private:
     {
         if constexpr (is_initialized_optional_v<TCfg>)
             return true;
-
-        return hasValue_;
+        else
+            return hasValue_;
     }
 
     StreamPosition position() override

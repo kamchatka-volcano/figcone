@@ -36,8 +36,13 @@ public:
     {}
     Config(const Config&) = default;
     Config& operator=(const Config&) = default;
-    Config(Config&&){};
-    Config& operator=(Config&&){return *this;};
+    Config(Config&&)
+    {
+    }
+    Config& operator=(Config&&)
+    {
+        return *this;
+    };
 
 protected:
     template<auto member>

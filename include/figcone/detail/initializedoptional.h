@@ -19,9 +19,10 @@ public:
         : value_{std::forward<TArgs>(args)...}
     {
     }
-    template<typename TArg, std::enable_if_t<!std::is_base_of_v<InitializedOptional<T>, std::remove_reference_t<TArg>>>* = nullptr>
+    template<typename TArg, std::enable_if_t<!std::is_base_of_v<InitializedOptional<T>, std::remove_reference_t<TArg>> &&
+                                             !std::is_convertible_v<std::remove_reference_t<TArg>, InitializedOptional<T>>>* = nullptr>
     InitializedOptional(TArg&& arg)
-        : value_{std::forward<TArg>(arg)}
+            : value_{std::forward<TArg>(arg)}
     {
     }
 
@@ -105,7 +106,7 @@ public:
     }
 
 private:
-    T value_;
+    T value_{};
     bool hasValue_ = false;
 };
 

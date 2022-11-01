@@ -1,9 +1,9 @@
 #pragma once
 #include "iconfigreader.h"
 #include "nodelist.h"
+#include "external/sfun/asserts.h"
+#include "external/sfun/traits.h"
 #include <figcone/nameformat.h>
-#include <sfun/traits.h>
-#include <gsl/assert>
 
 namespace figcone{
 class Config;
@@ -24,7 +24,7 @@ public:
                     TCfgList& nodeList,
                     NodeListType type = NodeListType::Normal)
         : cfgReader_{cfgReader}
-        , nodeListName_{(Expects(!nodeListName.empty()), std::move(nodeListName))}
+        , nodeListName_{(sfunPrecondition(!nodeListName.empty()), std::move(nodeListName))}
         , nodeList_{std::make_unique<NodeList<TCfgList>>(nodeListName_, nodeList,
                                                          cfgReader_ ? cfgReader_->makeNestedReader(nodeListName_)
                                                                     : ConfigReaderPtr{}, type)}
