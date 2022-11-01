@@ -86,6 +86,7 @@ if(FIGCONE_USE_ALL OR FIGCONE_USE_SHOAL)
     )
 endif()
 
+if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML OR FIGCONE_USE_INI OR FIGCONE_USE_XML OR FIGCONE_USE_SHOAL)
 SealLake_StaticLibrary(
         NAMESPACE figcone
         COMPILE_FEATURES
@@ -95,6 +96,7 @@ SealLake_StaticLibrary(
         DEPENDENCIES
             figcone_tree 0.12.0
 )
+endif()
 
 if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON)
     SealLake_Libraries(figcone::figcone_json)
