@@ -303,13 +303,7 @@ int main()
 }
 ```
 Notes:  
-* `figcone_yaml` supports only a single document section (starting with `---`) in your YAML config file. 
-* `rapidyaml` library requires to manually place definitions in a single compilation unit, you can do this by adding the following `yaml_impl.cpp` to your project:
-```C++
-//yaml_impl.cpp
-#include <figcone_yaml/yaml_impl.h>
-```
-
+* `figcone_yaml` supports only a single document section (starting with `---`) in your YAML config file.
 
 #### TOML
 
