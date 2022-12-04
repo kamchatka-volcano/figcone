@@ -13,10 +13,10 @@ SealLake_Import(
 option(FIGCONE_USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" OFF)
 if (FIGCONE_USE_NAMEOF)
     set(NAMEOF_OPT_INSTALL ON)
-    SealLake_Import(
-            nameof         0.10.2
+    SealLake_Bundle(
+            NAME nameof
             GIT_REPOSITORY https://github.com/Neargye/nameof.git
-            GIT_TAG        v0.10.2
+            GIT_TAG        bc183cd
     )
 endif()
 
@@ -34,9 +34,14 @@ SealLake_Bundle(
 set(INSTALL_FIGCONE_FORMATS ON)
 add_subdirectory(formats)
 
+if (FIGCONE_USE_NAMEOF AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(CPP_STANDARD_FEATURE cxx_std_20)
+else()
+    set(CPP_STANDARD_FEATURE cxx_std_17)
+endif()
+
 SealLake_HeaderOnlyLibrary(
-        COMPILE_FEATURES
-            cxx_std_17
+        COMPILE_FEATURES  ${CPP_STANDARD_FEATURE}
         LIBRARIES
             figcone::figcone_tree
         DEPENDENCIES

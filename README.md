@@ -159,9 +159,9 @@ without it, by providing names by yourself:
         std::map<std::string, std::string> testDict = dict<&Cfg::testDict>("testDict");
     };
 ```
-Please note, that currently functionality provided by `nameof` isn't compatible with MSVC compiler. 
+ Please note, that on the MSVC compiler, `nameof` features used by `figcone` require the C++20 standard. This is handled automatically by CMake configuration if MSVC is your default compiler, otherwise you will need to enable the C++20 standard manually. 
 
-Config structures declared using the macros-free methods are fully compatible with all **figcone**'s functionality. 
+Config structures declared using the macros-free methods are fully compatible with all `figcone`'s functionality. 
 Examples use registration with macros as it's the least verbose method.
 
 
