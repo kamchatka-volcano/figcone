@@ -4,7 +4,7 @@
 
 [![build & test (clang, gcc, MSVC)](https://github.com/kamchatka-volcano/figcone/actions/workflows/build_and_test.yml/badge.svg?branch=master)](https://github.com/kamchatka-volcano/figcone/actions/workflows/build_and_test.yml)
 
-**figcone** - is a C++17 library, providing a convenient declarative interface for configuration parsers and built-in support for reading `JSON`, `YAML`, `TOML`, `XML`, `INI` and `shoal` config files. To use it, create a configuration schema by declaring a structure for each level of your config file and load it by calling a method, matching the preferred configuration format:
+`figcone` - is a C++17 library, providing a convenient declarative interface for configuration parsers and built-in support for reading `JSON`, `YAML`, `TOML`, `XML`, `INI` and `shoal` config files. To use it, create a configuration schema by declaring a structure for each level of your config file and load it by calling a method, matching the preferred configuration format:
 
 ```C++
 ///examples/ex01.cpp
@@ -66,27 +66,27 @@ int main()
 
 ### Config structure
 
-To use **figcone** you need to create a structure with fields corresponding to the config's parameters.  
-To do this subclass `figcone::Config` and declare fields with the following macros:
-- **FIGCONE_PARAM(`name`, `type`)** - creates `type name;` config field and registers it in the parser.
-- **FIGCONE_PARAMLIST(`name`, `listType`)** - creates `listType name;` config field and registers it in the parser. `listType` can be any sequence container, supporting `emplace_back` operation, within STL it's `vector`, `deque` or `list`.
-- **FIGCONE_NODE(`name`, `type`)** - creates `type name;` config field for a nested configuration structure and registers it in the parser. Node's type must be a subclass of `figcone::Config`.
-- **FIGCONE_NODELIST(`name`, `listType`)** - creates `listType name;` config field for a list of nested configuration structures and registers it in the parser. `listType` can be any sequence container, supporting `emplace_back` operation, within STL it's `vector`, `deque` or `list`. The type stored in the list (`listType::value_type`) must be a subclass of `figcone::Config`.
-- **FIGCONE_COPY_NODELIST(`name`, `listType`)** - creates `listType name;` config field for a list of nested configuration structures and registers it in the parser. `listType` can be any sequence container, supporting `emplace_back` operation, within STL it's `vector`, `deque` or `list`. The type stored in the list (`listType::value_type`) must be a subclass of `figcone::Config`. The first element of this list acts as a template for other elements, which means that all unspecified parameters of the second and following elements will be copied from the first element without raising a parsing error on missing parameters.
-- **FIGCONE_DICT(`name`, `mapType`)** - creates `mapType name;` config field for a nested dictionary and registers it in the parser. `mapType` can be any associative container, supporting `emplace` operation, within STL it's `map` and `unordered_map`. The key type of the map must be `std::string`.
-The preprocessor doesn't handle commas between template arguments the right way, so you need to create an alias for your map to be able to use it with this macro:
+To use `figcone`, you need to create a structure with fields corresponding to the config's parameters.  
+To do this, subclass `figcone::Config` and declare fields using the following macros:
+
+- **FIGCONE_PARAM(`name`, `type`)** - creates a `type name;` config field and registers it in the parser.
+- **FIGCONE_PARAMLIST(`name`, `listType`)** - creates a `listType name;` config field and registers it in the parser. listType can be any sequence container that supports the `emplace_back` operation, such as `vector`, `deque`, or `list` from the STL.
+- **FIGCONE_NODE(`name`, `type`)** - creates a `type name;` config field for a nested configuration structure and registers it in the parser. The type of the name field must be a subclass of `figcone::Config`.
+- **FIGCONE_NODELIST(`name`, `listType`)** - creates a `listType name;` config field for a list of nested configuration structures and registers it in the parser. `listType` can be any sequence container that supports the `emplace_back` operation, such as `vector`, `deque`, or `list` from the STL. The type stored in the list (listType::value_type) must be a subclass of `figcone::Config`.
+- **FIGCONE_COPY_NODELIST(`name`, `listType`)** - creates a `listType name;` config field for a list of nested configuration structures and registers it in the parser. `listType` can be any sequence container that supports the `emplace_back` operation, such as `vector`, `deque`, or `list` from the STL. The type stored in the list (listType::value_type) must be a subclass of `figcone::Config`. The first element of this list acts as a template for the other elements, which means that all unspecified parameters of the second and following elements will be copied from the first element without raising a parsing error for missing parameters.
+- **FIGCONE_DICT(`name`, `mapType`)** - creates a `mapType name;` config field for a nested dictionary and registers it in the parser. `mapType` can be any associative container that supports the emplace operation, such as `map` or `unordered_map` from the STL. The key type of the map must be `std::string`  
+The preprocessor doesn't handle commas between template arguments in the correct way, so you need to create an alias for your map in order to use it with this macro:
  ```c++
     using StringMap = std::map<std::string, std::string>;
     FIGCONE_DICT(testDict, StringMap);
  ```
 
 Notes:
-* All config entities listed above provide the parenthesis operator `()` which sets the default value, and makes this config field optional, so it can be omitted from the configuration file without raising an error. The empty operator `()` makes a field's value default initialized, otherwise, the passed parameters are used for initialization. `FIGCONE_NODE`, `FIGCONE_NODELIST` and  `FIGCONE_COPY_NODELIST` only support the default initialization.
-* It's also possible to make any config field optional by placing it in `figcone::optional` (std::optional-like wrapper with similar interface), if value for this field is missing from the config file, the field stays uninitialized and no error occurs.
-* Types used for config parameters must be default constructable and copyable.  
+- All config entities listed above provide the parenthesis operator `()` which sets the default value and makes this config field optional. This means that the field can be omitted from the configuration file without raising an error. The empty `operator ()` makes a field's value default initialized, otherwise the passed parameters are used for initialization. `FIGCONE_NODE`, `FIGCONE_NODELIST`, and `FIGCONE_COPY_NODELIST` only support default initialization.
+- It is also possible to make any config field optional by placing it in `figcone::optional` (a `std::optional`-like wrapper with a similar interface). If a value for this field is missing from the config file, the field remains uninitialized and no error occurs.
+- Types used for config parameters must be default constructible and copyable.
 
-
-You don't need to change your code style when declaring config fields - `camelCase`, `snake_case` and `PascalCase` names are supported and can be converted to the format used by parameters names in the config file. To do this, specify the configuration names format with `figcone::NameFormat` enum, by passing its value to `figcone::ConfigReader` template argument.
+You do not need to change your code style when declaring config fields. `camelCase`, `snake_case`, and `PascalCase` names are supported, and can be converted to the format used by parameter names in the config file. To do this, specify the configuration names format with the `figcone::NameFormat` enum by passing its value to the `figcone::ConfigReader` template argument. 
 
 To demonstrate it, let's change our PhotoViewer example to use snake_case names in the configuration:
 
@@ -128,7 +128,7 @@ int main()
 ```
 
 ### Registration without macros
-**figcone** can be used without macros, as every configuration entity described earlier can be registered with the similarly named `figcone::Config`'s member templates:
+`figcone` can be used without macros, as every configuration entity described earlier can be registered with the similarly named `figcone::Config`'s member templates:
 ```c++
     struct Cfg : public figcone::Config{
         int testParam                      = param<&Cfg::testParam>();
@@ -142,34 +142,34 @@ int main()
         std::map<std::string, std::string> testDict = dict<&Cfg::testDict>();
     };
 ```
-Internally, these methods use the [`nameof`](https://github.com/Neargye/nameof) library to get config fields' names as strings. By default, **figcone** ships without it and these methods aren't available, to use them, enable `FIGCONE_USE_NAMEOF` CMake option to automatically download and configure `nameof` library, or install it on your system by yourself.  
-`nameof` relies on non-standard functionality of C++ compilers, so if you don't like it you can use `figcone`
-without it, by providing names by yourself:
+Internally, these methods use the [`nameof`](https://github.com/Neargye/nameof) library to get config fields' names as strings. By default, `figcone` ships without it, so these methods aren't available. To use them, enable the `FIGCONE_USE_NAMEOF` CMake option to automatically download and configure the nameof library, or install it on your system manually.
+
+Note that nameof relies on non-standard functionality of C++ compilers, so if you don't like it, you can use `figcone` without it by providing names for config fields yourself:
 
 ```c++
     struct Cfg : public figcone::Config{
-        int testParam                      = param<&Cfg::testParam>("testParam");
-        int testParam2                     = param<&Cfg::testParam2>("testParam2")(100);
+        int testParam                          = param<&Cfg::testParam>("testParam");
+        int testParam2                         = param<&Cfg::testParam2>("testParam2")(100);
         figcone::optional<int> testParam3      = param<&Cfg::testParam3>("testParam3");
-        std::vector<double> testParamList  = paramList<&Cfg::testParamList>("testParamList");
-        TestNode testNode                  = node<&Cfg::testNode>("testNode");
+        std::vector<double> testParamList      = paramList<&Cfg::testParamList>("testParamList");
+        TestNode testNode                      = node<&Cfg::testNode>("testNode");
         figcone::optional<TestNode> testNode2  = node<&Cfg::testNode2>("testNode2");
-        std::vector<TestNode> testNodeList = nodeList<&Cfg::testNodeList>("testNodeList");
+        std::vector<TestNode> testNodeList     = nodeList<&Cfg::testNodeList>("testNodeList");
         std::vector<TestNode> copyTestNodeList = copyNodeList<&Cfg::copyTestNodeList>("copyTestNodeList");
         std::map<std::string, std::string> testDict = dict<&Cfg::testDict>("testDict");
     };
 ```
- Please note, that on the MSVC compiler, `nameof` features used by `figcone` require the C++20 standard. This is handled automatically by CMake configuration if MSVC is your default compiler, otherwise you will need to enable the C++20 standard manually. 
+Please note that on the MSVC compiler, the `nameof` features used by `figcone` require the C++20 standard. This is handled automatically by CMake configuration if MSVC is your default compiler. Otherwise, you will need to enable the C++20 standard manually.
 
-Config structures declared using the macros-free methods are fully compatible with all `figcone`'s functionality. 
-Examples use registration with macros as it's the least verbose method.
+Config structures declared using the macro-free methods are fully compatible with all of `figcone`'s functionality. Examples in the documentation use registration with macros, as it is the least verbose method. 
 
 
 ### Supported formats
  
-Internally, **figcone** library works on a tree-like structure provided by [`figcone_tree`](https://github.com/kamchatka-volcano/figcone_tree) library, and it's not aware of different configuration formats. User needs to provide a parser implementing `figcone_tree::IParser` interface to convert configuration file to a tree structure based on `figcone_tree::TreeNode` class. It's also possible to create a `figcone` compatible parser adapter which transform the parsing result of some 3rd party configuration  parsing library to the tree using `figcone_tree::TreeNode`. Five such adapters for popular configuration formats are created for `figcone`, they're fetched and built into static library `figcone_formats` which is automatically configured and linked by `figcone` CMake configuration. An obscure configuration format [`shoal`](https://github.com/kamchatka-volcano/figcone_shoal) designed by the author of `figcone` is also available and can be used as an example of an original parser implementation compatible with `figcone`. 
+Internally, the `figcone` library works on a tree-like structure provided by the [`figcone_tree`](https://github.com/kamchatka-volcano/figcone_tree) library, and it is not aware of different configuration formats. The user needs to provide a parser implementing the `figcone_tree::IParser` interface to convert a configuration file to a tree structure based on the `figcone_tree::TreeNode` class. It is also possible to create a `figcone` compatible parser adapter that transforms the parsing result of some 3rd party configuration parsing library to a tree using `figcone_tree::TreeNode`. Five such adapters for popular configuration formats are included in `figcone`, and are fetched and built into a static library called `figcone_formats` which is automatically configured and linked by `figcone`'s CMake configuration. An obscure configuration format called [`shoal`](https://github.com/kamchatka-volcano/figcone_shoal), which was designed by the author of `figcone`, is also available and can be used as an example of an original parser implementation that is compatible with `figcone`.
 
-Let's increase complexity of our example config to demonstrate how configuration elements work with each format:
+Let's increase the complexity of our example config to demonstrate how configuration elements work with each format:
+
 #### demo.h
 ```C++
 ///examples/demo.h
@@ -208,9 +208,9 @@ struct PhotoViewerCfg : public figcone::Config{
 
 #### JSON
 
-JSON support is provided by [`nlohmann/json`](https://github.com/nlohmann/json) library which is fetched and adapted to the `figcone` interface by [`figcone_json`](https://github.com/kamchatka-volcano/figcone_json) library.
+JSON support is provided by [`nlohmann/json`](https://github.com/nlohmann/json) library which is fetched and adapted to the `figcone` interface by the [`figcone_json`](https://github.com/kamchatka-volcano/figcone_json) library.
 
-JSON config, matching the configuration listed in [`demo.h`](#demoh) earlier, looks like this:
+A JSON config that matches the configuration listed in [`demo.h`](#demoh) earlier, looks like this:
 
 `demo.json`
 ```json
@@ -261,9 +261,9 @@ int main()
 
 #### YAML
 
-YAML support is provided by [`rapidyaml`](https://github.com/biojppm/rapidyaml) library which is fetched and adapted to the `figcone` interface by [`figcone_yaml`](https://github.com/kamchatka-volcano/figcone_yaml) library.
+YAML support is provided by the [`rapidyaml`](https://github.com/biojppm/rapidyaml) library which is fetched and adapted to the `figcone` interface by the [`figcone_yaml`](https://github.com/kamchatka-volcano/figcone_yaml) library.
 
-YAML config, matching the configuration listed in [`demo.h`](#demoh) earlier, looks like this:  
+A YAML config that matches the configuration listed in [`demo.h`](#demoh) earlier, looks like this:  
 `demo.yaml`
 ```yaml
   rootDir: ~/Photos
@@ -307,9 +307,9 @@ Notes:
 
 #### TOML
 
-TOML support is provided by [`toml11`](https://github.com/ToruNiina/toml11) library which is fetched and adapted to the `figcone` interface by [`figcone_toml`](https://github.com/kamchatka-volcano/figcone_toml) library.
+TOML support is provided by the [`toml11`](https://github.com/ToruNiina/toml11) library which is fetched and adapted to the `figcone` interface by the [`figcone_toml`](https://github.com/kamchatka-volcano/figcone_toml) library.
 
-TOML config, matching the configuration listed in [`demo.h`](#demoh) earlier, looks like this:  
+A TOML config that matches the configuration listed in [`demo.h`](#demoh) earlier, looks like this:  
 `demo.toml`
 ```toml
   rootDir = "~/Photos"
@@ -367,9 +367,9 @@ struct Cfg: figcone::Config
 
 #### XML
 
-XML support is provided by [`rapidxml`](https://github.com/dwd/rapidxml) library which is fetched and adapted to the `figcone` interface by [`figcone_xml`](https://github.com/kamchatka-volcano/figcone_xml) library.
+XML support is provided by the [`rapidxml`](https://github.com/dwd/rapidxml) library which is fetched and adapted to the `figcone` interface by the [`figcone_xml`](https://github.com/kamchatka-volcano/figcone_xml) library.
 
-XML config, matching the configuration listed in [`demo.h`](#demoh) earlier, looks like this:  
+An XML config that matches the configuration listed in [`demo.h`](#demoh) earlier, looks like this:  
 `demo.xml`
 ```xml
 <root rootDir="~/Photos"
@@ -412,9 +412,9 @@ Notes:
 
 #### INI
 
-INI support is provided by [`inifile-cpp`](https://github.com/Rookfighter/inifile-cpp) library which is fetched and adapted to the `figcone` interface by [`figcone_ini`](https://github.com/kamchatka-volcano/figcone_ini) library.
+INI support is provided by the [`inifile-cpp`](https://github.com/Rookfighter/inifile-cpp) library which is fetched and adapted to the `figcone` interface by the [`figcone_ini`](https://github.com/kamchatka-volcano/figcone_ini) library.
 
-INI config, matching the configuration listed in [`demo.h`](#demoh) earlier, looks like this:  
+An INI config that matches the configuration listed in [`demo.h`](#demoh) earlier, looks like this:  
 `demo.ini`
 ```ini
 rootDir = "~/Photos"
@@ -458,9 +458,9 @@ Notes:
 
 #### shoal
 
-[`shoal`](https://github.com/kamchatka-volcano/shoal) support is provided by [`figcone_shoal`](https://github.com/kamchatka-volcano/figcone_shoal) library.
+[`shoal`](https://github.com/kamchatka-volcano/shoal) support is provided by the [`figcone_shoal`](https://github.com/kamchatka-volcano/figcone_shoal) library.
 
-shoal config, matching the configuration listed in [`demo.h`](#demoh) earlier, looks like this:  
+A shoal config that matches the configuration listed in [`demo.h`](#demoh) earlier, looks like this:  
 `demo.shoal`
 ```
 rootDir = "~/Photos"
@@ -507,8 +507,7 @@ int main()
 ```
 
 ### Creation of figcone-compatible parsers
-To create a parser compatible with figcone, it's required to use  [`figcone_tree`](https://github.com/kamchatka-volcano/figcone_tree) library, providing all necessary types and interfaces for this task.   
-Parsing class should implement the `figcone::IParser` interface and provide the result of configuration parsing in the form of a tree-like structure, constructed with `figcone::TreeNode` and `figcone::TreeParam` objects. Let's demonstrate how to work with `figcone_tree` library by creating a fake parser providing a configuration tree for demo structure listed  in [`demo.h`](#demoh):
+To create a parser compatible with `figcone`, you will need to use the [`figcone_tree`](https://github.com/kamchatka-volcano/figcone_tree) library, which provides all the necessary types and interfaces for this task. The parsing class should implement the `figcone::IParser` interface and return the result of the configuration parsing in the form of a tree-like structure, constructed using `figcone::TreeNode` and `figcone::TreeParam` objects. Let's demonstrate how to work with the `figcone_tree` library by creating a fake parser that provides a configuration tree for the demo structure listed in [`demo.h`](#demoh):
 
 ```C++
 ///examples/demo_parser.cpp
@@ -570,8 +569,8 @@ int main()
 
 
 ### User defined types
-To use user defined types in your config, it's necessary to add a specialization of the struct `figcone::StringConverter` and implement its static method `fromString`.   
-Let's replace a HostCfg config structure with a parameter of type Host that is stored in the config as string `"ipAddress:port"`.
+To use user-defined types in your config, it's necessary to add a specialization of the struct `figcone::StringConverter` and implement its static method `fromString`.   
+Let's replace the HostCfg config structure with a parameter of type Host that is stored in the config as a string `"ipAddress:port"`.
 
 ```C++
 ///examples/ex03.cpp
@@ -650,7 +649,7 @@ int main()
 ```
 
 ### Validators
-Processed config parameters and nodes can be validated by registering constraints checking functions or callable objects. The signature must be compatible with `void (const T&)` where `T` - is a type of validated config structure field. If option's value is invalid, a validator is required to throw an exception `figcone::ValidationError`:
+Processed config parameters and nodes can be validated by registering constraint-checking functions or callable objects. The signature must be compatible with `void (const T&)` where `T` is the type of the validated config structure field. If the option's value is invalid, the validator must throw a `figcone::ValidationError` exception:
 
 ```c++
 struct Cfg : figcone::Config<>{
@@ -711,7 +710,7 @@ int main()
 }
 ```
 
-Now the read method will throw an exception if configuration provides invalid `rootDir` or `supportedFiles` parameters.
+Now the `read` method will throw an exception if configuration provides invalid `rootDir` or `supportedFiles` parameters.
 
 
 ## Installation
@@ -732,15 +731,15 @@ add_executable(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} PRIVATE figcone::figcone)
 ```
 
-By default `figcone` fetches all supported configuration format libraries, you can control this with CMake option `FIGCONE_USE_ALL`. Also, you can enable support of a single configuration format or a combination of formats  by setting the following options:
-  * `FIGCONE_USE_JSON` - fetches and configures `figcone_json` library;
-  * `FIGCONE_USE_YAML` - fetches and configures `figcone_yaml` library;
-  * `FIGCONE_USE_TOML` - fetches and configures `figcone_toml` library;
-  * `FIGCONE_USE_XML` - fetches and configures `figcone_xml` library;
-  * `FIGCONE_USE_INI` - fetches and configures `figcone_ini` library;
-  * `FIGCONE_USE_SHOAL` - fetches and configures `figcone_shoal` library;
+By default `figcone` fetches all supported configuration format libraries. You can control this with CMake option `FIGCONE_USE_ALL`. You can also enable support for a single configuration format or a combination of formats  by setting the following options:
+  * `FIGCONE_USE_JSON` - fetches and configures the `figcone_json` library;
+  * `FIGCONE_USE_YAML` - fetches and configures the `figcone_yaml` library;
+  * `FIGCONE_USE_TOML` - fetches and configures the `figcone_toml` library;
+  * `FIGCONE_USE_XML` - fetches and configures the `figcone_xml` library;
+  * `FIGCONE_USE_INI` - fetches and configures the `figcone_ini` library;
+  * `FIGCONE_USE_SHOAL` - fetches and configures the `figcone_shoal` library;
 
-For the system-wide installation use these commands:
+To install the library system-wide, use the following commands:
 ```
 git clone https://github.com/kamchatka-volcano/figcone.git
 cd figcone
@@ -749,7 +748,7 @@ cmake --build build
 cmake --install build
 ```
 
-Afterwards, you can use find_package() command to make the installed library available inside your project:
+After installation, you can use the `find_package()` command to make the installed library available inside your project:
 ```
 find_package(figcone 2.0.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE figcone::figcone)   
@@ -773,4 +772,4 @@ cd build/examples
 ```
 
 ## License
-**figcone** is licensed under the [MS-PL license](/LICENSE.md)  
+`figcone` is licensed under the [MS-PL license](/LICENSE.md)  
