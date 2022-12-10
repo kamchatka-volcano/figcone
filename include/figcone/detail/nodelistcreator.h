@@ -1,8 +1,8 @@
 #pragma once
 #include "iconfigreader.h"
 #include "nodelist.h"
-#include "external/sfun/asserts.h"
-#include "external/sfun/traits.h"
+#include "external/sfun/contract.h"
+#include "external/sfun/type_traits.h"
 #include <figcone/nameformat.h>
 
 namespace figcone{
@@ -10,13 +10,12 @@ class Config;
 }
 
 namespace figcone::detail{
-using namespace sfun::traits;
 
 template<typename TCfgList>
 class NodeListCreator{
-    static_assert(is_dynamic_sequence_container_v<remove_optional_t<TCfgList>>,
+    static_assert(sfun::is_dynamic_sequence_container_v<sfun::remove_optional_t<TCfgList>>,
             "Node list field must be a sequence container or a sequence container placed in std::optional");
-    static_assert(std::is_base_of_v<Config, typename remove_optional_t<TCfgList>::value_type>,
+    static_assert(std::is_base_of_v<Config, typename sfun::remove_optional_t<TCfgList>::value_type>,
             "TCfgList::value_type must be a subclass of figcone::Config.");
 public:
     NodeListCreator(ConfigReaderPtr cfgReader,

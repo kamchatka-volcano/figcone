@@ -23,7 +23,7 @@ endif()
 SealLake_Bundle(
         NAME figcone_sfun
         GIT_REPOSITORY https://github.com/kamchatka-volcano/sfun.git
-        GIT_TAG        v2.4.0
+        GIT_TAG        v3.0.0
         DESTINATION include/figcone/detail/external
         DIRECTORIES include/sfun
         TEXT_REPLACEMENTS

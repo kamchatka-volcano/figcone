@@ -2,7 +2,7 @@
 #include "iparam.h"
 #include "iconfigentity.h"
 #include "utils.h"
-#include "external/sfun/traits.h"
+#include "external/sfun/type_traits.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
 #include <figcone_tree/stringconverter.h>
@@ -11,7 +11,6 @@
 #include <algorithm>
 
 namespace figcone::detail {
-using namespace sfun::traits;
 
 template<typename T>
 class Param : public IParam{
@@ -42,7 +41,7 @@ private:
 
     bool hasValue() const override
     {
-        if constexpr (is_optional_v<T>)
+        if constexpr (sfun::is_optional_v<T>)
             return true;
         else
             return hasValue_;

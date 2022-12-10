@@ -4,16 +4,16 @@
 #include "inode.h"
 #include "validator.h"
 #include "utils.h"
-#include "external/sfun/traits.h"
-#include "external/sfun/asserts.h"
+#include "external/sfun/type_traits.h"
+#include "external/sfun/contract.h"
 #include <vector>
 
+
 namespace figcone::detail{
-using namespace sfun::traits;
 
 template<typename TParamList>
 class ParamListCreator{
-    static_assert(is_dynamic_sequence_container_v<remove_optional_t<TParamList>>,
+    static_assert(sfun::is_dynamic_sequence_container_v<sfun::remove_optional_t<TParamList>>,
             "Param list field must be a sequence container or a sequence container placed in std::optional");
 public:
     ParamListCreator(ConfigReaderPtr cfgReader,

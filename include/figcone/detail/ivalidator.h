@@ -1,10 +1,10 @@
 #pragma once
+#include "external/sfun/interface.h"
 
 namespace figcone::detail {
 
-class IValidator{
+class IValidator : private sfun::Interface<IValidator>{
 public:
-    virtual ~IValidator() = default;
     virtual void validate() = 0;
 };
 

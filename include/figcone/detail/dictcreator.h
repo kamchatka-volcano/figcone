@@ -1,13 +1,13 @@
 #pragma once
 #include "iconfigreader.h"
 #include "dict.h"
-#include "external/sfun/asserts.h"
-#include "external/sfun/traits.h"
+#include "external/sfun/contract.h"
+#include "external/sfun/type_traits.h"
 #include <figcone/nameformat.h>
 #include <memory>
 
+
 namespace figcone::detail{
-using namespace sfun::traits;
 
 template<typename TMap>
 class DictCreator{
@@ -20,9 +20,9 @@ public:
         , dict_{std::make_unique<Dict<TMap>>(dictName_, dictMap)}
         , dictMap_{dictMap}
     {
-        static_assert(is_associative_container_v<remove_optional_t<TMap>>,
+        static_assert(sfun::is_associative_container_v<sfun::remove_optional_t<TMap>>,
               "Dictionary field must be an associative container or an associative container placed in std::optional");
-        static_assert(std::is_same_v<typename remove_optional_t<TMap>::key_type, std::string>,
+        static_assert(std::is_same_v<typename sfun::remove_optional_t<TMap>::key_type, std::string>,
               "Dictionary associative container's key type must be std::string");
     }
 

@@ -2,7 +2,7 @@
 #include "inode.h"
 #include "loadingerror.h"
 #include "utils.h"
-#include "external/sfun/traits.h"
+#include "external/sfun/type_traits.h"
 #include <figcone_tree/tree.h>
 #include <figcone/errors.h>
 #include <vector>
@@ -10,7 +10,6 @@
 #include <type_traits>
 
 namespace figcone::detail{
-using namespace sfun::traits;
 
 enum class NodeListType{
     Normal,
@@ -26,7 +25,7 @@ public:
         , type_{type}
         , cfgReader_{cfgReader}
     {
-        static_assert(is_dynamic_sequence_container_v<remove_optional_t<TCfgList>>,
+        static_assert(sfun::is_dynamic_sequence_container_v<sfun::remove_optional_t<TCfgList>>,
                       "Node list field must be a sequence container or a sequence container placed in std::optional");
     }
 
@@ -42,7 +41,7 @@ public:
         position_ = nodeList.position();
         if (!nodeList.isList())
             throw ConfigError{"Node list '" + name_ + "': config node must be a list.", nodeList.position()};
-        if constexpr(is_optional<TCfgList>::value)
+        if constexpr(sfun::is_optional<TCfgList>::value)
             nodeList_.emplace();
 
         maybeOptValue(nodeList_).clear();
@@ -50,7 +49,7 @@ public:
             const auto& treeNode = nodeList.asList().node(i);
             try {
                 auto cfg = [this]{
-                    using CfgList = typename remove_optional_t<TCfgList>::value_type;
+                    using CfgList = typename sfun::remove_optional_t<TCfgList>::value_type;
                     if constexpr (std::is_aggregate_v<CfgList>)
                         return CfgList{{cfgReader_}};
                     else{
@@ -72,7 +71,7 @@ public:
 
     bool hasValue() const override
     {
-        if constexpr (is_optional_v<TCfgList>)
+        if constexpr (sfun::is_optional_v<TCfgList>)
             return true;
         else
             return hasValue_;

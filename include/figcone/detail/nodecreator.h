@@ -4,8 +4,9 @@
 #include "iconfigreader.h"
 #include "validator.h"
 #include "utils.h"
-#include "external/sfun/asserts.h"
-#include "external/sfun/traits.h"
+#include "external/sfun/contract.h"
+#include "external/sfun/type_traits.h"
+#include "external/sfun/utility.h"
 #include <figcone/config.h>
 #include <figcone/nameformat.h>
 #include <type_traits>
@@ -15,11 +16,10 @@ class Config;
 }
 
 namespace figcone::detail{
-using namespace sfun::traits;
 
 template<typename TCfg>
 class NodeCreator{
-    static_assert(std::is_base_of_v<Config, remove_optional_t<TCfg>>,
+    static_assert(std::is_base_of_v<Config, sfun::remove_optional_t<TCfg>>,
             "TConfig must be a subclass of figcone::Config.");
 public:
     NodeCreator(ConfigReaderPtr cfgReader,
@@ -30,8 +30,8 @@ public:
         , nodeCfg_{nodeCfg}
         , nestedCfgReader_{ cfgReader_ ? cfgReader_->makeNestedReader(nodeName_) : ConfigReaderPtr{}}
     {
-        if constexpr(is_optional_v<TCfg>)
-            static_assert(dependent_false<TCfg>,"TConfig can't be placed in std::optional, use figcone::optional instead.");
+        if constexpr(sfun::is_optional_v<TCfg>)
+            static_assert(sfun::dependent_false<TCfg>,"TConfig can't be placed in std::optional, use figcone::optional instead.");
         node_ = std::make_unique<Node<TCfg>>(nodeName_, nodeCfg_, nestedCfgReader_);
     }
 
