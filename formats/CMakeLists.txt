@@ -76,9 +76,9 @@ endif()
 
 if(FIGCONE_USE_ALL OR FIGCONE_USE_SHOAL)
     SealLake_Import(
-            figcone_shoal  0.2.1
+            figcone_shoal  0.2.0
             GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_shoal.git
-            GIT_TAG        v0.2.1
+            GIT_TAG        v0.2.0
     )
     SealLake_Copy(
             WILDCARDS ${figcone_shoal_SOURCE_DIR}/include/figcone_shoal/*

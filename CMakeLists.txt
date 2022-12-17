@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(figcone VERSION 2.2.1)
+project(figcone VERSION 2.2.0)
 include(GNUInstallDirs)
 include(external/seal_lake)
 
