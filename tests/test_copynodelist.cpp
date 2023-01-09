@@ -12,9 +12,20 @@
 
 namespace test_copynodelist {
 
+struct NonAggregateNode : public figcone::Config{
+  using Config::Config;
+  virtual ~NonAggregateNode() = default;
+  FIGCONE_PARAM(testInt, int);
+  FIGCONE_PARAM(testStr, std::string);
+};
+
 struct Node : public figcone::Config{
     FIGCONE_PARAM(testInt, int);
     FIGCONE_PARAM(testStr, std::string);
+};
+
+struct NonAggregateCfg: public figcone::Config{
+    FIGCONE_COPY_NODELIST(testNodes, std::vector<NonAggregateNode>);
 };
 
 struct Cfg: public figcone::Config{
@@ -96,6 +107,50 @@ TEST(TestCopyNodeList, Basic)
     EXPECT_EQ(cfg.testNodes[3].testInt, 3);
     EXPECT_EQ(cfg.testNodes[3].testStr, "Hello");
 }
+
+TEST(TestCopyNodeList, BasicNonAggregate)
+{
+    ///[[testNodes]]
+    ///  testInt = 3
+    ///  testStr = Hello
+    ///[[testNodes]]
+    ///  testInt = 2
+    ///[[testNodes]]
+    ///  testStr = World
+    ///[[testNodes]]
+
+    auto tree = figcone::makeTreeRoot();
+    auto& testNodes = tree.asItem().addNodeList("testNodes");
+    {
+        auto& node = testNodes.asList().addNode();
+        node.asItem().addParam("testInt", "3");
+        node.asItem().addParam("testStr", "Hello");
+    }
+    {
+        auto& node = testNodes.asList().addNode();
+        node.asItem().addParam("testInt", "2");
+    }
+    {
+        auto& node = testNodes.asList().addNode();
+        node.asItem().addParam("testStr", "World");
+    }
+    testNodes.asList().addNode();
+
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<NonAggregateCfg>("", parser);
+
+    ASSERT_EQ(cfg.testNodes.size(), 4);
+    EXPECT_EQ(cfg.testNodes[0].testInt, 3);
+    EXPECT_EQ(cfg.testNodes[0].testStr, "Hello");
+    EXPECT_EQ(cfg.testNodes[1].testInt, 2);
+    EXPECT_EQ(cfg.testNodes[1].testStr, "Hello");
+    EXPECT_EQ(cfg.testNodes[2].testInt, 3);
+    EXPECT_EQ(cfg.testNodes[2].testStr, "World");
+    EXPECT_EQ(cfg.testNodes[3].testInt, 3);
+    EXPECT_EQ(cfg.testNodes[3].testStr, "Hello");
+}
+
 
 TEST(TestCopyNodeList, BasicWithoutMacro)
 {

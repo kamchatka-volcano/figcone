@@ -13,6 +13,12 @@
 
 namespace test_node {
 
+struct NonAggregateA : public figcone::Config {
+  using Config::Config;
+  virtual ~NonAggregateA() = default;
+  FIGCONE_PARAM(testInt, int);
+};
+
 struct A : public figcone::Config {
     FIGCONE_PARAM(testInt, int);
 };
@@ -30,6 +36,15 @@ struct C : public figcone::Config {
 
 struct D : public figcone::Config {
     FIGCONE_PARAM(testInt, int)();
+};
+
+struct NonAggregateSingleNodeSingleLevelCfg : public figcone::Config {
+    using Config::Config;
+    FIGCONE_PARAM(foo, int);
+    FIGCONE_PARAM(bar, std::string);
+    FIGCONE_NODE(a, NonAggregateA);
+
+    virtual ~NonAggregateSingleNodeSingleLevelCfg() = default;
 };
 
 
@@ -128,6 +143,39 @@ TEST(TestNode, SingleNodeSingleLevel)
     EXPECT_EQ(cfg2.bar, "test");
     EXPECT_EQ(cfg2.a.testInt, 10);
 }
+
+TEST(TestNode, NonAggregateSingleNodeSingleLevel)
+{
+    ///
+    ///foo = 5
+    ///bar = test
+    ///[a]
+    ///  testInt = 10
+    ///
+    auto makeTreeProvider = [] {
+      auto tree = figcone::makeTreeRoot();
+      tree.asItem().addParam("foo", "5", {1, 1});
+      tree.asItem().addParam("bar", "test", {2, 1});
+      auto& aNode = tree.asItem().addNode("a", {3, 1});
+      aNode.asItem().addParam("testInt", "10", {4, 1});
+      return TreeProvider{std::move(tree)};
+    };
+
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto parser = makeTreeProvider();
+    auto cfg = cfgReader.read<NonAggregateSingleNodeSingleLevelCfg>("", parser);
+    auto parser2 = makeTreeProvider();
+    auto cfg2 = cfgReader.read<NonAggregateSingleNodeSingleLevelCfg>("", parser2);
+
+    EXPECT_EQ(cfg.foo, 5);
+    EXPECT_EQ(cfg.bar, "test");
+    EXPECT_EQ(cfg.a.testInt, 10);
+
+    EXPECT_EQ(cfg2.foo, 5);
+    EXPECT_EQ(cfg2.bar, "test");
+    EXPECT_EQ(cfg2.a.testInt, 10);
+}
+
 
 TEST(TestNode, OptionalNode)
 {

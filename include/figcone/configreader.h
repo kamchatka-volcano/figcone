@@ -20,6 +20,7 @@
 #include <vector>
 #include <memory>
 #include <filesystem>
+#include <type_traits>
 
 namespace figcone {
 
@@ -228,7 +229,14 @@ private:
     TCfg read(std::istream& configStream, IParser& parser)
     {
         clear();
-        auto cfg = TCfg{makePtr()};
+        auto cfg = [this]{
+          if constexpr (std::is_aggregate_v<TCfg>)
+            return TCfg{{makePtr()}};
+          else{
+            static_assert(std::is_constructible_v<TCfg, detail::ConfigReaderPtr>, "Non aggregate config objects must inherit figcone::Config constructors with 'using Config::Config;'");
+            return TCfg{makePtr()};
+          }
+        }();
         auto tree = parser.parse(configStream);
         try {
             load(tree);

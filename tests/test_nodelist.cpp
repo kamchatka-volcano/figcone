@@ -14,8 +14,21 @@
 
 namespace test_nodelist {
 
-struct Node : public figcone::Config{ //<figcone::NameFormat::CamelCase>
+struct NonAggregateNode : public figcone::Config{
+  using Config::Config;
+  virtual ~NonAggregateNode() = default;
+  FIGCONE_PARAM(testInt, int);
+};
+
+struct Node : public figcone::Config{
     FIGCONE_PARAM(testInt, int);
+};
+
+struct NonAggregateCfg: public figcone::Config{
+    FIGCONE_NODELIST(testNodes, std::vector<NonAggregateNode>);
+    FIGCONE_NODELIST(optTestNodes, std::list<NonAggregateNode>)();
+    FIGCONE_NODELIST(optTestNodes2, figcone::optional<std::deque<NonAggregateNode>>);
+    FIGCONE_PARAM(testStr, std::string);
 };
 
 struct Cfg: public figcone::Config{
@@ -141,6 +154,64 @@ TEST(TestNodeList, Basic)
     ASSERT_EQ(cfg.optTestNodes2->at(1).testInt, 300);
     EXPECT_EQ(cfg.testStr, "Hello");
 }
+
+TEST(TestNodeList, BasicNonAggregate)
+{
+    ///testStr = Hello
+    ///[[testNodes]]
+    ///  testInt = 3
+    ///[[testNodes]]
+    ///  testInt = 2
+    ///[[optTestNodes]]
+    ///   testInt = 100
+    ///[[optTestNodes2]]
+    ///   testInt = 200
+    ///[[optTestNodes2]]
+    ///   testInt = 300
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("testStr", "Hello", {1,1});
+    auto& testNodes = tree.asItem().addNodeList("testNodes", {2, 1});
+    {
+        auto& node = testNodes.asList().addNode({2, 1});
+        node.asItem().addParam("testInt", "3", {3, 3});
+    }
+    {
+        auto& node = testNodes.asList().addNode({4, 1});
+        node.asItem().addParam("testInt", "2", {5, 3});
+    }
+    auto& optTestNodes = tree.asItem().addNodeList("optTestNodes", {6, 1});
+    {
+        auto& node = optTestNodes.asList().addNode({6, 1});
+        node.asItem().addParam("testInt", "100", {7, 3});
+    }
+    auto& optTestNodes2 = tree.asItem().addNodeList("optTestNodes2", {8, 1});
+    {
+        {
+            auto& node = optTestNodes2.asList().addNode({8, 1});
+            node.asItem().addParam("testInt", "200", {9, 3});
+        }
+        {
+            auto& node = optTestNodes2.asList().addNode({10, 1});
+            node.asItem().addParam("testInt", "300", {11, 3});
+        }
+    }
+
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<NonAggregateCfg>("", parser);
+
+    ASSERT_EQ(cfg.testNodes.size(), 2);
+    EXPECT_EQ(cfg.testNodes[0].testInt, 3);
+    EXPECT_EQ(cfg.testNodes[1].testInt, 2);
+    ASSERT_EQ(cfg.optTestNodes.size(), 1);
+    EXPECT_EQ(cfg.optTestNodes.front().testInt, 100);
+    ASSERT_TRUE(cfg.optTestNodes2);
+    ASSERT_EQ(cfg.optTestNodes2->size(), 2);
+    ASSERT_EQ(cfg.optTestNodes2->at(0).testInt, 200);
+    ASSERT_EQ(cfg.optTestNodes2->at(1).testInt, 300);
+    EXPECT_EQ(cfg.testStr, "Hello");
+}
+
 
 TEST(TestNodeList, BasicWithoutOptional)
 {
