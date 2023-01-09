@@ -48,19 +48,14 @@ public:
         for (auto i = 0; i < nodeList.asList().count(); ++i) {
             const auto& treeNode = nodeList.asList().node(i);
             try {
-                auto cfg = [this]
-                {
-                    using CfgList = typename sfun::remove_optional_t<TCfgList>::value_type;
-                    if constexpr (std::is_aggregate_v<CfgList>)
-                        return CfgList{{cfgReader_}};
-                    else {
-                        static_assert(
-                                std::is_constructible_v<CfgList, detail::ConfigReaderPtr>,
-                                "Non aggregate config objects must inherit figcone::Config constructors with 'using "
-                                "Config::Config;'");
-                        return CfgList{cfgReader_};
-                    }
-                }();
+                using Cfg = typename sfun::remove_optional_t<TCfgList>::value_type;
+                if constexpr (!std::is_aggregate_v<Cfg>)
+                    static_assert(
+                            std::is_constructible_v<Cfg, detail::ConfigReaderPtr>,
+                            "Non aggregate config objects must inherit figcone::Config constructors with 'using "
+                            "Config::Config;'");
+
+                auto cfg = Cfg{cfgReader_};
                 if (cfgReader_) {
                     if (type_ == NodeListType::Copy && i > 0)
                         cfgReader_->load(nodeList.asList().node(0));

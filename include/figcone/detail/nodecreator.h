@@ -48,15 +48,13 @@ public:
         if (cfgReader_)
             cfgReader_->addNode(nodeName_, std::move(node_));
 
-        if constexpr (std::is_aggregate_v<TCfg>)
-            return TCfg{{nestedCfgReader_}};
-        else {
+        if constexpr (!std::is_aggregate_v<TCfg>)
             static_assert(
                     std::is_constructible_v<TCfg, detail::ConfigReaderPtr>,
                     "Non aggregate config objects must inherit figcone::Config constructors with 'using "
                     "Config::Config;'");
-            return TCfg{nestedCfgReader_};
-        }
+
+        return TCfg{nestedCfgReader_};
     }
 
     NodeCreator<TCfg>& ensure(std::function<void(const TCfg&)> validatingFunc)
