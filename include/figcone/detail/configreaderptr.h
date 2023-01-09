@@ -9,7 +9,8 @@ class ConfigReaderPtr {
 private:
     ConfigReaderPtr(IConfigReader* reader)
         : reader_{reader}
-    {}
+    {
+    }
 
 public:
     ConfigReaderPtr() = default;
@@ -43,4 +44,4 @@ private:
     IConfigReader* reader_ = nullptr;
 };
 
-}
+} //namespace figcone::detail

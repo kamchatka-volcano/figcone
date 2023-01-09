@@ -3,9 +3,9 @@
 
 namespace figcone::detail {
 
-class IValidator : private sfun::Interface<IValidator>{
+class IValidator : private sfun::Interface<IValidator> {
 public:
     virtual void validate() = 0;
 };
 
-}
+} //namespace figcone::detail

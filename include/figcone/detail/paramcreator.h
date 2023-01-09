@@ -4,14 +4,12 @@
 #include "validator.h"
 #include "external/sfun/contract.h"
 
-namespace figcone::detail{
+namespace figcone::detail {
 
 template<typename T>
-class ParamCreator{
+class ParamCreator {
 public:
-    ParamCreator(ConfigReaderPtr cfgReader,
-                 std::string paramName,
-                 T& paramValue)
+    ParamCreator(ConfigReaderPtr cfgReader, std::string paramName, T& paramValue)
         : cfgReader_{cfgReader}
         , paramName_{(sfunPrecondition(!paramName.empty()), std::move(paramName))}
         , paramValue_{paramValue}
@@ -33,11 +31,12 @@ public:
         return *this;
     }
 
-    template <typename TValidator, typename... TArgs>
+    template<typename TValidator, typename... TArgs>
     ParamCreator<T>& ensure(TArgs&&... args)
     {
         if (cfgReader_)
-            cfgReader_->addValidator(std::make_unique<Validator<T>>(*param_, paramValue_, TValidator{std::forward<TArgs>(args)...}));
+            cfgReader_->addValidator(
+                    std::make_unique<Validator<T>>(*param_, paramValue_, TValidator{std::forward<TArgs>(args)...}));
         return *this;
     }
 
@@ -56,4 +55,4 @@ private:
     T defaultValue_;
 };
 
-}
+} //namespace figcone::detail

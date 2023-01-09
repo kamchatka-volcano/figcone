@@ -3,21 +3,21 @@
 #include "loadingerror.h"
 #include "utils.h"
 #include "external/sfun/type_traits.h"
-#include <figcone_tree/tree.h>
 #include <figcone/errors.h>
-#include <vector>
+#include <figcone_tree/tree.h>
 #include <memory>
 #include <type_traits>
+#include <vector>
 
-namespace figcone::detail{
+namespace figcone::detail {
 
-enum class NodeListType{
+enum class NodeListType {
     Normal,
     Copy
 };
 
-template <typename TCfgList>
-class NodeList : public detail::INode{
+template<typename TCfgList>
+class NodeList : public detail::INode {
 public:
     NodeList(std::string name, TCfgList& nodeList, ConfigReaderPtr cfgReader, NodeListType type = NodeListType::Normal)
         : name_{std::move(name)}
@@ -25,8 +25,9 @@ public:
         , type_{type}
         , cfgReader_{cfgReader}
     {
-        static_assert(sfun::is_dynamic_sequence_container_v<sfun::remove_optional_t<TCfgList>>,
-                      "Node list field must be a sequence container or a sequence container placed in std::optional");
+        static_assert(
+                sfun::is_dynamic_sequence_container_v<sfun::remove_optional_t<TCfgList>>,
+                "Node list field must be a sequence container or a sequence container placed in std::optional");
     }
 
     void markValueIsSet()
@@ -34,26 +35,29 @@ public:
         hasValue_ = true;
     }
 
-
     void load(const TreeNode& nodeList) override
     {
         hasValue_ = true;
         position_ = nodeList.position();
         if (!nodeList.isList())
             throw ConfigError{"Node list '" + name_ + "': config node must be a list.", nodeList.position()};
-        if constexpr(sfun::is_optional<TCfgList>::value)
+        if constexpr (sfun::is_optional<TCfgList>::value)
             nodeList_.emplace();
 
         maybeOptValue(nodeList_).clear();
-        for (auto i = 0; i < nodeList.asList().count(); ++i){
+        for (auto i = 0; i < nodeList.asList().count(); ++i) {
             const auto& treeNode = nodeList.asList().node(i);
             try {
-                auto cfg = [this]{
+                auto cfg = [this]
+                {
                     using CfgList = typename sfun::remove_optional_t<TCfgList>::value_type;
                     if constexpr (std::is_aggregate_v<CfgList>)
                         return CfgList{{cfgReader_}};
-                    else{
-                        static_assert(std::is_constructible_v<CfgList, detail::ConfigReaderPtr>, "Non aggregate config objects must inherit figcone::Config constructors with 'using Config::Config;'");
+                    else {
+                        static_assert(
+                                std::is_constructible_v<CfgList, detail::ConfigReaderPtr>,
+                                "Non aggregate config objects must inherit figcone::Config constructors with 'using "
+                                "Config::Config;'");
                         return CfgList{cfgReader_};
                     }
                 }();
@@ -63,7 +67,8 @@ public:
                     cfgReader_->load(treeNode);
                 }
                 maybeOptValue(nodeList_).emplace_back(std::move(cfg));
-            } catch (const LoadingError& e) {
+            }
+            catch (const LoadingError& e) {
                 throw ConfigError{"Node list '" + name_ + "': " + e.what(), treeNode.position()};
             }
         }
@@ -96,4 +101,4 @@ private:
     ConfigReaderPtr cfgReader_;
 };
 
-}
+} //namespace figcone::detail

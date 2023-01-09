@@ -1,26 +1,26 @@
 #pragma once
 #include "config.h"
-#include "nameformat.h"
 #include "errors.h"
+#include "nameformat.h"
+#include "detail/figcone_ini_import.h"
+#include "detail/figcone_json_import.h"
+#include "detail/figcone_shoal_import.h"
+#include "detail/figcone_toml_import.h"
+#include "detail/figcone_xml_import.h"
+#include "detail/figcone_yaml_import.h"
+#include "detail/iconfigreader.h"
 #include "detail/inode.h"
 #include "detail/iparam.h"
 #include "detail/ivalidator.h"
-#include "detail/iconfigreader.h"
-#include "detail/nameconverter.h"
 #include "detail/loadingerror.h"
-#include "detail/figcone_json_import.h"
-#include "detail/figcone_yaml_import.h"
-#include "detail/figcone_toml_import.h"
-#include "detail/figcone_ini_import.h"
-#include "detail/figcone_xml_import.h"
-#include "detail/figcone_shoal_import.h"
+#include "detail/nameconverter.h"
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
-#include <map>
-#include <vector>
-#include <memory>
 #include <filesystem>
+#include <map>
+#include <memory>
 #include <type_traits>
+#include <vector>
 
 namespace figcone {
 
@@ -184,7 +184,7 @@ private:
         validators_.emplace_back((std::move(validator)));
     }
 
-     void load(const TreeNode& treeNode) override
+    void load(const TreeNode& treeNode) override
     {
         for (const auto& [nodeName, node] : treeNode.asItem().nodes()) {
             if (!nodes_.count(nodeName))
@@ -197,7 +197,7 @@ private:
             }
         }
 
-        for (const auto&[paramName, param] : treeNode.asItem().params()) {
+        for (const auto& [paramName, param] : treeNode.asItem().params()) {
             if (!params_.count(paramName))
                 throw ConfigError{"Unknown param '" + paramName + "'", param.position()};
             params_.at(paramName)->load(param);
@@ -208,14 +208,14 @@ private:
 
     void checkLoadingResult()
     {
-        for (const auto&[name, param]: params_)
+        for (const auto& [name, param] : params_)
             if (!param->hasValue())
                 throw detail::LoadingError{"Parameter '" + name + "' is missing."};
-        for (const auto&[name, node]: nodes_)
+        for (const auto& [name, node] : nodes_)
             if (!node->hasValue())
                 throw detail::LoadingError{"Node '" + name + "' is missing."};
 
-        for (const auto& validator: validators_)
+        for (const auto& validator : validators_)
             validator->validate();
     }
 
@@ -229,13 +229,17 @@ private:
     TCfg read(std::istream& configStream, IParser& parser)
     {
         clear();
-        auto cfg = [this]{
-          if constexpr (std::is_aggregate_v<TCfg>)
-            return TCfg{{makePtr()}};
-          else{
-            static_assert(std::is_constructible_v<TCfg, detail::ConfigReaderPtr>, "Non aggregate config objects must inherit figcone::Config constructors with 'using Config::Config;'");
-            return TCfg{makePtr()};
-          }
+        auto cfg = [this]
+        {
+            if constexpr (std::is_aggregate_v<TCfg>)
+                return TCfg{{makePtr()}};
+            else {
+                static_assert(
+                        std::is_constructible_v<TCfg, detail::ConfigReaderPtr>,
+                        "Non aggregate config objects must inherit figcone::Config constructors with 'using "
+                        "Config::Config;'");
+                return TCfg{makePtr()};
+            }
         }();
         auto tree = parser.parse(configStream);
         try {
@@ -263,4 +267,4 @@ private:
     std::vector<std::unique_ptr<detail::IValidator>> validators_;
 };
 
-}
+} //namespace figcone

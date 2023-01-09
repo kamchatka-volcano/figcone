@@ -1,28 +1,28 @@
 #pragma once
-#include "ivalidator.h"
 #include "iconfigentity.h"
+#include "ivalidator.h"
 #include <figcone/errors.h>
 #include <functional>
 
 namespace figcone::detail {
 
 template<typename T>
-class Validator : public IValidator
-{
+class Validator : public IValidator {
 public:
     Validator(IConfigEntity& entity, T& entityValue, std::function<void(const T&)> validatingFunc)
-    : entity_(entity)
-    , entityValue_(entityValue)
-    , validatingFunc_(std::move(validatingFunc))
-    {}
+        : entity_(entity)
+        , entityValue_(entityValue)
+        , validatingFunc_(std::move(validatingFunc))
+    {
+    }
 
 private:
     void validate() override
     {
-        try{
+        try {
             validatingFunc_(entityValue_);
         }
-        catch(const ValidationError& e){
+        catch (const ValidationError& e) {
             throw ConfigError{entity_.description() + ": " + e.what(), entity_.position()};
         }
     }
@@ -32,4 +32,4 @@ private:
     std::function<void(const T&)> validatingFunc_;
 };
 
-}
+} //namespace figcone::detail

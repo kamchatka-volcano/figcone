@@ -1,19 +1,19 @@
 #pragma once
-#include "iparam.h"
 #include "iconfigentity.h"
+#include "iparam.h"
 #include "utils.h"
 #include "external/sfun/type_traits.h"
-#include <figcone_tree/tree.h>
 #include <figcone/errors.h>
 #include <figcone_tree/stringconverter.h>
-#include <string>
-#include <sstream>
+#include <figcone_tree/tree.h>
 #include <algorithm>
+#include <sstream>
+#include <string>
 
 namespace figcone::detail {
 
 template<typename T>
-class Param : public IParam{
+class Param : public IParam {
 public:
     Param(std::string name, T& paramValue)
         : name_{std::move(name)}
@@ -35,7 +35,9 @@ private:
             throw ConfigError{"Parameter '" + name_ + "': config parameter can't be a list.", param.position()};
         auto paramVal = convertFromString<T>(param.value());
         if (!paramVal)
-            throw ConfigError{"Couldn't set parameter '" + name_ + "' value from '" + param.value() + "'", param.position()};
+            throw ConfigError{
+                    "Couldn't set parameter '" + name_ + "' value from '" + param.value() + "'",
+                    param.position()};
         paramValue_ = *paramVal;
     }
 
@@ -64,4 +66,4 @@ private:
     StreamPosition position_;
 };
 
-}
+} //namespace figcone::detail

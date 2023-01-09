@@ -1,22 +1,34 @@
 #pragma once
-#include <string>
-#include <algorithm>
 #include "external/sfun/string_utils.h"
+#include <algorithm>
+#include <string>
 
-namespace figcone::detail{
+namespace figcone::detail {
 
 inline std::string formatName(const std::string& name)
 {
     auto result = name;
     //remove front non-alphabet characters
-    result.erase(result.begin(), std::find_if(result.begin(), result.end(),
-                                              [](auto ch){
-                                                  return sfun::isalpha(ch);
-                                              })
-    );
+    result.erase(
+            result.begin(),
+            std::find_if(
+                    result.begin(),
+                    result.end(),
+                    [](auto ch)
+                    {
+                        return sfun::isalpha(ch);
+                    }));
     //remove back non-alphabet and non-digit characters
-    result.erase(std::find_if(result.rbegin(), result.rend(),
-                              [](auto ch){ return sfun::isalnum(ch);}).base(), result.end());
+    result.erase(
+            std::find_if(
+                    result.rbegin(),
+                    result.rend(),
+                    [](auto ch)
+                    {
+                        return sfun::isalnum(ch);
+                    })
+                    .base(),
+            result.end());
     return result;
 }
 
@@ -27,8 +39,8 @@ inline std::string toCamelCase(const std::string& name)
     auto formattedName = formatName(name);
     if (!formattedName.empty())
         formattedName[0] = static_cast<char>(sfun::tolower(formattedName[0]));
-    for (auto ch : formattedName){
-        if (!sfun::isalpha(ch)){
+    for (auto ch : formattedName) {
+        if (!sfun::isalpha(ch)) {
             if (sfun::isdigit(ch))
                 result.push_back(ch);
             if (!result.empty())
@@ -49,8 +61,8 @@ inline std::string toKebabCase(const std::string& name)
     auto formattedName = formatName(sfun::replace(name, "_", "-"));
     if (!formattedName.empty())
         formattedName[0] = sfun::tolower(formattedName[0]);
-    for (auto ch : formattedName){
-        if (sfun::isupper(ch) && !result.empty()){
+    for (auto ch : formattedName) {
+        if (sfun::isupper(ch) && !result.empty()) {
             result.push_back('-');
             result.push_back(sfun::tolower(ch));
         }
@@ -66,8 +78,8 @@ inline std::string toSnakeCase(const std::string& name)
     auto formattedName = formatName(name);
     if (!formattedName.empty())
         formattedName[0] = sfun::tolower(formattedName[0]);
-    for (auto ch : formattedName){
-        if (sfun::isupper(ch) && !result.empty()){
+    for (auto ch : formattedName) {
+        if (sfun::isupper(ch) && !result.empty()) {
             result.push_back('_');
             result.push_back(sfun::tolower(ch));
         }
@@ -77,4 +89,4 @@ inline std::string toSnakeCase(const std::string& name)
     return result;
 }
 
-}
+} //namespace figcone::detail

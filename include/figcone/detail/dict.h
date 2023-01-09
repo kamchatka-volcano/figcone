@@ -8,20 +8,22 @@
 #include <string>
 #include <type_traits>
 
-
 namespace figcone::detail {
 
 template<typename TMap>
-class Dict : public INode{
+class Dict : public INode {
 public:
     explicit Dict(std::string name, TMap& dictMap)
         : name_{std::move(name)}
         , dictMap_{dictMap}
     {
-        static_assert(sfun::is_associative_container_v<sfun::remove_optional_t<TMap>>,
-                      "Dictionary field must be an associative container or an associative container placed in std::optional");
-        static_assert(std::is_same_v<typename sfun::remove_optional_t<TMap>::key_type, std::string>,
-                     "Dictionary associative container's key type must be std::string");
+        static_assert(
+                sfun::is_associative_container_v<sfun::remove_optional_t<TMap>>,
+                "Dictionary field must be an associative container or an associative container placed in "
+                "std::optional");
+        static_assert(
+                std::is_same_v<typename sfun::remove_optional_t<TMap>::key_type, std::string>,
+                "Dictionary associative container's key type must be std::string");
     }
 
     void markValueIsSet()
@@ -35,14 +37,14 @@ private:
         hasValue_ = true;
         position_ = node.position();
         if (!node.isItem())
-           throw ConfigError{"Dictionary '" + name_ + "': config node can't be a list.", node.position()};
-        if constexpr(sfun::is_optional_v<TMap>)
-           dictMap_.emplace();
+            throw ConfigError{"Dictionary '" + name_ + "': config node can't be a list.", node.position()};
+        if constexpr (sfun::is_optional_v<TMap>)
+            dictMap_.emplace();
         maybeOptValue(dictMap_).clear();
 
-        for (const auto& [paramName, paramValueStr] : node.asItem().params())
-        {
-            auto paramValue = convertFromString<typename sfun::remove_optional_t<TMap>::mapped_type>(paramValueStr.value());
+        for (const auto& [paramName, paramValueStr] : node.asItem().params()) {
+            auto paramValue =
+                    convertFromString<typename sfun::remove_optional_t<TMap>::mapped_type>(paramValueStr.value());
             if (!paramValue)
                 throw ConfigError{
                         "Couldn't set dict element'" + name_ + "' value from '" + paramValueStr.value() + "'",
@@ -77,4 +79,4 @@ private:
     StreamPosition position_;
 };
 
-}
+} //namespace figcone::detail

@@ -8,8 +8,7 @@ template<NameFormat>
 struct NameConverter;
 
 template<>
-struct NameConverter<NameFormat::Original>
-{
+struct NameConverter<NameFormat::Original> {
     static std::string name(const std::string& configName)
     {
         return formatName(configName);
@@ -17,8 +16,7 @@ struct NameConverter<NameFormat::Original>
 };
 
 template<>
-struct NameConverter<NameFormat::SnakeCase>
-{
+struct NameConverter<NameFormat::SnakeCase> {
     static std::string name(const std::string& configName)
     {
         return toSnakeCase(configName);
@@ -26,8 +24,7 @@ struct NameConverter<NameFormat::SnakeCase>
 };
 
 template<>
-struct NameConverter<NameFormat::CamelCase>
-{
+struct NameConverter<NameFormat::CamelCase> {
     static std::string name(const std::string& configName)
     {
         return toCamelCase(configName);
@@ -35,12 +32,11 @@ struct NameConverter<NameFormat::CamelCase>
 };
 
 template<>
-struct NameConverter<NameFormat::KebabCase>
-{
+struct NameConverter<NameFormat::KebabCase> {
     static std::string name(const std::string& configName)
     {
         return toKebabCase(configName);
     }
 };
 
-}
+} //namespace figcone::detail

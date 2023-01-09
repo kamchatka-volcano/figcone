@@ -1,22 +1,21 @@
 #include "assert_exception.h"
-#include <gtest/gtest.h>
 #include <figcone/config.h>
 #include <figcone/configreader.h>
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
+#include <gtest/gtest.h>
 #include <optional>
 
 #if __has_include(<nameof.hpp>)
 #define NAMEOF_AVAILABLE
 #endif
 
-
 namespace test_node {
 
 struct NonAggregateA : public figcone::Config {
-  using Config::Config;
-  virtual ~NonAggregateA() = default;
-  FIGCONE_PARAM(testInt, int);
+    using Config::Config;
+    virtual ~NonAggregateA() = default;
+    FIGCONE_PARAM(testInt, int);
 };
 
 struct A : public figcone::Config {
@@ -47,7 +46,6 @@ struct NonAggregateSingleNodeSingleLevelCfg : public figcone::Config {
     virtual ~NonAggregateSingleNodeSingleLevelCfg() = default;
 };
 
-
 struct SingleNodeSingleLevelCfg : public figcone::Config {
     FIGCONE_PARAM(foo, int);
     FIGCONE_PARAM(bar, std::string);
@@ -60,24 +58,27 @@ struct OptionalNodeCfg : public figcone::Config {
     FIGCONE_NODE(d, D)();
 };
 
-struct HasNonEmptyFields{
+struct HasNonEmptyFields {
 public:
     void operator()(const B& b)
     {
-        if (b.testInt == 0 && b.testString.empty()) throw figcone::ValidationError{"both fields can't be empty"};
+        if (b.testInt == 0 && b.testString.empty())
+            throw figcone::ValidationError{"both fields can't be empty"};
     }
 };
 
 struct ValidatedNodeCfg : public figcone::Config {
-    FIGCONE_NODE(b, B).ensure([](const B& b){
-        if (b.testInt == 0 && b.testString.empty()) throw figcone::ValidationError{"both fields can't be empty"};
-    });
+    FIGCONE_NODE(b, B).ensure(
+            [](const B& b)
+            {
+                if (b.testInt == 0 && b.testString.empty())
+                    throw figcone::ValidationError{"both fields can't be empty"};
+            });
 };
 
 struct ValidatedWithFunctorNodeCfg : public figcone::Config {
     FIGCONE_NODE(b, B).ensure<HasNonEmptyFields>();
 };
-
 
 struct MultiNodeSingleLevelCfg : public figcone::Config {
     FIGCONE_PARAM(foo, int);
@@ -87,7 +88,7 @@ struct MultiNodeSingleLevelCfg : public figcone::Config {
 };
 
 #ifdef NAMEOF_AVAILABLE
-struct SingleNodeCfgWithoutMacro : public figcone::Config{
+struct SingleNodeCfgWithoutMacro : public figcone::Config {
     A a = node<&SingleNodeCfgWithoutMacro::a>();
 };
 #else
@@ -96,11 +97,12 @@ struct SingleNodeCfgWithoutMacro : public figcone::Config {
 };
 #endif
 
-
-class TreeProvider : public figcone::IParser{
+class TreeProvider : public figcone::IParser {
 public:
     TreeProvider(figcone::TreeNode tree)
-    : tree_(std::move(tree)) {}
+        : tree_(std::move(tree))
+    {
+    }
 
     figcone::TreeNode parse(std::istream&) override
     {
@@ -110,17 +112,17 @@ public:
     figcone::TreeNode tree_;
 };
 
-
 TEST(TestNode, SingleNodeSingleLevel)
 {
 
-///
-///foo = 5
-///bar = test
-///[a]
-///  testInt = 10
-///
-    auto makeTreeProvider = [] {
+    ///
+    ///foo = 5
+    ///bar = test
+    ///[a]
+    ///  testInt = 10
+    ///
+    auto makeTreeProvider = []
+    {
         auto tree = figcone::makeTreeRoot();
         tree.asItem().addParam("foo", "5", {1, 1});
         tree.asItem().addParam("bar", "test", {2, 1});
@@ -152,13 +154,14 @@ TEST(TestNode, NonAggregateSingleNodeSingleLevel)
     ///[a]
     ///  testInt = 10
     ///
-    auto makeTreeProvider = [] {
-      auto tree = figcone::makeTreeRoot();
-      tree.asItem().addParam("foo", "5", {1, 1});
-      tree.asItem().addParam("bar", "test", {2, 1});
-      auto& aNode = tree.asItem().addNode("a", {3, 1});
-      aNode.asItem().addParam("testInt", "10", {4, 1});
-      return TreeProvider{std::move(tree)};
+    auto makeTreeProvider = []
+    {
+        auto tree = figcone::makeTreeRoot();
+        tree.asItem().addParam("foo", "5", {1, 1});
+        tree.asItem().addParam("bar", "test", {2, 1});
+        auto& aNode = tree.asItem().addNode("a", {3, 1});
+        aNode.asItem().addParam("testInt", "10", {4, 1});
+        return TreeProvider{std::move(tree)};
     };
 
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
@@ -176,15 +179,14 @@ TEST(TestNode, NonAggregateSingleNodeSingleLevel)
     EXPECT_EQ(cfg2.a.testInt, 10);
 }
 
-
 TEST(TestNode, OptionalNode)
 {
-///
-///foo = 5
-///bar = test
-///[d]
-///  testInt = 10
-///
+    ///
+    ///foo = 5
+    ///bar = test
+    ///[d]
+    ///  testInt = 10
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("foo", "5", {1, 1});
     tree.asItem().addParam("bar", "test", {2, 1});
@@ -202,10 +204,10 @@ TEST(TestNode, OptionalNode)
 
 TEST(TestNode, WithoutOptionalNode)
 {
-///
-///foo = 5
-///bar = test
-///
+    ///
+    ///foo = 5
+    ///bar = test
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("foo", "5", {1, 1});
     tree.asItem().addParam("bar", "test", {2, 1});
@@ -221,10 +223,10 @@ TEST(TestNode, WithoutOptionalNode)
 
 TEST(TestNode, SingleNodeWithoutMacro)
 {
-///
-///[a]
-/// testInt = 10
-///
+    ///
+    ///[a]
+    /// testInt = 10
+    ///
     auto tree = figcone::makeTreeRoot();
     auto& aNode = tree.asItem().addNode("a", {1, 1});
     aNode.asItem().addParam("testInt", "10", {2, 3});
@@ -238,13 +240,14 @@ TEST(TestNode, SingleNodeWithoutMacro)
 
 TEST(TestNode, ValidationSuccess)
 {
-///
-///[b]
-///  testInt = 10
-///  testString = ""
-///
+    ///
+    ///[b]
+    ///  testInt = 10
+    ///  testString = ""
+    ///
     auto tree = figcone::makeTreeRoot();
-    auto& bNode = tree.asItem().addNode("b", {1, 1});;
+    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    ;
     bNode.asItem().addParam("testInt", "10", {2, 3});
     bNode.asItem().addParam("testString", "", {3, 3});
 
@@ -258,31 +261,34 @@ TEST(TestNode, ValidationSuccess)
 
 TEST(TestNode, ValidationError)
 {
-///[b]
-///  testInt = 0
-///  testString = "":
-///
+    ///[b]
+    ///  testInt = 0
+    ///  testString = "":
+    ///
     auto tree = figcone::makeTreeRoot();
     auto& bNode = tree.asItem().addNode("b", {1, 1});
     bNode.asItem().addParam("testInt", "0", {2, 3});
     bNode.asItem().addParam("testString", "", {3, 3});
 
-
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
-    assert_exception<figcone::ConfigError>([&] {
-         cfgReader.read<ValidatedNodeCfg>("", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Node 'b': both fields can't be empty");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<ValidatedNodeCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Node 'b': both fields can't be empty");
+            });
 }
 
 TEST(TestNode, ValidationWithFunctorError)
 {
-///[b]
-///  testInt = 0
-///  testString = "":
-///
+    ///[b]
+    ///  testInt = 0
+    ///  testString = "":
+    ///
     auto tree = figcone::makeTreeRoot();
     auto& bNode = tree.asItem().addNode("b", {1, 1});
     bNode.asItem().addParam("testInt", "0", {2, 3});
@@ -290,25 +296,29 @@ TEST(TestNode, ValidationWithFunctorError)
 
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
-    assert_exception<figcone::ConfigError>([&] {
-         cfgReader.read<ValidatedWithFunctorNodeCfg>("", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Node 'b': both fields can't be empty");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<ValidatedWithFunctorNodeCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Node 'b': both fields can't be empty");
+            });
 }
 
 TEST(TestNode, MultiNodeSingleLevel)
 {
     //auto cfg = MultiNodeSingleLevelCfg{};
 
-///foo = 5
-///bar = test
-///[a]
-///  testInt = 10
-///
-///[b]
-///  testInt = 11
-///
+    ///foo = 5
+    ///bar = test
+    ///[a]
+    ///  testInt = 10
+    ///
+    ///[b]
+    ///  testInt = 11
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("foo", "5", {1, 1});
     tree.asItem().addParam("bar", "test", {2, 1});
@@ -333,12 +343,12 @@ TEST(TestNode, MultiNodeSingleLevel)
 TEST(TestNode, MultiNodeSingleLevelWithoutOptionalNode)
 {
 
-///foo = 5
-///bar = test
-///[a]
-///  testInt = 10
-///
-///
+    ///foo = 5
+    ///bar = test
+    ///[a]
+    ///  testInt = 10
+    ///
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("foo", "5", {1, 1});
     tree.asItem().addParam("bar", "test", {2, 1});
@@ -364,18 +374,18 @@ struct MultiLevelCfg : public figcone::Config {
 
 TEST(TestNode, MultiLevel)
 {
-///foo = 5
-///bar = test
-///[c]
-///  testInt = 11
-///  testDouble = 12
-///  [c.b]
-///    testInt = 10
-///    testString = 'Hello world'
-///
-///[b]
-///  testInt = 9
-///
+    ///foo = 5
+    ///bar = test
+    ///[c]
+    ///  testInt = 11
+    ///  testDouble = 12
+    ///  [c.b]
+    ///    testInt = 10
+    ///    testString = 'Hello world'
+    ///
+    ///[b]
+    ///  testInt = 9
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("foo", "5", {1, 1});
     tree.asItem().addParam("bar", "test", {2, 1});
@@ -404,35 +414,39 @@ TEST(TestNode, MultiLevel)
 
 TEST(TestNode, UnknownNodeError)
 {
-///[test]
-///  foo = bar
-///
+    ///[test]
+    ///  foo = bar
+    ///
     auto tree = figcone::makeTreeRoot();
     auto& testNode = tree.asItem().addNode("test", {1, 1});
     testNode.asItem().addParam("foo", "bar", {2, 3});
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
     auto parser = TreeProvider{std::move(tree)};
-    assert_exception<figcone::ConfigError>([&] {
-        cfgReader.read<SingleNodeSingleLevelCfg>("", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Unknown node 'test'");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<SingleNodeSingleLevelCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Unknown node 'test'");
+            });
 }
 
 TEST(TestNode, NodeListError)
 {
-///foo = 5
-///bar = test
-///[c]
-///  testInt = 11
-///  testDouble = 12
-///  [c.b.0]
-///    testInt = 10
-///    testString = 'Hello world'
-///
-///[b]
-///  testInt = 9
-///
+    ///foo = 5
+    ///bar = test
+    ///[c]
+    ///  testInt = 11
+    ///  testDouble = 12
+    ///  [c.b.0]
+    ///    testInt = 10
+    ///    testString = 'Hello world'
+    ///
+    ///[b]
+    ///  testInt = 9
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("foo", "5", {1, 1});
     tree.asItem().addParam("bar", "test", {2, 1});
@@ -446,42 +460,50 @@ TEST(TestNode, NodeListError)
 
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
     auto parser = TreeProvider{std::move(tree)};
-    assert_exception<figcone::ConfigError>([&] {
-        cfgReader.read<MultiLevelCfg>("", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:6, column:1] Node 'b': config node can't be a list.");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<MultiLevelCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:6, column:1] Node 'b': config node can't be a list.");
+            });
 }
 
 TEST(TestNode, MissingNodeError)
 {
-///foo = 5
-///bar = test
-///
+    ///foo = 5
+    ///bar = test
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("foo", "5", {1, 1});
     tree.asItem().addParam("bar", "test", {2, 1});
 
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
-    assert_exception<figcone::ConfigError>([&] {
-        cfgReader.read<SingleNodeSingleLevelCfg>("", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Root node: Node 'a' is missing.");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<SingleNodeSingleLevelCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Root node: Node 'a' is missing.");
+            });
 }
 
 TEST(TestNode, MissingNodeError2)
 {
-///foo = 5
-///bar = test
-///[c]
-///  testInt = 11
-///  testDouble = 12
-///
-///[b]
-///  testInt = 9
-///
+    ///foo = 5
+    ///bar = test
+    ///[c]
+    ///  testInt = 11
+    ///  testDouble = 12
+    ///
+    ///[b]
+    ///  testInt = 9
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("foo", "5", {1, 1});
     tree.asItem().addParam("bar", "test", {2, 1});
@@ -494,12 +516,15 @@ TEST(TestNode, MissingNodeError2)
 
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
-    assert_exception<figcone::ConfigError>([&] {
-        cfgReader.read<MultiLevelCfg>("", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:3, column:1] Node 'c': Node 'b' is missing.");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<MultiLevelCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:3, column:1] Node 'c': Node 'b' is missing.");
+            });
 }
 
-}
-
+} //namespace test_node
