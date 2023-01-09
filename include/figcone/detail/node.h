@@ -1,19 +1,18 @@
 #pragma once
-#include "iconfigreader.h"
-#include "inode.h"
 #include "iconfigentity.h"
 #include "iconfigreader.h"
+#include "inode.h"
 #include "utils.h"
-#include <figcone_tree/tree.h>
 #include <figcone/errors.h>
-#include <string>
-#include <sstream>
+#include <figcone_tree/tree.h>
 #include <algorithm>
+#include <sstream>
+#include <string>
 
 namespace figcone::detail {
 
 template<typename TCfg>
-class Node : public INode{
+class Node : public INode {
 public:
     Node(std::string name, TCfg& cfg, ConfigReaderPtr cfgReader)
         : name_{std::move(name)}
@@ -33,7 +32,7 @@ private:
         hasValue_ = true;
         position_ = node.position();
         if (!node.isItem())
-           throw ConfigError{"Node '" + name_ + "': config node can't be a list.", node.position()};
+            throw ConfigError{"Node '" + name_ + "': config node can't be a list.", node.position()};
 
         if constexpr (is_initialized_optional_v<TCfg>)
             cfg_.emplace();
@@ -68,4 +67,4 @@ private:
     StreamPosition position_;
 };
 
-}
+} //namespace figcone::detail

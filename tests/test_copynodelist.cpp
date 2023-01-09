@@ -1,50 +1,62 @@
 #include "assert_exception.h"
-#include <gtest/gtest.h>
 #include <figcone/config.h>
 #include <figcone/configreader.h>
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
+#include <gtest/gtest.h>
 
 #if __has_include(<nameof.hpp>)
 #define NAMEOF_AVAILABLE
 #endif
 
-
 namespace test_copynodelist {
 
-struct Node : public figcone::Config{
+struct NonAggregateNode : public figcone::Config {
+    using Config::Config;
+    virtual ~NonAggregateNode() = default;
     FIGCONE_PARAM(testInt, int);
     FIGCONE_PARAM(testStr, std::string);
 };
 
-struct Cfg: public figcone::Config{
+struct Node : public figcone::Config {
+    FIGCONE_PARAM(testInt, int);
+    FIGCONE_PARAM(testStr, std::string);
+};
+
+struct NonAggregateCfg : public figcone::Config {
+    FIGCONE_COPY_NODELIST(testNodes, std::vector<NonAggregateNode>);
+};
+
+struct Cfg : public figcone::Config {
     FIGCONE_COPY_NODELIST(testNodes, std::vector<Node>);
 };
 
-struct Cfg2: public figcone::Config{
+struct Cfg2 : public figcone::Config {
     FIGCONE_COPY_NODELIST(testNodes, std::vector<Node>);
     FIGCONE_PARAM(testDouble, double);
 };
 
 #ifdef NAMEOF_AVAILABLE
-struct CfgWithoutMacro: public figcone::Config{
+struct CfgWithoutMacro : public figcone::Config {
     std::vector<Node> testNodes = copyNodeList<&CfgWithoutMacro::testNodes>();
 };
 #else
-struct CfgWithoutMacro: public figcone::Config{
+struct CfgWithoutMacro : public figcone::Config {
     std::vector<Node> testNodes = copyNodeList<&CfgWithoutMacro::testNodes>("testNodes");
 };
 #endif
 
-struct NestedCfgList: public figcone::Config{
+struct NestedCfgList : public figcone::Config {
     FIGCONE_PARAM(testStr, std::string);
     FIGCONE_COPY_NODELIST(testList, std::vector<Cfg2>);
 };
 
-class TreeProvider : public figcone::IParser{
+class TreeProvider : public figcone::IParser {
 public:
     TreeProvider(figcone::TreeNode tree)
-    : tree_(std::move(tree)) {}
+        : tree_(std::move(tree))
+    {
+    }
 
     figcone::TreeNode parse(std::istream&) override
     {
@@ -56,14 +68,14 @@ public:
 
 TEST(TestCopyNodeList, Basic)
 {
-///[[testNodes]]
-///  testInt = 3
-///  testStr = Hello
-///[[testNodes]]
-///  testInt = 2
-///[[testNodes]]
-///  testStr = World
-///[[testNodes]]
+    ///[[testNodes]]
+    ///  testInt = 3
+    ///  testStr = Hello
+    ///[[testNodes]]
+    ///  testInt = 2
+    ///[[testNodes]]
+    ///  testStr = World
+    ///[[testNodes]]
 
     auto tree = figcone::makeTreeRoot();
     auto& testNodes = tree.asItem().addNodeList("testNodes");
@@ -97,16 +109,59 @@ TEST(TestCopyNodeList, Basic)
     EXPECT_EQ(cfg.testNodes[3].testStr, "Hello");
 }
 
+TEST(TestCopyNodeList, BasicNonAggregate)
+{
+    ///[[testNodes]]
+    ///  testInt = 3
+    ///  testStr = Hello
+    ///[[testNodes]]
+    ///  testInt = 2
+    ///[[testNodes]]
+    ///  testStr = World
+    ///[[testNodes]]
+
+    auto tree = figcone::makeTreeRoot();
+    auto& testNodes = tree.asItem().addNodeList("testNodes");
+    {
+        auto& node = testNodes.asList().addNode();
+        node.asItem().addParam("testInt", "3");
+        node.asItem().addParam("testStr", "Hello");
+    }
+    {
+        auto& node = testNodes.asList().addNode();
+        node.asItem().addParam("testInt", "2");
+    }
+    {
+        auto& node = testNodes.asList().addNode();
+        node.asItem().addParam("testStr", "World");
+    }
+    testNodes.asList().addNode();
+
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<NonAggregateCfg>("", parser);
+
+    ASSERT_EQ(cfg.testNodes.size(), 4);
+    EXPECT_EQ(cfg.testNodes[0].testInt, 3);
+    EXPECT_EQ(cfg.testNodes[0].testStr, "Hello");
+    EXPECT_EQ(cfg.testNodes[1].testInt, 2);
+    EXPECT_EQ(cfg.testNodes[1].testStr, "Hello");
+    EXPECT_EQ(cfg.testNodes[2].testInt, 3);
+    EXPECT_EQ(cfg.testNodes[2].testStr, "World");
+    EXPECT_EQ(cfg.testNodes[3].testInt, 3);
+    EXPECT_EQ(cfg.testNodes[3].testStr, "Hello");
+}
+
 TEST(TestCopyNodeList, BasicWithoutMacro)
 {
-///[[testNodes]]
-///  testInt = 3
-///  testStr = Hello
-///[[testNodes]]
-///  testInt = 2
-///[[testNodes]]
-///  testStr = World
-///[[testNodes]]
+    ///[[testNodes]]
+    ///  testInt = 3
+    ///  testStr = Hello
+    ///[[testNodes]]
+    ///  testInt = 2
+    ///[[testNodes]]
+    ///  testStr = World
+    ///[[testNodes]]
 
     auto tree = figcone::makeTreeRoot();
     auto& testNodes = tree.asItem().addNodeList("testNodes");
@@ -142,20 +197,20 @@ TEST(TestCopyNodeList, BasicWithoutMacro)
 
 TEST(TestCopyNodeList, NestedCfgList)
 {
-///testStr = Root
-///[[testList]]
-///  testDouble = 0.12
-///  [[testList.testNodes]]
-///    testInt = 3
-///    testStr = Foo
-///  [[testList.testNodes]]
-///[[testList]]
-///  [[testList.testNodes]]
-///    testInt = 5
-///    testStr = Bar
-///  [[testList.testNodes]]
-///[[testList]]
-///  testDouble = 0.33
+    ///testStr = Root
+    ///[[testList]]
+    ///  testDouble = 0.12
+    ///  [[testList.testNodes]]
+    ///    testInt = 3
+    ///    testStr = Foo
+    ///  [[testList.testNodes]]
+    ///[[testList]]
+    ///  [[testList.testNodes]]
+    ///    testInt = 5
+    ///    testStr = Bar
+    ///  [[testList.testNodes]]
+    ///[[testList]]
+    ///  testDouble = 0.33
 
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("testStr", "Root");
@@ -219,24 +274,28 @@ TEST(TestCopyNodeList, NestedCfgList)
 
 TEST(TestCopyNodeList, MissingNodeListError)
 {
-///testStr = Hello
-///
+    ///testStr = Hello
+    ///
     auto tree = figcone::makeTreeRoot();
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
-    assert_exception<figcone::ConfigError>([&] {
-        cfgReader.read<Cfg>("", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Root node: Node 'testNodes' is missing.");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<Cfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Root node: Node 'testNodes' is missing.");
+            });
 }
 
 TEST(TestNodeList, InvalidListElementError)
 {
-///[[testNodes]]
-///    testInt = error
-///[[testNodes]]
-///    testInt = 2
+    ///[[testNodes]]
+    ///    testInt = error
+    ///[[testNodes]]
+    ///    testInt = 2
 
     auto tree = figcone::makeTreeRoot();
     auto& testNodes = tree.asItem().addNodeList("testNodes", {1, 1});
@@ -251,19 +310,24 @@ TEST(TestNodeList, InvalidListElementError)
 
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
-    assert_exception<figcone::ConfigError>([&]{
-        cfgReader.read<Cfg>("", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:2, column:3] Couldn't set parameter 'testInt' value from 'error'");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<Cfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        "[line:2, column:3] Couldn't set parameter 'testInt' value from 'error'");
+            });
 }
 
 TEST(TestNodeList, IncompleteListElementError)
 {
-///[[testNodes]]
-///[[testNodes]]
-///    testInt = 2
-
+    ///[[testNodes]]
+    ///[[testNodes]]
+    ///    testInt = 2
 
     auto tree = figcone::makeTreeRoot();
     auto& testNodes = tree.asItem().addNodeList("testNodes", {1, 1});
@@ -275,12 +339,17 @@ TEST(TestNodeList, IncompleteListElementError)
 
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
-    assert_exception<figcone::ConfigError>([&]{
-        cfgReader.read<Cfg>("", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Node list 'testNodes': Parameter 'testInt' is missing.");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<Cfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        "[line:1, column:1] Node list 'testNodes': Parameter 'testInt' is missing.");
+            });
 }
 
-
-}
+} //namespace test_copynodelist

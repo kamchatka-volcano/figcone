@@ -3,8 +3,8 @@
 
 namespace figcone::detail {
 
-class LoadingError : public Error{
+class LoadingError : public Error {
     using Error::Error;
 };
 
-}
+} //namespace figcone::detail

@@ -12,4 +12,4 @@ public:
     virtual bool hasValue() const = 0;
 };
 
-}
+} //namespace figcone::detail

@@ -1,5 +1,6 @@
 #pragma once
 #include "configreaderptr.h"
+#include "external/sfun/interface.h"
 #include <figcone_tree/tree.h>
 #include <memory>
 #include <string>
@@ -9,9 +10,8 @@ class INode;
 class IParam;
 class IValidator;
 
-class IConfigReader{
+class IConfigReader : private sfun::Interface<IConfigReader> {
 public:
-    virtual ~IConfigReader() = default;
     virtual ConfigReaderPtr makeNestedReader(const std::string& name) = 0;
     virtual void load(const figcone::TreeNode& node) = 0;
     virtual void addNode(const std::string& name, std::unique_ptr<INode> cfg) = 0;
@@ -31,4 +31,4 @@ protected:
     }
 };
 
-}
+} //namespace figcone::detail

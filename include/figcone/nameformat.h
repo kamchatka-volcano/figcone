@@ -1,12 +1,12 @@
 #pragma once
 
-namespace figcone{
+namespace figcone {
 
-enum class NameFormat{
+enum class NameFormat {
     Original,
     SnakeCase,
     CamelCase,
     KebabCase,
 };
 
-}
+} //namespace figcone

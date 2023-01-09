@@ -1,0 +1,60 @@
+---
+BasedOnStyle: WebKit
+AlignAfterOpenBracket: AlwaysBreak
+AllowAllArgumentsOnNextLine: false
+AllowAllConstructorInitializersOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortLambdasOnASingleLine: Empty
+AllowShortEnumsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: false
+BinPackParameters: false
+BraceWrapping:
+  AfterFunction: true
+  BeforeElse: true
+  BeforeLambdaBody: true
+  BeforeWhile: true
+  BeforeCatch: true
+BreakBeforeBraces: Custom
+BreakBeforeBinaryOperators: None
+BreakInheritanceList: AfterComma
+ColumnLimit: 120
+ContinuationIndentWidth: 8
+Cpp11BracedListStyle: true
+NamespaceIndentation: None
+PenaltyBreakBeforeFirstCallParameter: 0
+PenaltyReturnTypeOnItsOwnLine: 1000
+PenaltyBreakAssignment: 10
+SpaceBeforeCpp11BracedList: false
+SpaceInEmptyBlock: false
+SpaceInEmptyParentheses: false
+SpaceAfterTemplateKeyword: false
+SpacesInLineCommentPrefix:
+  Minimum: 0
+  Maximum: -1
+FixNamespaceComments: true
+UseCRLF: false
+IncludeCategories:
+  # Headers in <> without extension.
+  - Regex: '<[[:alnum:]\-_]+>'
+    Priority: 6
+  # Headers in <> from specific external libraries.
+  - Regex: '<(gtest|gmock|boost|gsl)\/'
+    Priority: 5
+  # Headers in <> with subdirectory.
+  - Regex: '<[[:alnum:]\-_]+\/'
+    Priority: 4
+  # Headers in <> with extension.
+  - Regex: '<[[:alnum:].\-_]+>'
+    Priority: 3
+  # Headers in "" with subdirectory.
+  - Regex: '"[[:alnum:]\-_]+\/'
+    Priority: 2
+  # Headers in "" with extension.
+  - Regex: '"[[:alnum:].\-_]+"'
+    Priority: 1
+...

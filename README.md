@@ -45,6 +45,7 @@ int main()
 ## Table of Contents
 * [Usage](#usage)
      * [Config structure](#Config-structure)
+     * [Supporting non-aggregate config structures](#supporting-non-aggregate-config-structures)
      * [Registration without macros](#registration-without-macros) 
      * [Supported formats](#supported-formats)
           * [JSON](#json)
@@ -125,6 +126,19 @@ int main()
     std::cout << "Launching PhotoViewer in directory " << cfg.rootDir << std::endl;
     return 0;
 }
+```
+
+### Supporting non-aggregate config structures
+`figcone` relies on aggregate initialization of user-provided structures. If your config object needs to contain private data or virtual functions, it becomes a non-aggregate type. In this case, you must use the following `using` declaration to inherit `figcone::Config`'s constructors: `using Config::Config;`
+```cpp
+struct PhotoViewerCfg : public figcone::Config
+{
+    using Config::Config;
+    virtual ~PhotoViewerCfg() = default; //virtual destructor makes PhotoViewerCfg non-aggregate
+    FIGCONE_PARAM(rootDir, std::filesystem::path);
+    FIGCONE_PARAMLIST(supportedFiles, std::vector<std::string>);
+    FIGCONE_NODE(thumbnailSettings, ThumbnailCfg);
+};
 ```
 
 ### Registration without macros

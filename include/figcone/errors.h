@@ -1,11 +1,10 @@
 #pragma once
 #include <figcone_tree/errors.h>
 
-namespace figcone{
+namespace figcone {
 
-class ValidationError : public Error
-{
+class ValidationError : public Error {
     using Error::Error;
 };
 
-}
+} //namespace figcone

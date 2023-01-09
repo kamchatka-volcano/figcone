@@ -1,10 +1,10 @@
 #include "assert_exception.h"
-#include <gtest/gtest.h>
 #include <figcone/config.h>
 #include <figcone/configreader.h>
 #include <figcone/errors.h>
 #include <figcone_tree/stringconverter.h>
 #include <figcone_tree/tree.h>
+#include <gtest/gtest.h>
 #include <filesystem>
 #include <optional>
 
@@ -15,44 +15,47 @@
 namespace test_param {
 
 #ifdef NAMEOF_AVAILABLE
-struct SingleParamCfgWithoutMacro : public figcone::Config{
+struct SingleParamCfgWithoutMacro : public figcone::Config {
     int test = param<&SingleParamCfgWithoutMacro::test>();
 };
 #else
-struct SingleParamCfgWithoutMacro : public figcone::Config{
+struct SingleParamCfgWithoutMacro : public figcone::Config {
     int test = param<&SingleParamCfgWithoutMacro::test>("test");
 };
 #endif
 
-struct SingleParamCfg : public figcone::Config{
+struct SingleParamCfg : public figcone::Config {
     FIGCONE_PARAM(test, int);
 };
 
-struct IsPositive{
+struct IsPositive {
 public:
     void operator()(int val)
     {
-        if (val < 0) throw figcone::ValidationError{"value can't be negative"};
+        if (val < 0)
+            throw figcone::ValidationError{"value can't be negative"};
     }
 };
 
-struct ValidatedCfg : public figcone::Config{
+struct ValidatedCfg : public figcone::Config {
     FIGCONE_PARAM(test, int).ensure(
-            [](int val){
-                if (val < 0) throw figcone::ValidationError{"value can't be negative"};
+            [](int val)
+            {
+                if (val < 0)
+                    throw figcone::ValidationError{"value can't be negative"};
             });
 };
 
-struct ValidatedWithFunctorCfg : public figcone::Config{
+struct ValidatedWithFunctorCfg : public figcone::Config {
     FIGCONE_PARAM(test, int).ensure<IsPositive>();
 };
 
-struct StringParamCfg : public figcone::Config{
+struct StringParamCfg : public figcone::Config {
     FIGCONE_PARAM(test, std::string);
     FIGCONE_PARAM(testFs, std::filesystem::path)("default.txt");
 };
 
-struct MultiParamCfg : public figcone::Config{
+struct MultiParamCfg : public figcone::Config {
     FIGCONE_PARAM(testInt, int);
     FIGCONE_PARAM(testDouble, double)(9.0);
     FIGCONE_PARAM(testString, figcone::optional<std::string>)();
@@ -62,7 +65,7 @@ struct MultiParamCfg : public figcone::Config{
 struct UserType {
     std::string value;
 };
-}
+} //namespace test_param
 
 template<>
 std::optional<test_param::UserType> figcone::StringConverter<test_param::UserType>::fromString(const std::string& data)
@@ -72,15 +75,17 @@ std::optional<test_param::UserType> figcone::StringConverter<test_param::UserTyp
     return result;
 }
 
-namespace test_param{
-struct SingleUserTypeParamCfg : public figcone::Config{
+namespace test_param {
+struct SingleUserTypeParamCfg : public figcone::Config {
     FIGCONE_PARAM(test, UserType);
 };
 
-class TreeProvider : public figcone::IParser{
+class TreeProvider : public figcone::IParser {
 public:
     TreeProvider(figcone::TreeNode tree)
-    : tree_(std::move(tree)) {}
+        : tree_(std::move(tree))
+    {
+    }
 
     figcone::TreeNode parse(std::istream&) override
     {
@@ -90,11 +95,10 @@ public:
     figcone::TreeNode tree_;
 };
 
-
 TEST(TestParam, IntParam)
 {
-///test=1
-///
+    ///test=1
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("test", "1", {1, 1});
     auto parser = TreeProvider{std::move(tree)};
@@ -106,9 +110,9 @@ TEST(TestParam, IntParam)
 
 TEST(TestParam, StringParam)
 {
-///test=hello
-///testFs='hello world.txt'
-///
+    ///test=hello
+    ///testFs='hello world.txt'
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("test", "hello", {1, 1});
     tree.asItem().addParam("testFs", "hello world.txt", {2, 1});
@@ -122,8 +126,8 @@ TEST(TestParam, StringParam)
 
 TEST(TestParam, WithoutMacro)
 {
-///test=1
-///
+    ///test=1
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("test", "1", {1, 1});
     auto parser = TreeProvider{std::move(tree)};
@@ -135,8 +139,8 @@ TEST(TestParam, WithoutMacro)
 
 TEST(TestParam, UserTypeParam)
 {
-///test='hello world'
-///
+    ///test='hello world'
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("test", "hello world", {1, 1});
     auto parser = TreeProvider{std::move(tree)};
@@ -148,8 +152,8 @@ TEST(TestParam, UserTypeParam)
 
 TEST(TestParam, EmptyStringParam)
 {
-///test=''
-///
+    ///test=''
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("test", "", {1, 1});
     auto parser = TreeProvider{std::move(tree)};
@@ -161,10 +165,10 @@ TEST(TestParam, EmptyStringParam)
 //
 TEST(TestParam, MultiParam)
 {
-///testInt=5
-///testDouble=5.0
-///testString='foo'
-///
+    ///testInt=5
+    ///testDouble=5.0
+    ///testString='foo'
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("testInt", "5", {1, 1});
     tree.asItem().addParam("testDouble", "5.0", {2, 1});
@@ -184,8 +188,8 @@ TEST(TestParam, MultiParam)
 
 TEST(TestParam, MultiParamUnspecifiedOptionals)
 {
-///testInt=5
-///
+    ///testInt=5
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("testInt", "5", {1, 1});
     auto parser = TreeProvider{std::move(tree)};
@@ -200,8 +204,8 @@ TEST(TestParam, MultiParamUnspecifiedOptionals)
 
 TEST(TestParam, ValidationSuccess)
 {
-///test=1
-///
+    ///test=1
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("test", "1", {1, 1});
     auto parser = TreeProvider{std::move(tree)};
@@ -213,91 +217,118 @@ TEST(TestParam, ValidationSuccess)
 
 TEST(TestParam, ValidationError)
 {
-///test=-1
-///
+    ///test=-1
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("test", "-1", {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
-    assert_exception<figcone::ConfigError>([&] {
-        cfgReader.read<ValidatedCfg>("", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Parameter 'test': value can't be negative");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<ValidatedCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Parameter 'test': value can't be negative");
+            });
 }
 
 TEST(TestParam, ValidationWithFinctorError)
 {
-///test=-1
-///
+    ///test=-1
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("test", "-1", {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
-    assert_exception<figcone::ConfigError>([&] {
-        cfgReader.read<ValidatedWithFunctorCfg>("test = -1", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Parameter 'test': value can't be negative");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<ValidatedWithFunctorCfg>("test = -1", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Parameter 'test': value can't be negative");
+            });
 }
 
 TEST(TestParam, ParamWrongTypeError)
 {
-///test = hello
-///
+    ///test = hello
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("test", "hello", {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
-    assert_exception<figcone::ConfigError>([&] {
-        cfgReader.read<SingleParamCfg>("test = hello", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Couldn't set parameter 'test' value from 'hello'");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<SingleParamCfg>("test = hello", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        "[line:1, column:1] Couldn't set parameter 'test' value from 'hello'");
+            });
 }
 
 TEST(TestParam, UnkownParamError)
 {
-///foo = 1
-///
+    ///foo = 1
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParam("foo", "1", {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
 
-    assert_exception<figcone::ConfigError>([&] {
-        cfgReader.read<SingleParamCfg>("foo=1", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Unknown param 'foo'");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<SingleParamCfg>("foo=1", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Unknown param 'foo'");
+            });
 }
 
 TEST(TestParam, ParamListError)
 {
-///test = [1]
-///
+    ///test = [1]
+    ///
     auto tree = figcone::makeTreeRoot();
     tree.asItem().addParamList("test", {"1"}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
-    assert_exception<figcone::ConfigError>([&] {
-        cfgReader.read<SingleParamCfg>("", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Parameter 'test': config parameter can't be a list.");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<SingleParamCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        "[line:1, column:1] Parameter 'test': config parameter can't be a list.");
+            });
 }
-
 
 TEST(TestParam, MissingParamError)
 {
     auto tree = figcone::makeTreeRoot();
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
-    assert_exception<figcone::ConfigError>([&] {
-        cfgReader.read<SingleParamCfg>("", parser);
-    }, [](const figcone::ConfigError& error){
-        EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Root node: Parameter 'test' is missing.");
-    });
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<SingleParamCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Root node: Parameter 'test' is missing.");
+            });
 }
 
-}
+} //namespace test_param

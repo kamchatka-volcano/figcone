@@ -1,24 +1,23 @@
 #pragma once
-#include "paramlist.h"
 #include "iconfigreader.h"
 #include "inode.h"
-#include "validator.h"
+#include "paramlist.h"
 #include "utils.h"
-#include "external/sfun/traits.h"
-#include "external/sfun/asserts.h"
+#include "validator.h"
+#include "external/sfun/contract.h"
+#include "external/sfun/type_traits.h"
 #include <vector>
 
-namespace figcone::detail{
-using namespace sfun::traits;
+namespace figcone::detail {
 
 template<typename TParamList>
-class ParamListCreator{
-    static_assert(is_dynamic_sequence_container_v<remove_optional_t<TParamList>>,
+class ParamListCreator {
+    static_assert(
+            sfun::is_dynamic_sequence_container_v<sfun::remove_optional_t<TParamList>>,
             "Param list field must be a sequence container or a sequence container placed in std::optional");
+
 public:
-    ParamListCreator(ConfigReaderPtr cfgReader,
-                     std::string paramListName,
-                     TParamList& paramListValue)
+    ParamListCreator(ConfigReaderPtr cfgReader, std::string paramListName, TParamList& paramListValue)
         : cfgReader_{cfgReader}
         , paramListName_{(sfunPrecondition(!paramListName.empty()), std::move(paramListName))}
         , paramListValue_{paramListValue}
@@ -41,12 +40,14 @@ public:
         return *this;
     }
 
-    template <typename TValidator, typename... TArgs>
+    template<typename TValidator, typename... TArgs>
     ParamListCreator<TParamList>& ensure(TArgs&&... args)
     {
         if (cfgReader_)
-            cfgReader_->addValidator(std::make_unique<Validator<TParamList>>(*paramList_, paramListValue_,
-                                                                             TValidator{std::forward<TArgs>(args)...}));
+            cfgReader_->addValidator(std::make_unique<Validator<TParamList>>(
+                    *paramList_,
+                    paramListValue_,
+                    TValidator{std::forward<TArgs>(args)...}));
         return *this;
     }
 
@@ -65,4 +66,4 @@ private:
     TParamList defaultValue_;
 };
 
-}
+} //namespace figcone::detail

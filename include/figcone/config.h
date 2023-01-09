@@ -1,44 +1,43 @@
 #pragma once
-#include "detail/initializedoptional.h"
 #include "detail/configmacros.h"
+#include "detail/dict.h"
+#include "detail/dictcreator.h"
+#include "detail/iconfigreader.h"
+#include "detail/initializedoptional.h"
 #include "detail/inode.h"
 #include "detail/ivalidator.h"
-#include "detail/iconfigreader.h"
-#include "detail/dict.h"
-#include "detail/paramcreator.h"
-#include "detail/nodelistcreator.h"
-#include "detail/paramlistcreator.h"
-#include "detail/dictcreator.h"
 #include "detail/nameconverter.h"
 #include "detail/nameof_import.h"
+#include "detail/nodelistcreator.h"
+#include "detail/paramcreator.h"
+#include "detail/paramlistcreator.h"
 #include "detail/utils.h"
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
-#include <vector>
-#include <memory>
-#include <map>
-#include <string>
-#include <optional>
 #include <filesystem>
 #include <fstream>
+#include <map>
+#include <memory>
+#include <optional>
+#include <string>
+#include <vector>
 
 namespace figcone {
 namespace detail {
 class IParam;
 }
 
-class Config{
+class Config {
 
 public:
     Config() = default;
     Config(detail::ConfigReaderPtr reader)
         : cfgReader_{reader}
-    {}
-    Config(const Config&) = default;
-    Config& operator=(const Config&) = default;
-    Config(Config&&)
     {
     }
+    Config(const Config&) = default;
+    Config& operator=(const Config&) = default;
+    Config(Config&&) {}
     Config& operator=(Config&&)
     {
         return *this;
@@ -112,13 +111,13 @@ protected:
         return copyNodeList<member>(std::string{nameof::nameof_member<member>()});
     }
 
-    template <auto member>
+    template<auto member>
     auto param()
     {
         return param<member>(std::string{nameof::nameof_member<member>()});
     }
 
-    template <auto member>
+    template<auto member>
     auto paramList()
     {
         return paramList<member>(std::string{nameof::nameof_member<member>()});
@@ -131,42 +130,42 @@ protected:
     }
 
 private:
-    template <auto member, typename T, typename TCfg>
+    template<auto member, typename T, typename TCfg>
     auto node(T TCfg::*, const std::string& memberName)
     {
         auto cfg = static_cast<TCfg*>(this);
         return detail::NodeCreator<T>{cfgReader(), memberName, cfg->*member};
     }
 
-    template <auto member, typename TMap, typename TCfg>
+    template<auto member, typename TMap, typename TCfg>
     auto dict(TMap TCfg::*, const std::string& memberName)
     {
         auto cfg = static_cast<TCfg*>(this);
         return detail::DictCreator<TMap>{cfgReader(), memberName, cfg->*member};
     }
 
-    template <auto member, typename TCfgList, typename TCfg>
+    template<auto member, typename TCfgList, typename TCfg>
     auto nodeList(TCfgList TCfg::*, const std::string& memberName)
     {
         auto cfg = static_cast<TCfg*>(this);
         return detail::NodeListCreator<TCfgList>{cfgReader(), memberName, cfg->*member};
     }
 
-    template <auto member, typename TCfgList, typename TCfg>
+    template<auto member, typename TCfgList, typename TCfg>
     auto copyNodeList(TCfgList TCfg::*, const std::string& memberName)
     {
         auto cfg = static_cast<TCfg*>(this);
         return detail::NodeListCreator<TCfgList>{cfgReader(), memberName, cfg->*member, detail::NodeListType::Copy};
     }
 
-    template <auto member, typename T, typename TCfg>
+    template<auto member, typename T, typename TCfg>
     auto param(T TCfg::*, const std::string& memberName)
     {
         auto cfg = static_cast<TCfg*>(this);
         return detail::ParamCreator<T>{cfgReader(), memberName, cfg->*member};
     }
 
-    template <auto member, typename T, typename TCfg>
+    template<auto member, typename T, typename TCfg>
     auto paramList(T TCfg::*, const std::string& memberName)
     {
         auto cfg = static_cast<TCfg*>(this);
@@ -181,4 +180,4 @@ private:
 template<typename T>
 using optional = std::conditional_t<std::is_base_of_v<Config, T>, detail::InitializedOptional<T>, std::optional<T>>;
 
-}
+} //namespace figcone
