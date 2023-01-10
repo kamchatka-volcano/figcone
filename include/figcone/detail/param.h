@@ -1,7 +1,9 @@
 #pragma once
 #include "iconfigentity.h"
 #include "iparam.h"
+#include "stringconverter.h"
 #include "utils.h"
+#include "external/sfun/functional.h"
 #include "external/sfun/type_traits.h"
 #include <figcone/errors.h>
 #include <figcone_tree/stringconverter.h>
@@ -33,12 +35,21 @@ private:
         position_ = param.position();
         if (!param.isItem())
             throw ConfigError{"Parameter '" + name_ + "': config parameter can't be a list.", param.position()};
-        auto paramVal = convertFromString<T>(param.value());
-        if (!paramVal)
-            throw ConfigError{
-                    "Couldn't set parameter '" + name_ + "' value from '" + param.value() + "'",
-                    param.position()};
-        paramValue_ = *paramVal;
+        auto paramReadResult = convertFromString<T>(param.value());
+        auto readResultVisitor = sfun::overloaded{
+                [&](const T& param)
+                {
+                    paramValue_ = param;
+                },
+                [&](const StringConversionError& error)
+                {
+                    throw ConfigError{
+                            "Couldn't set parameter '" + name_ + "' value from '" + param.value() + "'" +
+                                    (!error.message.empty() ? ": " + error.message : ""),
+                            param.position()};
+                }};
+
+        std::visit(readResultVisitor, paramReadResult);
     }
 
     bool hasValue() const override
