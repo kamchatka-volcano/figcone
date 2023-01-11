@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.18)
-project(figcone VERSION 2.3.0)
+project(figcone VERSION 2.4.0)
 include(GNUInstallDirs)
 include(external/seal_lake)
 
 set(INSTALL_FIGCONE_TREE ON)
 SealLake_Import(
-        figcone_tree   0.12.0
+        figcone_tree   1.0.0
         GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_tree.git
         GIT_TAG        dev
 )
@@ -45,7 +45,7 @@ SealLake_HeaderOnlyLibrary(
         LIBRARIES
             figcone::figcone_tree
         DEPENDENCIES
-            figcone_tree 0.12.0
+            figcone_tree 1.0.0
 )
 
 if (FIGCONE_USE_NAMEOF)
@@ -62,7 +62,7 @@ if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML 
             figcone::figcone_formats
     )
     SealLake_Dependencies(
-            figcone_formats 0.12.0
+            figcone_formats 0.12.1
     )
 endif()
 
