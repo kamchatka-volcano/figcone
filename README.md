@@ -662,8 +662,32 @@ int main()
 }
 ```
 
+To provide additional information in the error message of the `StringConverter`, you can use
+the `figcone::ValidationError` exception:
+
+```cpp
+namespace figcone{
+template<>
+struct StringConverter<Host>{
+    static std::optional<Host> fromString(const std::string& data)
+    {
+        auto delimPos = data.find(':');
+        if (delimPos == std::string::npos)
+            throw ValidationError{"the host parameter must be in the format 'ipAddress:port'"};
+        auto host = Host{};
+        host.ip = data.substr(0, delimPos);
+        host.port = std::stoi(data.substr(delimPos + 1, data.size() - delimPos - 1));
+        return host;
+    }
+};
+}
+```
+
 ### Validators
-Processed config parameters and nodes can be validated by registering constraint-checking functions or callable objects. The signature must be compatible with `void (const T&)` where `T` is the type of the validated config structure field. If the option's value is invalid, the validator must throw a `figcone::ValidationError` exception:
+
+Processed config parameters and nodes can be validated by registering constraint-checking functions or callable objects.
+The signature must be compatible with `void (const T&)` where `T` is the type of the validated config structure field.
+If the option's value is invalid, the validator must throw a `figcone::ValidationError` exception:
 
 ```c++
 struct Cfg : figcone::Config<>{
