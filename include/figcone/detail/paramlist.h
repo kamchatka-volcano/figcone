@@ -1,5 +1,6 @@
 #pragma once
 #include "iparam.h"
+#include "stringconverter.h"
 #include "utils.h"
 #include "external/sfun/type_traits.h"
 #include <figcone/errors.h>
@@ -41,13 +42,22 @@ private:
         if (!paramList.isList())
             throw ConfigError{"Parameter list '" + name_ + "': config parameter must be a list.", paramList.position()};
         for (const auto& paramValueStr : paramList.valueList()) {
-            auto paramValue =
-                    convertFromString<typename sfun::remove_optional_t<TParamList>::value_type>(paramValueStr);
-            if (!paramValue)
-                throw ConfigError{
-                        "Couldn't set parameter list element'" + name_ + "' value from '" + paramValueStr + "'",
-                        paramList.position()};
-            maybeOptValue(paramListValue_).emplace_back(std::move(*paramValue));
+            using Param = typename sfun::remove_optional_t<TParamList>::value_type;
+            auto paramReadResult = convertFromString<Param>(paramValueStr);
+            auto readResultVisitor = sfun::overloaded{
+                    [&](const Param& param)
+                    {
+                        maybeOptValue(paramListValue_).emplace_back(param);
+                    },
+                    [&](const StringConversionError& error)
+                    {
+                        throw ConfigError{
+                                "Couldn't set parameter list element'" + name_ + "' value from '" + paramValueStr +
+                                        "'" + (!error.message.empty() ? ": " + error.message : ""),
+                                paramList.position()};
+                    }};
+
+            std::visit(readResultVisitor, paramReadResult);
         }
     }
 

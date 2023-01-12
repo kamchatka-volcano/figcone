@@ -42,15 +42,24 @@ private:
             dictMap_.emplace();
         maybeOptValue(dictMap_).clear();
 
-        for (const auto& [paramName, paramValueStr] : node.asItem().params()) {
-            auto paramValue =
-                    convertFromString<typename sfun::remove_optional_t<TMap>::mapped_type>(paramValueStr.value());
-            if (!paramValue)
-                throw ConfigError{
-                        "Couldn't set dict element'" + name_ + "' value from '" + paramValueStr.value() + "'",
-                        position_};
-
-            maybeOptValue(dictMap_).emplace(paramName, *paramValue);
+        for (const auto& [paramName, paramValue] : node.asItem().params()) {
+            using Param = typename sfun::remove_optional_t<TMap>::mapped_type;
+            const auto paramNameStr = paramName;
+            const auto paramValueStr = paramValue;
+            auto paramReadResult = convertFromString<Param>(paramValueStr.value());
+            auto readResultVisitor = sfun::overloaded{
+                    [&](const Param& param)
+                    {
+                        maybeOptValue(dictMap_).emplace(paramNameStr, param);
+                    },
+                    [&](const StringConversionError& error)
+                    {
+                        throw ConfigError{
+                                "Couldn't set dict element'" + name_ + "' value from '" + paramValueStr.value() + "'" +
+                                        (!error.message.empty() ? ": " + error.message : ""),
+                                position_};
+                    }};
+            std::visit(readResultVisitor, paramReadResult);
         }
     }
 
