@@ -30,7 +30,7 @@ public:
     template<typename TCfg>
     TCfg readFile(const std::filesystem::path& configFile, IParser& parser)
     {
-        auto configStream = std::ifstream{configFile};
+        auto configStream = std::ifstream{configFile, std::ios_base::binary};
         return read<TCfg>(configStream, parser);
     }
 
@@ -45,7 +45,7 @@ public:
     template<typename TCfg>
     TCfg readJsonFile(const std::filesystem::path& configFile)
     {
-        auto configStream = std::ifstream{configFile};
+        auto configStream = std::ifstream{configFile, std::ios_base::binary};
         return readJson<TCfg>(configStream);
     }
     template<typename TCfg>
@@ -66,7 +66,7 @@ public:
     template<typename TCfg>
     TCfg readYamlFile(const std::filesystem::path& configFile)
     {
-        auto configStream = std::ifstream{configFile};
+        auto configStream = std::ifstream{configFile, std::ios_base::binary};
         return readYaml<TCfg>(configStream);
     }
     template<typename TCfg>
@@ -88,7 +88,7 @@ public:
     template<typename TCfg>
     TCfg readTomlFile(const std::filesystem::path& configFile)
     {
-        auto configStream = std::ifstream{configFile};
+        auto configStream = std::ifstream{configFile, std::ios_base::binary};
         return readToml<TCfg>(configStream);
     }
     template<typename TCfg>
@@ -109,7 +109,7 @@ public:
     template<typename TCfg>
     TCfg readIniFile(const std::filesystem::path& configFile)
     {
-        auto configStream = std::ifstream{configFile};
+        auto configStream = std::ifstream{configFile, std::ios_base::binary};
         return readIni<TCfg>(configStream);
     }
     template<typename TCfg>
@@ -130,7 +130,7 @@ public:
     template<typename TCfg>
     TCfg readXmlFile(const std::filesystem::path& configFile)
     {
-        auto configStream = std::ifstream{configFile};
+        auto configStream = std::ifstream{configFile, std::ios_base::binary};
         return readXml<TCfg>(configStream);
     }
     template<typename TCfg>
@@ -151,7 +151,7 @@ public:
     template<typename TCfg>
     TCfg readShoalFile(const std::filesystem::path& configFile)
     {
-        auto configStream = std::ifstream{configFile};
+        auto configStream = std::ifstream{configFile, std::ios_base::binary};
         return readShoal<TCfg>(configStream);
     }
     template<typename TCfg>
