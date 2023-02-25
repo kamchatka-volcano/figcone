@@ -16,7 +16,7 @@ if (FIGCONE_USE_NAMEOF)
     SealLake_Bundle(
             NAME nameof
             GIT_REPOSITORY https://github.com/Neargye/nameof.git
-            GIT_TAG        b877a1a
+            GIT_TAG        84ce6d8
     )
 endif()
 
