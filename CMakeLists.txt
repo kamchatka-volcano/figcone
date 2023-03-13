@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(figcone VERSION 2.4.4)
+project(figcone VERSION 2.4.5)
 include(GNUInstallDirs)
 include(external/seal_lake)
 
@@ -16,7 +16,7 @@ if (FIGCONE_USE_NAMEOF)
     SealLake_Bundle(
             NAME nameof
             GIT_REPOSITORY https://github.com/Neargye/nameof.git
-            GIT_TAG        84ce6d8
+            GIT_TAG        master
     )
 endif()
 
@@ -62,7 +62,7 @@ if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML 
             figcone::figcone_formats
     )
     SealLake_Dependencies(
-            figcone_formats 0.12.3
+            figcone_formats 0.12.4
     )
 endif()
 
