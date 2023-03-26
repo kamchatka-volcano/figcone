@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(figcone VERSION 2.4.5)
+project(figcone VERSION 2.4.6)
 include(GNUInstallDirs)
 include(external/seal_lake)
 
@@ -62,7 +62,7 @@ if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML 
             figcone::figcone_formats
     )
     SealLake_Dependencies(
-            figcone_formats 0.12.4
+            figcone_formats 0.12.5
     )
 endif()
 
