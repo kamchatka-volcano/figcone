@@ -731,20 +731,26 @@ struct PhotoViewerCfg : public figcone::Config{
 
 int main()
 {
-    auto cfgReader = figcone::ConfigReader{};
-    auto cfg = cfgReader.readYaml<PhotoViewerCfg>(R"(
-      rootDir: ~/Photos
-      supportedFiles: []
-    )");
+    try {
+        auto cfgReader = figcone::ConfigReader{};
+        auto cfg = cfgReader.readYaml<PhotoViewerCfg>(R"(
+            rootDir: ~/Photos
+            supportedFiles: []
+        )");
 
-    std::cout << "Launching PhotoViewer in directory " << cfg.rootDir << std::endl;
+        std::cout << "Launching PhotoViewer in directory " << cfg.rootDir << std::endl;
 
-    if (!cfg.supportedFiles.empty())
-        std::cout << "Supported files:" << std::endl;
-    for (const auto& file : cfg.supportedFiles)
-        std::cout << "  " << file << std::endl;
+        if (!cfg.supportedFiles.empty())
+            std::cout << "Supported files:" << std::endl;
+        for (const auto& file : cfg.supportedFiles)
+            std::cout << "  " << file << std::endl;
 
-    return 0;
+        return 0;
+    }
+    catch(const figcone::ConfigError& e){
+        std::cout << "Config error:" << e.what();
+        return 1;
+    }
 }
 ```
 

@@ -7,7 +7,7 @@ int main()
 {
     auto cfgReader = figcone::ConfigReader{};
     auto cfg = cfgReader.readYamlFile<PhotoViewerCfg>(std::filesystem::canonical("../../examples/demo.yaml"));
-    std::cout << "Launching PhotoViewer in directory" << cfg.rootDir << std::endl;
+    std::cout << "Launching PhotoViewer in directory " << cfg.rootDir << std::endl;
     printDemoConfig(cfg);
 
     return 0;

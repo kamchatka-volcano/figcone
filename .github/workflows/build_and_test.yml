@@ -28,33 +28,101 @@ jobs:
             os: ubuntu-latest,
             cc: "gcc",
             cxx: "g++",
-            flags: "-Wall -Werror -Wextra -Wpedantic -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused"
+            flags: "-Wall -Werror -Wextra -Wpedantic -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused",
+            artifacts-path: "build/examples"
           }
           - {
             name: "Ubuntu Latest clang",
             os: ubuntu-latest,
             cc: "clang",
             cxx: "clang++",
-            flags: "-Wall -Werror -Wextra -Wpedantic -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused"
+            flags: "-Wall -Werror -Wextra -Wpedantic -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused",
+            artifacts-path: "build/examples"
           }
           - {
             name: "Windows Latest MSVC",
             os: windows-latest,
             cc: "cl",
             cxx: "cl",
-            flags: "/EHsc /W4 /WX /wd4267"
+            flags: "/EHsc /W4 /WX /wd4267",
+            artifacts-path: "build/examples/Release"
           }
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DENABLE_TESTS=ON -DENABLE_EXAMPLES=ON -DFIGCONE_USE_NAMEOF=${{ matrix.use_nameof }} -DCMAKE_CXX_FLAGS="${{ matrix.config.flags }}"
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON -DENABLE_EXAMPLES=ON -DFIGCONE_USE_NAMEOF=${{ matrix.use_nameof }} -DCMAKE_CXX_FLAGS="${{ matrix.config.flags }}"
 
-    - name: Build
-      run: cmake --build ${{github.workspace}}/build
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build --config Release
 
-    - name: Test
-      working-directory: ${{github.workspace}}/build
-      run: ctest
+      - name: Test
+        working-directory: ${{github.workspace}}/build
+        run: ctest
 
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: figcone-examples-${{ matrix.config.os }}-nameof-${{ matrix.use_nameof }}
+          path: ${{ matrix.config.artifacts-path }}
+
+  functional_tests:
+    name: Functional testing (${{ matrix.config.name }}, nameof = ${{ matrix.use_nameof }})
+    needs: build
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        use_nameof: [ "ON", "OFF" ]
+        config:
+          - {
+            name: "Windows",
+            os: "windows-latest",
+            lunchtoast_exec: "lunchtoast.exe",
+            shell_command: -shell="msys2 -c",
+          }
+          - {
+            name: "Linux",
+            os: "ubuntu-latest",
+            lunchtoast_exec: "lunchtoast",
+            shell_command: "",
+          }
+    steps:
+      - uses: actions/checkout@v3
+      - if: matrix.config.name == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          path-type: inherit
+      - uses: robinraju/release-downloader@v1.7
+        with:
+          repository: "kamchatka-volcano/lunchtoast"
+          latest: true
+          filename: ${{ matrix.config.lunchtoast_exec }}
+          out-file-path: "lunchtoast/"
+      - name: Set lunchtoast execute permissions
+        if: matrix.config.name == 'Linux'
+        shell: sh
+        working-directory: ${{github.workspace}}/lunchtoast
+        run: chmod +x lunchtoast
+      - name: Download figcone examples build
+        id: pre_launch_tests
+        uses: actions/download-artifact@v3
+        with:
+          name: figcone-examples-${{ matrix.config.os }}-nameof-${{ matrix.use_nameof }}
+          path: build/examples
+      - name: Set artifacts execute permissions
+        if: matrix.config.name == 'Linux'
+        shell: sh
+        working-directory: ${{github.workspace}}/build/examples
+        run: chmod +x ex* && chmod +x demo_*
+      - name: Launch tests
+        id: launch_tests
+        working-directory: ${{github.workspace}}
+        run: lunchtoast/lunchtoast functional_tests ${{ matrix.config.shell_command }} -collectFailedTests=failed_tests
+      - name: Upload failed tests
+        if: failure() && steps.launch_tests.outcome != 'success' && steps.pre_launch_tests.outcome == 'success'
+        uses: actions/upload-artifact@v3
+        with:
+          name: figcone-failed-tests-${{ matrix.config.os }}-nameof-${{ matrix.use_nameof }}
+          path: failed_tests

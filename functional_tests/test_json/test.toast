@@ -1,0 +1,4 @@
+-Name: json
+-Suite: format support
+
+-Check json demo: ${{ format_demo_expected_output }}

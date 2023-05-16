@@ -1,0 +1,11 @@
+-Suite: examples
+
+-Check example #2:
+Launching PhotoViewer in directory "/home/kamchatka-volcano/photos"
+Supported files:
+  .jpg
+  .png
+Thumbnail settings:
+  Max width:256
+  Max height:256
+---

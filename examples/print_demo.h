@@ -11,14 +11,14 @@ inline void printDemoConfig(const PhotoViewerCfg& cfg)
 
     if (cfg.thumbnails.enabled) {
         std::cout << "Thumbnail settings:" << std::endl;
-        std::cout << "  Max width:" << cfg.thumbnails.maxWidth << std::endl;
-        std::cout << "  Max height:" << cfg.thumbnails.maxHeight << std::endl;
+        std::cout << "  Max width: " << cfg.thumbnails.maxWidth << std::endl;
+        std::cout << "  Max height: " << cfg.thumbnails.maxHeight << std::endl;
     }
 
     if (!cfg.sharedAlbums.empty())
         std::cout << "Shared albums:" << std::endl;
     for (const auto& album : cfg.sharedAlbums){
-        std::cout << "  Album:" << album.name << std::endl;
+        std::cout << "  Album: " << album.name << std::endl;
         std::cout << "    Hosts:" << std::endl;
         for (const auto& host : album.hosts)
             std::cout << "      " << host.ip << ":" << host.port << std::endl;

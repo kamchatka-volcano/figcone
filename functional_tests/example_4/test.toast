@@ -1,0 +1,5 @@
+-Suite: examples
+
+-Check example #4:
+Config error:Parameter 'rootDir': a path must exist
+---

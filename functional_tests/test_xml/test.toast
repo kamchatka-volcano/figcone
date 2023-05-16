@@ -1,0 +1,4 @@
+-Name: xml
+-Suite: format support
+
+-Check xml demo: ${{ format_demo_expected_output }}

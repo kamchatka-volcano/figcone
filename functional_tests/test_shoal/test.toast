@@ -1,0 +1,4 @@
+-Name: shoal
+-Suite: format support
+
+-Check shoal demo: ${{ format_demo_expected_output }}
