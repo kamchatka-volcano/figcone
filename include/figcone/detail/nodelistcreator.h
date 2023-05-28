@@ -27,7 +27,7 @@ public:
             TCfgList& nodeList,
             NodeListType type = NodeListType::Normal)
         : cfgReader_{cfgReader}
-        , nodeListName_{(sfunPrecondition(!nodeListName.empty()), std::move(nodeListName))}
+        , nodeListName_{(sfun_precondition(!nodeListName.empty()), std::move(nodeListName))}
         , nodeList_{std::make_unique<NodeList<TCfgList>>(
                   nodeListName_,
                   nodeList,

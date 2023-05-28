@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(figcone VERSION 2.4.6)
+project(figcone VERSION 2.4.7)
 include(GNUInstallDirs)
 include(external/seal_lake)
 
@@ -23,7 +23,7 @@ endif()
 SealLake_Bundle(
         NAME figcone_sfun
         GIT_REPOSITORY https://github.com/kamchatka-volcano/sfun.git
-        GIT_TAG        v3.1.1
+        GIT_TAG        v4.0.0
         DESTINATION include/figcone/detail/external
         DIRECTORIES include/sfun
         TEXT_REPLACEMENTS

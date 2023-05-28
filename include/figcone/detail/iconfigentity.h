@@ -6,7 +6,7 @@
 
 namespace figcone::detail {
 
-class IConfigEntity : private sfun::Interface<IConfigEntity> {
+class IConfigEntity : private sfun::interface<IConfigEntity> {
 public:
     virtual StreamPosition position() = 0;
     virtual std::string description() = 0;

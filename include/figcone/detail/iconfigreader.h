@@ -10,7 +10,7 @@ class INode;
 class IParam;
 class IValidator;
 
-class IConfigReader : private sfun::Interface<IConfigReader> {
+class IConfigReader : private sfun::interface<IConfigReader> {
 public:
     virtual ConfigReaderPtr makeNestedReader(const std::string& name) = 0;
     virtual void load(const figcone::TreeNode& node) = 0;

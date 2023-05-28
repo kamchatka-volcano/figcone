@@ -2,3 +2,4 @@
 -Suite: format support
 
 -Check yaml demo: ${{ format_demo_expected_output }}
+-Check all formats demo with demo.yaml: ${{ format_demo_expected_output }}

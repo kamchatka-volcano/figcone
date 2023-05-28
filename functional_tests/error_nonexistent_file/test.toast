@@ -1,0 +1,15 @@
+-Suite: error handling
+
+-Launch:  ../../build/examples/demo_all ../../examples/nonexistent.ini > output.txt
+-Expect exit code: 1
+-Ensure error message file output.txt:
+Configuration error: Config file nonexistent.ini doesn't exist
+
+---
+
+-Launch:  ../../build/examples/demo_all ../../examples/存在しない.ini > output.txt
+-Expect exit code: 1
+-Ensure error message file output.txt:
+Configuration error: Config file 存在しない.ini doesn't exist
+
+---

@@ -1,0 +1,1 @@
+cat "$1" | awk '{ for(i=1; i<=NF; i++) { cmd="basename \""$i"\""; cmd | getline $i; close(cmd); } }1'

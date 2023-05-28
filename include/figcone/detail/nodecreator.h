@@ -26,7 +26,7 @@ class NodeCreator {
 public:
     NodeCreator(ConfigReaderPtr cfgReader, std::string nodeName, TCfg& nodeCfg)
         : cfgReader_{cfgReader}
-        , nodeName_{(sfunPrecondition(!nodeName.empty()), std::move(nodeName))}
+        , nodeName_{(sfun_precondition(!nodeName.empty()), std::move(nodeName))}
         , nodeCfg_{nodeCfg}
         , nestedCfgReader_{cfgReader_ ? cfgReader_->makeNestedReader(nodeName_) : ConfigReaderPtr{}}
     {

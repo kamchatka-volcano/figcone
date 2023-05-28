@@ -2,3 +2,4 @@
 -Suite: format support
 
 -Check ini demo: ${{ format_demo_expected_output }}
+-Check all formats demo with demo.ini: ${{ format_demo_expected_output }}

@@ -2,6 +2,7 @@
 #include "config.h"
 #include "errors.h"
 #include "nameformat.h"
+#include "detail/external/sfun/path.h"
 #include "detail/figcone_ini_import.h"
 #include "detail/figcone_json_import.h"
 #include "detail/figcone_shoal_import.h"
@@ -30,7 +31,17 @@ public:
     template<typename TCfg>
     TCfg readFile(const std::filesystem::path& configFile, IParser& parser)
     {
+        if (!std::filesystem::exists(configFile))
+            throw ConfigError{"Config file " + sfun::path_string(configFile) + " doesn't exist"};
+
+        if (!std::filesystem::is_regular_file(configFile))
+            throw ConfigError{
+                    "Can't open config file " + sfun::path_string(configFile) + " which is not a regular file"};
+
         auto configStream = std::ifstream{configFile, std::ios_base::binary};
+        if (!configStream.is_open())
+            throw ConfigError{"Can't open config file " + sfun::path_string(configFile) + " for reading"};
+
         return read<TCfg>(configStream, parser);
     }
 
@@ -45,8 +56,8 @@ public:
     template<typename TCfg>
     TCfg readJsonFile(const std::filesystem::path& configFile)
     {
-        auto configStream = std::ifstream{configFile, std::ios_base::binary};
-        return readJson<TCfg>(configStream);
+        auto parser = figcone::json::Parser{};
+        return readFile<TCfg>(configFile, parser);
     }
     template<typename TCfg>
     TCfg readJson(const std::string& configContent)
@@ -66,8 +77,8 @@ public:
     template<typename TCfg>
     TCfg readYamlFile(const std::filesystem::path& configFile)
     {
-        auto configStream = std::ifstream{configFile, std::ios_base::binary};
-        return readYaml<TCfg>(configStream);
+        auto parser = figcone::yaml::Parser{};
+        return readFile<TCfg>(configFile, parser);
     }
     template<typename TCfg>
     TCfg readYaml(const std::string& configContent)
@@ -88,8 +99,8 @@ public:
     template<typename TCfg>
     TCfg readTomlFile(const std::filesystem::path& configFile)
     {
-        auto configStream = std::ifstream{configFile, std::ios_base::binary};
-        return readToml<TCfg>(configStream);
+        auto parser = figcone::toml::Parser{};
+        return readFile<TCfg>(configFile, parser);
     }
     template<typename TCfg>
     TCfg readToml(const std::string& configContent)
@@ -109,8 +120,8 @@ public:
     template<typename TCfg>
     TCfg readIniFile(const std::filesystem::path& configFile)
     {
-        auto configStream = std::ifstream{configFile, std::ios_base::binary};
-        return readIni<TCfg>(configStream);
+        auto parser = figcone::ini::Parser{};
+        return readFile<TCfg>(configFile, parser);
     }
     template<typename TCfg>
     TCfg readIni(const std::string& configContent)
@@ -130,8 +141,8 @@ public:
     template<typename TCfg>
     TCfg readXmlFile(const std::filesystem::path& configFile)
     {
-        auto configStream = std::ifstream{configFile, std::ios_base::binary};
-        return readXml<TCfg>(configStream);
+        auto parser = figcone::xml::Parser{};
+        return readFile<TCfg>(configFile, parser);
     }
     template<typename TCfg>
     TCfg readXml(const std::string& configContent)
@@ -151,8 +162,8 @@ public:
     template<typename TCfg>
     TCfg readShoalFile(const std::filesystem::path& configFile)
     {
-        auto configStream = std::ifstream{configFile, std::ios_base::binary};
-        return readShoal<TCfg>(configStream);
+        auto parser = figcone::shoal::Parser{};
+        return readFile<TCfg>(configFile, parser);
     }
     template<typename TCfg>
     TCfg readShoal(const std::string& configContent)

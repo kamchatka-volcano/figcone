@@ -14,7 +14,7 @@ class DictCreator {
 public:
     DictCreator(ConfigReaderPtr cfgReader, std::string dictName, TMap& dictMap)
         : cfgReader_{cfgReader}
-        , dictName_{(sfunPrecondition(!dictName.empty()), std::move(dictName))}
+        , dictName_{(sfun_precondition(!dictName.empty()), std::move(dictName))}
         , dict_{std::make_unique<Dict<TMap>>(dictName_, dictMap)}
         , dictMap_{dictMap}
     {
