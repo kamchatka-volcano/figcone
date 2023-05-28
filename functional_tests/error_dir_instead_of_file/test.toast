@@ -1,0 +1,9 @@
+-Suite: error handling
+
+-Launch: mkdir folder.ini
+-Launch:  ../../build/examples/demo_all folder.ini > output.txt
+-Expect exit code: 1
+-Ensure error message file output.txt:
+Configuration error: Can't open config file folder.ini which is not a regular file
+
+---

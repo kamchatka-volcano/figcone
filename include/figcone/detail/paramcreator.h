@@ -11,7 +11,7 @@ class ParamCreator {
 public:
     ParamCreator(ConfigReaderPtr cfgReader, std::string paramName, T& paramValue)
         : cfgReader_{cfgReader}
-        , paramName_{(sfunPrecondition(!paramName.empty()), std::move(paramName))}
+        , paramName_{(sfun_precondition(!paramName.empty()), std::move(paramName))}
         , paramValue_{paramValue}
         , param_{std::make_unique<Param<T>>(paramName_, paramValue)}
     {

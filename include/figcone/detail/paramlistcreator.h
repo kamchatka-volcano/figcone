@@ -19,7 +19,7 @@ class ParamListCreator {
 public:
     ParamListCreator(ConfigReaderPtr cfgReader, std::string paramListName, TParamList& paramListValue)
         : cfgReader_{cfgReader}
-        , paramListName_{(sfunPrecondition(!paramListName.empty()), std::move(paramListName))}
+        , paramListName_{(sfun_precondition(!paramListName.empty()), std::move(paramListName))}
         , paramListValue_{paramListValue}
         , paramList_{std::make_unique<ParamList<TParamList>>(paramListName_, paramListValue)}
     {

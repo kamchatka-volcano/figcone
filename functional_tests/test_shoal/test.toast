@@ -2,3 +2,4 @@
 -Suite: format support
 
 -Check shoal demo: ${{ format_demo_expected_output }}
+-Check all formats demo with demo.shoal: ${{ format_demo_expected_output }}
