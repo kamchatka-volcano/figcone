@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.18)
-project(figcone VERSION 2.4.9)
+project(figcone VERSION 2.4.10)
 include(GNUInstallDirs)
 include(external/seal_lake)
 
 SealLake_IsInstalled(INSTALL_FIGCONE_TREE)
 SealLake_Import(
-        figcone_tree   1.0.0
+        figcone_tree   1.0.1
         GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_tree.git
-        GIT_TAG        v1.0.0
+        GIT_TAG        v1.0.1
 )
 
 option(FIGCONE_USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" OFF)
@@ -45,7 +45,7 @@ SealLake_HeaderOnlyLibrary(
         LIBRARIES
             figcone::figcone_tree
         DEPENDENCIES
-            figcone_tree 1.0.0
+            figcone_tree 1.0.1
 )
 
 if (FIGCONE_USE_NAMEOF)
@@ -62,7 +62,7 @@ if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML 
             figcone::figcone_formats
     )
     SealLake_Dependencies(
-            figcone_formats 0.12.7
+            figcone_formats 0.12.8
     )
 endif()
 
