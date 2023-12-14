@@ -2,6 +2,7 @@
 #include "config.h"
 #include "errors.h"
 #include "nameformat.h"
+#include "unknown_data.h"
 #include "detail/external/sfun/path.h"
 #include "detail/figcone_ini_import.h"
 #include "detail/figcone_json_import.h"
@@ -52,7 +53,12 @@ public:
         return read<TCfg>(configStream, parser);
     }
 
-#ifdef FIGCONE_JSON_AVAILABLE
+    void setUnknownDataHandler(UnknownDataHandler handler)
+    {
+        handler_ = handler;
+    }
+
+  #ifdef FIGCONE_JSON_AVAILABLE
     template<typename TCfg>
     TCfg readJsonFile(const std::filesystem::path& configFile)
     {
@@ -195,11 +201,25 @@ private:
         validators_.emplace_back((std::move(validator)));
     }
 
+    void unknownNode(std::string nodeName, StreamPosition position)
+    {
+        UnknownDataHandler handler = handler_ ? handler_ : defaultUnknownDataHandler();
+        handler(nodeName, std::string(), position);
+    }
+
+    void unknownParam(std::string paramName, StreamPosition position)
+    {
+        UnknownDataHandler handler = handler_ ? handler_ : defaultUnknownDataHandler();
+        handler(std::string(), paramName, position);
+    }
+
     void load(const TreeNode& treeNode) override
     {
         for (const auto& [nodeName, node] : treeNode.asItem().nodes()) {
-            if (!nodes_.count(nodeName))
-                throw ConfigError{"Unknown node '" + nodeName + "'", node.position()};
+            if (!nodes_.count(nodeName)) {
+                unknownNode(nodeName, node.position());
+                continue;
+            }
             try {
                 nodes_.at(nodeName)->load(node);
             }
@@ -209,8 +229,10 @@ private:
         }
 
         for (const auto& [paramName, param] : treeNode.asItem().params()) {
-            if (!params_.count(paramName))
-                throw ConfigError{"Unknown param '" + paramName + "'", param.position()};
+            if (!params_.count(paramName)) {
+                unknownParam(paramName, param.position());
+                continue;
+            }
             params_.at(paramName)->load(param);
         }
 
@@ -270,6 +292,7 @@ private:
     std::map<std::string, std::unique_ptr<detail::IParam>> params_;
     std::map<std::string, std::unique_ptr<ConfigReader<nameFormat>>> nestedReaders_;
     std::vector<std::unique_ptr<detail::IValidator>> validators_;
+    UnknownDataHandler handler_ = nullptr;
 };
 
 } //namespace figcone

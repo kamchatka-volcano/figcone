@@ -1,8 +1,10 @@
 #include "assert_exception.h"
 #include <figcone/config.h>
 #include <figcone/configreader.h>
+#include <figcone/unknown_data.h>
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
+#include <figcone_tree/streamposition.h>
 #include <gtest/gtest.h>
 #include <optional>
 
@@ -431,6 +433,33 @@ TEST(TestNode, UnknownNodeError)
             {
                 EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Unknown node 'test'");
             });
+}
+
+TEST(TestNode, UnknownNodeHandler)
+{
+    ///foo = 1
+    // bar = baz
+    ///[a]
+    ///  testInt = 2
+    ///[test]
+    ///  foo = bar
+    auto tree = figcone::makeTreeRoot();
+    auto& testNode = tree.asItem().addNode("test", {1, 1});
+    testNode.asItem().addParam("foo", "bar", {2, 3});
+    tree.asItem().addParam("foo", "1", {3, 1});
+    tree.asItem().addParam("bar", "baz", {4, 1});
+    auto& aNode = tree.asItem().addNode("a", {5, 1});
+    aNode.asItem().addParam("testInt", "2", {6, 3});
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto parser = TreeProvider{std::move(tree)};
+    std::string unknownNode;
+    cfgReader.setUnknownDataHandler(
+            [&](std::string node, std::string param, figcone::StreamPosition position)
+            {
+                unknownNode = node;
+            });
+    cfgReader.read<SingleNodeSingleLevelCfg>("", parser);
+    EXPECT_EQ(unknownNode, "test");
 }
 
 TEST(TestNode, NodeListError)

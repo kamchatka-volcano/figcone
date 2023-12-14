@@ -1,9 +1,11 @@
 #include "assert_exception.h"
 #include <figcone/config.h>
 #include <figcone/configreader.h>
+#include <figcone/unknown_data.h>
 #include <figcone/errors.h>
 #include <figcone_tree/stringconverter.h>
 #include <figcone_tree/tree.h>
+#include <figcone_tree/streamposition.h>
 #include <gtest/gtest.h>
 #include <filesystem>
 #include <optional>
@@ -292,6 +294,25 @@ TEST(TestParam, UnkownParamError)
             {
                 EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Unknown param 'foo'");
             });
+}
+
+TEST(TestParam, UnkownParamHandler)
+{
+    ///foo = 1
+    ///test = 2
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("foo", "1", {1, 1});
+    tree.asItem().addParam("test", "2", {2, 1});
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    std::string unknownParam;
+    cfgReader.setUnknownDataHandler(
+            [&](std::string node, std::string param, figcone::StreamPosition position)
+            {
+                unknownParam = param;
+            });
+    cfgReader.read<SingleParamCfg>("foo=1", parser);
+    EXPECT_EQ(unknownParam, "foo");
 }
 
 TEST(TestParam, ParamListError)
