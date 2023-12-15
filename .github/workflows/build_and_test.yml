@@ -2,11 +2,11 @@ name: build & test (clang, gcc, MSVC)
 
 on:
   push:
-    branches: [ "master", "dev" ]
+    branches: [ "master", "dev", "v3" ]
     paths-ignore:
       - '**.md'
   pull_request:
-    branches: [ "master", "dev" ]
+    branches: [ "master", "dev", "v3" ]
     paths-ignore:
       - '**.md'
 
