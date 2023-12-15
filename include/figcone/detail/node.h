@@ -1,6 +1,6 @@
 #pragma once
+#include "configreaderaccess.h"
 #include "iconfigentity.h"
-#include "iconfigreader.h"
 #include "inode.h"
 #include "utils.h"
 #include <figcone/errors.h>
@@ -38,7 +38,7 @@ private:
             cfg_.emplace();
 
         if (cfgReader_)
-            cfgReader_->load(node);
+            ConfigReaderAccess{cfgReader_}.load<TCfg>(node);
     }
 
     bool hasValue() const override

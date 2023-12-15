@@ -1,9 +1,10 @@
 #pragma once
+#include "configreaderaccess.h"
 #include "dict.h"
-#include "iconfigreader.h"
 #include "validator.h"
 #include "external/sfun/contract.h"
 #include "external/sfun/type_traits.h"
+#include <figcone/configreader.h>
 #include <figcone/nameformat.h>
 #include <memory>
 
@@ -37,14 +38,15 @@ public:
     operator TMap()
     {
         if (cfgReader_)
-            cfgReader_->addNode(dictName_, std::move(dict_));
+            ConfigReaderAccess{cfgReader_}.addNode(dictName_, std::move(dict_));
         return defaultValue_;
     }
 
     DictCreator& ensure(std::function<void(const sfun::remove_optional_t<TMap>&)> validatingFunc)
     {
         if (cfgReader_)
-            cfgReader_->addValidator(std::make_unique<Validator<TMap>>(*dict_, dictMap_, std::move(validatingFunc)));
+            ConfigReaderAccess{cfgReader_}.addValidator(
+                    std::make_unique<Validator<TMap>>(*dict_, dictMap_, std::move(validatingFunc)));
         return *this;
     }
 
@@ -52,7 +54,7 @@ public:
     DictCreator& ensure(TArgs&&... args)
     {
         if (cfgReader_)
-            cfgReader_->addValidator(
+            ConfigReaderAccess{cfgReader_}.addValidator(
                     std::make_unique<Validator<TMap>>(*dict_, dictMap_, TValidator{std::forward<TArgs>(args)...}));
         return *this;
     }

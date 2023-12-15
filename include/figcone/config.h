@@ -2,12 +2,11 @@
 #include "detail/configmacros.h"
 #include "detail/dict.h"
 #include "detail/dictcreator.h"
-#include "detail/iconfigreader.h"
 #include "detail/initializedoptional.h"
 #include "detail/inode.h"
 #include "detail/ivalidator.h"
-#include "detail/nameconverter.h"
 #include "detail/nameof_import.h"
+#include "detail/nodecreator.h"
 #include "detail/nodelistcreator.h"
 #include "detail/paramcreator.h"
 #include "detail/paramlistcreator.h"
@@ -30,8 +29,7 @@ class IParam;
 class Config {
 
 public:
-    Config() = default;
-    Config(detail::ConfigReaderPtr reader)
+    Config(detail::ConfigReaderPtr reader = {})
         : cfgReader_{reader}
     {
     }
@@ -174,7 +172,7 @@ private:
 
 private:
     detail::ConfigReaderPtr cfgReader_;
-    friend class detail::IConfigReader;
+    friend class ConfigReader;
 };
 
 template<typename T>

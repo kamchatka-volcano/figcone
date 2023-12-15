@@ -1,5 +1,5 @@
 #pragma once
-#include "iconfigreader.h"
+#include "configreaderaccess.h"
 #include "param.h"
 #include "validator.h"
 #include "external/sfun/contract.h"
@@ -27,7 +27,8 @@ public:
     ParamCreator<T>& ensure(std::function<void(const sfun::remove_optional_t<T>&)> validatingFunc)
     {
         if (cfgReader_)
-            cfgReader_->addValidator(std::make_unique<Validator<T>>(*param_, paramValue_, std::move(validatingFunc)));
+            ConfigReaderAccess{cfgReader_}.addValidator(
+                    std::make_unique<Validator<T>>(*param_, paramValue_, std::move(validatingFunc)));
         return *this;
     }
 
@@ -35,7 +36,7 @@ public:
     ParamCreator<T>& ensure(TArgs&&... args)
     {
         if (cfgReader_)
-            cfgReader_->addValidator(
+            ConfigReaderAccess{cfgReader_}.addValidator(
                     std::make_unique<Validator<T>>(*param_, paramValue_, TValidator{std::forward<TArgs>(args)...}));
         return *this;
     }
@@ -43,7 +44,7 @@ public:
     operator T()
     {
         if (cfgReader_)
-            cfgReader_->addParam(paramName_, std::move(param_));
+            ConfigReaderAccess{cfgReader_}.addParam(paramName_, std::move(param_));
         return defaultValue_;
     }
 

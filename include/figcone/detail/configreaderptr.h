@@ -1,13 +1,16 @@
 #pragma once
 
+namespace figcone {
+class ConfigReader;
+}
+
 namespace figcone::detail {
-class IConfigReader;
 
 class ConfigReaderPtr {
-    friend class IConfigReader;
+    friend class figcone::ConfigReader;
 
 private:
-    ConfigReaderPtr(IConfigReader* reader)
+    ConfigReaderPtr(ConfigReader* reader)
         : reader_{reader}
     {
     }
@@ -15,22 +18,22 @@ private:
 public:
     ConfigReaderPtr() = default;
 
-    const IConfigReader* operator->() const
+    const ConfigReader* operator->() const
     {
         return reader_;
     }
 
-    IConfigReader* operator->()
+    ConfigReader* operator->()
     {
         return reader_;
     }
 
-    const IConfigReader& operator*() const
+    const ConfigReader& operator*() const
     {
         return *reader_;
     }
 
-    IConfigReader& operator*()
+    ConfigReader& operator*()
     {
         return *reader_;
     }
@@ -41,7 +44,7 @@ public:
     }
 
 private:
-    IConfigReader* reader_ = nullptr;
+    ConfigReader* reader_ = nullptr;
 };
 
 } //namespace figcone::detail

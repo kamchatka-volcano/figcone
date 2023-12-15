@@ -160,7 +160,7 @@ TEST(TestNodeList, Basic)
     }
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<Cfg>("", parser);
 
     ASSERT_EQ(cfg.testNodes.size(), 2);
@@ -217,7 +217,7 @@ TEST(TestNodeList, BasicNonAggregate)
     }
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<NonAggregateCfg>("", parser);
 
     ASSERT_EQ(cfg.testNodes.size(), 2);
@@ -253,7 +253,7 @@ TEST(TestNodeList, BasicWithoutOptional)
     }
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<Cfg>("", parser);
 
     ASSERT_EQ(cfg.testNodes.size(), 2);
@@ -283,7 +283,7 @@ TEST(TestNodeList, BasicWithoutMacro)
     }
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<CfgWithoutMacro>("", parser);
 
     ASSERT_EQ(cfg.testNodes.size(), 2);
@@ -309,7 +309,7 @@ TEST(TestNodeList, ValidationSuccess)
         node.asItem().addParam("testInt", "4", {4, 3});
     }
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<ValidatedCfg>("", parser);
 
     ASSERT_EQ(cfg.testNodes.size(), 2);
@@ -334,7 +334,7 @@ TEST(TestNodeList, ValidationSuccessOptionalNodeList)
         node.asItem().addParam("testInt", "6", {8, 3});
     }
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<ValidatedOptionalNodeListCfg>("", parser);
     ASSERT_TRUE(cfg.testNodesOpt.has_value());
     ASSERT_EQ(cfg.testNodesOpt->size(), 2);
@@ -355,7 +355,7 @@ TEST(TestNodeList, ValidationFailure)
     }
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     assert_exception<figcone::ConfigError>(
             [&]
             {
@@ -382,7 +382,7 @@ TEST(TestNodeList, ValidationFailureOptionalNodeList)
     }
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     assert_exception<figcone::ConfigError>(
             [&]
             {
@@ -414,7 +414,7 @@ TEST(TestNodeList, ValidationWithFunctorSuccess)
         node.asItem().addParam("testInt", "4", {4, 3});
     }
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<ValidatedWithFunctorCfg>("", parser);
 
     ASSERT_EQ(cfg.testNodes.size(), 2);
@@ -440,7 +440,7 @@ TEST(TestNodeList, ValidationWithFunctorSuccessOptionalNodeList)
         node.asItem().addParam("testInt", "4", {4, 3});
     }
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<ValidatedWithFunctorOptionalNodeListCfg>("", parser);
 
     ASSERT_EQ(cfg.testNodesOpt.has_value(), true);
@@ -462,7 +462,7 @@ TEST(TestNodeList, ValidationWithFunctorFailure)
     }
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     assert_exception<figcone::ConfigError>(
             [&]
             {
@@ -495,7 +495,7 @@ TEST(TestNodeList, ValidationWithFunctorFailureOptionalNodeList)
     }
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     assert_exception<figcone::ConfigError>(
             [&]
             {
@@ -556,7 +556,7 @@ TEST(TestNodeList, NestedCfgList)
     }
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<NestedCfgList>("", parser);
 
     EXPECT_EQ(cfg.testStr, "Hello");
@@ -578,7 +578,7 @@ TEST(TestNodeList, MissingNodeListError)
     tree.asItem().addParam("testStr", "Hello", {1, 1});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     assert_exception<figcone::ConfigError>(
             [&]
             {
@@ -599,7 +599,7 @@ TEST(TestNodeList, NodeNotListError)
     tree.asItem().addNode("testNodes", {2, 1});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     assert_exception<figcone::ConfigError>(
             [&]
             {
@@ -634,7 +634,7 @@ TEST(TestNodeList, InvalidListElementError)
     tree.asItem().addParam("testStr", "Hello", {1, 1});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     assert_exception<figcone::ConfigError>(
             [&]
             {
@@ -665,7 +665,7 @@ TEST(TestNodeList, IncompleteListElementError)
     tree.asItem().addParam("testStr", "Hello", {1, 1});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     assert_exception<figcone::ConfigError>(
             [&]
             {

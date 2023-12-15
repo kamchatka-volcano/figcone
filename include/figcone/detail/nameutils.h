@@ -1,5 +1,7 @@
 #pragma once
 #include "external/sfun/string_utils.h"
+#include "external/sfun/utility.h"
+#include <figcone/nameformat.h>
 #include <algorithm>
 #include <string>
 
@@ -87,6 +89,21 @@ inline std::string toSnakeCase(const std::string& name)
             result.push_back(ch);
     }
     return result;
+}
+
+inline std::string convertName(NameFormat nameFormat, const std::string& configName)
+{
+    switch (nameFormat) {
+    case NameFormat::Original:
+        return formatName(configName);
+    case NameFormat::SnakeCase:
+        return toSnakeCase(configName);
+    case NameFormat::CamelCase:
+        return toCamelCase(configName);
+    case NameFormat::KebabCase:
+        return toKebabCase(configName);
+    }
+    sfun::unreachable();
 }
 
 } //namespace figcone::detail

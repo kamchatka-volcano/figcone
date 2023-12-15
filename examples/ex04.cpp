@@ -1,3 +1,4 @@
+#include <figcone/config.h>
 #include <figcone/configreader.h>
 #include <figcone/shortmacros.h>
 #include <filesystem>

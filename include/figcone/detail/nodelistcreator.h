@@ -1,5 +1,5 @@
 #pragma once
-#include "iconfigreader.h"
+#include "configreaderaccess.h"
 #include "nodelist.h"
 #include "external/sfun/contract.h"
 #include "external/sfun/type_traits.h"
@@ -31,7 +31,7 @@ public:
         , nodeList_{std::make_unique<NodeList<TCfgList>>(
                   nodeListName_,
                   nodeList,
-                  cfgReader_ ? cfgReader_->makeNestedReader(nodeListName_) : ConfigReaderPtr{},
+                  cfgReader_ ? ConfigReaderAccess{cfgReader_}.makeNestedReader(nodeListName_) : ConfigReaderPtr{},
                   type)}
         , nodeListValue_(nodeList)
     {
@@ -46,14 +46,14 @@ public:
     operator TCfgList()
     {
         if (cfgReader_)
-            cfgReader_->addNode(nodeListName_, std::move(nodeList_));
+            ConfigReaderAccess{cfgReader_}.addNode(nodeListName_, std::move(nodeList_));
         return {};
     }
 
     NodeListCreator<TCfgList>& ensure(std::function<void(const sfun::remove_optional_t<TCfgList>&)> validatingFunc)
     {
         if (cfgReader_)
-            cfgReader_->addValidator(
+            ConfigReaderAccess{cfgReader_}.addValidator(
                     std::make_unique<Validator<TCfgList>>(*nodeList_, nodeListValue_, std::move(validatingFunc)));
         return *this;
     }
@@ -62,7 +62,7 @@ public:
     NodeListCreator<TCfgList>& ensure(TArgs&&... args)
     {
         if (cfgReader_)
-            cfgReader_->addValidator(std::make_unique<Validator<TCfgList>>(
+            ConfigReaderAccess{cfgReader_}.addValidator(std::make_unique<Validator<TCfgList>>(
                     *nodeList_,
                     nodeListValue_,
                     TValidator{std::forward<TArgs>(args)...}));

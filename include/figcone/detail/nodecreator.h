@@ -1,5 +1,5 @@
 #pragma once
-#include "iconfigreader.h"
+#include "configreaderaccess.h"
 #include "inode.h"
 #include "node.h"
 #include "utils.h"
@@ -7,7 +7,6 @@
 #include "external/sfun/contract.h"
 #include "external/sfun/type_traits.h"
 #include "external/sfun/utility.h"
-#include <figcone/config.h>
 #include <figcone/nameformat.h>
 #include <type_traits>
 
@@ -28,7 +27,7 @@ public:
         : cfgReader_{cfgReader}
         , nodeName_{(sfun_precondition(!nodeName.empty()), std::move(nodeName))}
         , nodeCfg_{nodeCfg}
-        , nestedCfgReader_{cfgReader_ ? cfgReader_->makeNestedReader(nodeName_) : ConfigReaderPtr{}}
+        , nestedCfgReader_{cfgReader_ ? ConfigReaderAccess{cfgReader_}.makeNestedReader(nodeName_) : ConfigReaderPtr{}}
     {
         if constexpr (sfun::is_optional_v<TCfg>)
             static_assert(
@@ -46,7 +45,7 @@ public:
     operator TCfg()
     {
         if (cfgReader_)
-            cfgReader_->addNode(nodeName_, std::move(node_));
+            ConfigReaderAccess{cfgReader_}.addNode(nodeName_, std::move(node_));
 
         if constexpr (!std::is_aggregate_v<TCfg>)
             static_assert(
@@ -60,7 +59,8 @@ public:
     NodeCreator<TCfg>& ensure(std::function<void(const sfun::remove_optional_t<TCfg>&)> validatingFunc)
     {
         if (cfgReader_)
-            cfgReader_->addValidator(std::make_unique<Validator<TCfg>>(*node_, nodeCfg_, std::move(validatingFunc)));
+            ConfigReaderAccess{cfgReader_}.addValidator(
+                    std::make_unique<Validator<TCfg>>(*node_, nodeCfg_, std::move(validatingFunc)));
         return *this;
     }
 
@@ -68,7 +68,7 @@ public:
     NodeCreator<TCfg>& ensure(TArgs&&... args)
     {
         if (cfgReader_)
-            cfgReader_->addValidator(
+            ConfigReaderAccess{cfgReader_}.addValidator(
                     std::make_unique<Validator<TCfg>>(*node_, nodeCfg_, TValidator{std::forward<TArgs>(args)...}));
         return *this;
     }

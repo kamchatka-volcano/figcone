@@ -43,7 +43,7 @@ TEST(NameFormat, OriginalNames)
     node.asItem().addParam("testStr", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::Original>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::Original};
 
     auto cfg = cfgReader.read<OriginalNamesCfg>("", parser);
 
@@ -72,7 +72,7 @@ TEST(NameFormat, SnakeStructCamelCfg)
     node.asItem().addParam("testStr", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<SnakeStructCamelCfg>("", parser);
     EXPECT_EQ(cfg.test_int, 10);
     EXPECT_EQ(cfg.test_inner.test_str, "Hello");
@@ -99,7 +99,7 @@ TEST(NameFormat, SnakeStructSnakeCfg)
     node.asItem().addParam("test_str", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::SnakeCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::SnakeCase};
     auto cfg = cfgReader.read<SnakeStructSnakeCfg>("", parser);
     EXPECT_EQ(cfg.test_int, 10);
     EXPECT_EQ(cfg.test_inner.test_str, "Hello");
@@ -126,7 +126,7 @@ TEST(NameFormat, SnakeStructKebabCfg)
     node.asItem().addParam("test-str", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::KebabCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::KebabCase};
     auto cfg = cfgReader.read<SnakeStructKebabCfg>("", parser);
     EXPECT_EQ(cfg.test_int, 10);
     EXPECT_EQ(cfg.test_inner.test_str, "Hello");
@@ -153,7 +153,7 @@ TEST(NameFormat, CamelStructCamelCfg)
     node.asItem().addParam("testStr", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<CamelStructCamelCfg>("", parser);
     EXPECT_EQ(cfg.testInt, 10);
     EXPECT_EQ(cfg.testInner.testStr, "Hello");
@@ -180,7 +180,7 @@ TEST(NameFormat, CamelStructSnakeCfg)
     node.asItem().addParam("test_str", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::SnakeCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::SnakeCase};
     auto cfg = cfgReader.read<CamelStructCamelCfg>("", parser);
     EXPECT_EQ(cfg.testInt, 10);
     EXPECT_EQ(cfg.testInner.testStr, "Hello");
@@ -207,7 +207,7 @@ TEST(NameFormat, CamelStructKebabCfg)
     node.asItem().addParam("test-str", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::KebabCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::KebabCase};
     auto cfg = cfgReader.read<CamelStructKebabCfg>("", parser);
     EXPECT_EQ(cfg.testInt, 10);
     EXPECT_EQ(cfg.testInner.testStr, "Hello");

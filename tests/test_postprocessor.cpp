@@ -65,7 +65,7 @@ TEST(TestPostProcessor, NonModifyingPostProcessor)
     tree.asItem().addParam("age", "42", {3, 1});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<Cfg>("", parser);
 
     ASSERT_EQ(cfg.name, "John");
@@ -85,7 +85,7 @@ TEST(TestPostProcessor, PostProcessorModifiesCfg)
     tree.asItem().addParam("age", "42", {3, 1});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<Cfg>("", parser);
 
     ASSERT_EQ(cfg.name.has_value(), false);
@@ -105,7 +105,7 @@ TEST(TestPostProcessor, PostProcessorThrowsError)
     tree.asItem().addParam("age", "16", {3, 1});
 
     auto parser = TreeProvider{std::move(tree)};
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
 
     assert_exception<figcone::ConfigError>(
             [&]

@@ -1,9 +1,10 @@
+#include <figcone/config.h>
 #include <figcone/configreader.h>
 #include <figcone/shortmacros.h> //enables macros without FIGCONE_ prefix
 #include <filesystem>
 #include <iostream>
-#include <vector>
 #include <map>
+#include <vector>
 
 struct Host{
     std::string ip;

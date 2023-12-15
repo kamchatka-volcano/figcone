@@ -1,3 +1,4 @@
+#include <figcone/config.h>
 #include <figcone/configreader.h>
 #include <filesystem>
 #include <iostream>
@@ -26,7 +27,7 @@ struct PhotoViewerCfg : public figcone::Config
 
 int main()
 {
-    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::SnakeCase>{};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::SnakeCase};
     auto cfg = cfgReader.readToml<PhotoViewerCfg>(R"(
         root_dir = "/home/kamchatka-volcano/photos"
         supported_files = [".jpg", ".png"]

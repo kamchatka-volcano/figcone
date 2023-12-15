@@ -1,8 +1,8 @@
 #pragma once
-#include "config.h"
 #include "errors.h"
 #include "nameformat.h"
 #include "postprocessor.h"
+#include "detail/configreaderptr.h"
 #include "detail/external/sfun/path.h"
 #include "detail/figcone_ini_import.h"
 #include "detail/figcone_json_import.h"
@@ -10,15 +10,15 @@
 #include "detail/figcone_toml_import.h"
 #include "detail/figcone_xml_import.h"
 #include "detail/figcone_yaml_import.h"
-#include "detail/iconfigreader.h"
 #include "detail/inode.h"
 #include "detail/iparam.h"
 #include "detail/ivalidator.h"
 #include "detail/loadingerror.h"
-#include "detail/nameconverter.h"
+#include "detail/nameutils.h"
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
 #include <filesystem>
+#include <fstream>
 #include <map>
 #include <memory>
 #include <type_traits>
@@ -26,9 +26,18 @@
 
 namespace figcone {
 
-template<NameFormat nameFormat = NameFormat::Original>
-class ConfigReader : public detail::IConfigReader {
+namespace detail {
+template<typename TConfigReaderPtr>
+class ConfigReaderAccess;
+}
+
+class ConfigReader {
 public:
+    explicit ConfigReader(NameFormat nameFormat = NameFormat::Original)
+        : nameFormat_{nameFormat}
+    {
+    }
+
     template<typename TCfg>
     TCfg readFile(const std::filesystem::path& configFile, IParser& parser)
     {
@@ -181,22 +190,22 @@ public:
 #endif
 
 private:
-    void addNode(const std::string& name, std::unique_ptr<detail::INode> node) override
+    void addNode(const std::string& name, std::unique_ptr<detail::INode> node)
     {
-        nodes_.emplace(detail::NameConverter<nameFormat>::name(name), std::move(node));
+        nodes_.emplace(detail::convertName(nameFormat_, name), std::move(node));
     }
 
-    void addParam(const std::string& name, std::unique_ptr<detail::IParam> param) override
+    void addParam(const std::string& name, std::unique_ptr<detail::IParam> param)
     {
-        params_.emplace(detail::NameConverter<nameFormat>::name(name), std::move(param));
+        params_.emplace(detail::convertName(nameFormat_, name), std::move(param));
     }
 
-    void addValidator(std::unique_ptr<detail::IValidator> validator) override
+    void addValidator(std::unique_ptr<detail::IValidator> validator)
     {
         validators_.emplace_back((std::move(validator)));
     }
 
-    void load(const TreeNode& treeNode) override
+    void load(const TreeNode& treeNode)
     {
         for (const auto& [nodeName, node] : treeNode.asItem().nodes()) {
             if (!nodes_.count(nodeName))
@@ -231,9 +240,9 @@ private:
             validator->validate();
     }
 
-    detail::ConfigReaderPtr makeNestedReader(const std::string& name) override
+    detail::ConfigReaderPtr makeNestedReader(const std::string& name)
     {
-        nestedReaders_.emplace(name, std::make_unique<ConfigReader<nameFormat>>());
+        nestedReaders_.emplace(name, std::make_unique<ConfigReader>(nameFormat_));
         return nestedReaders_[name]->makePtr();
     }
 
@@ -272,11 +281,27 @@ private:
         validators_.clear();
     }
 
+    detail::ConfigReaderPtr makePtr()
+    {
+        return this;
+    }
+
+    template<typename TCfg>
+    void resetConfigReader(TCfg& cfg)
+    {
+        cfg.cfgReader_ = detail::ConfigReaderPtr{};
+    }
+
+private:
+    template<typename TConfigReaderPtr>
+    friend class detail::ConfigReaderAccess;
+
 private:
     std::map<std::string, std::unique_ptr<detail::INode>> nodes_;
     std::map<std::string, std::unique_ptr<detail::IParam>> params_;
-    std::map<std::string, std::unique_ptr<ConfigReader<nameFormat>>> nestedReaders_;
+    std::map<std::string, std::unique_ptr<ConfigReader>> nestedReaders_;
     std::vector<std::unique_ptr<detail::IValidator>> validators_;
+    NameFormat nameFormat_;
 };
 
 } //namespace figcone

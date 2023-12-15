@@ -1,5 +1,5 @@
 #pragma once
-#include "iconfigreader.h"
+#include "configreaderaccess.h"
 #include "inode.h"
 #include "paramlist.h"
 #include "utils.h"
@@ -35,7 +35,7 @@ public:
     ParamListCreator<TParamList>& ensure(std::function<void(const sfun::remove_optional_t<TParamList>&)> validatingFunc)
     {
         if (cfgReader_)
-            cfgReader_->addValidator(
+            ConfigReaderAccess{cfgReader_}.addValidator(
                     std::make_unique<Validator<TParamList>>(*paramList_, paramListValue_, std::move(validatingFunc)));
         return *this;
     }
@@ -44,7 +44,7 @@ public:
     ParamListCreator<TParamList>& ensure(TArgs&&... args)
     {
         if (cfgReader_)
-            cfgReader_->addValidator(std::make_unique<Validator<TParamList>>(
+            ConfigReaderAccess{cfgReader_}.addValidator(std::make_unique<Validator<TParamList>>(
                     *paramList_,
                     paramListValue_,
                     TValidator{std::forward<TArgs>(args)...}));
@@ -54,7 +54,7 @@ public:
     operator TParamList()
     {
         if (cfgReader_)
-            cfgReader_->addParam(paramListName_, std::move(paramList_));
+            ConfigReaderAccess{cfgReader_}.addParam(paramListName_, std::move(paramList_));
         return defaultValue_;
     }
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "configreaderaccess.h"
 #include "inode.h"
 #include "loadingerror.h"
 #include "utils.h"
@@ -58,8 +59,8 @@ public:
                 auto cfg = Cfg{cfgReader_};
                 if (cfgReader_) {
                     if (type_ == NodeListType::Copy && i > 0)
-                        cfgReader_->load(nodeList.asList().node(0));
-                    cfgReader_->load(treeNode);
+                        ConfigReaderAccess{cfgReader_}.load<Cfg>(nodeList.asList().node(0));
+                    ConfigReaderAccess{cfgReader_}.load<Cfg>(treeNode);
                 }
                 maybeOptValue(nodeList_).emplace_back(std::move(cfg));
             }
