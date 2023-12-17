@@ -50,6 +50,19 @@ struct ValidatedWithFunctorCfg : public figcone::Config {
     FIGCONE_PARAM(test, int).ensure<IsPositive>();
 };
 
+struct ValidatedOptionalParamCfg : public figcone::Config {
+    FIGCONE_PARAM(test, int).ensure(
+            [](int val)
+            {
+                if (val < 0)
+                    throw figcone::ValidationError{"value can't be negative"};
+            });
+};
+
+struct ValidatedWithFunctorOptionalParamCfg : public figcone::Config {
+    FIGCONE_PARAM(test, figcone::optional<int>).ensure<IsPositive>();
+};
+
 struct StringParamCfg : public figcone::Config {
     FIGCONE_PARAM(test, std::string);
     FIGCONE_PARAM(testFs, std::filesystem::path)("default.txt");
@@ -215,6 +228,19 @@ TEST(TestParam, ValidationSuccess)
     EXPECT_EQ(cfg.test, 1);
 }
 
+TEST(TestParam, ValidationSuccessOptionalParam)
+{
+    ///test=1
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("test", "1", {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<ValidatedOptionalParamCfg>("", parser);
+
+    EXPECT_EQ(cfg.test, 1);
+}
+
 TEST(TestParam, ValidationError)
 {
     ///test=-1
@@ -234,7 +260,52 @@ TEST(TestParam, ValidationError)
             });
 }
 
-TEST(TestParam, ValidationWithFinctorError)
+TEST(TestParam, ValidationErrorOptionalParam)
+{
+    ///test=-1
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("test", "-1", {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<ValidatedOptionalParamCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Parameter 'test': value can't be negative");
+            });
+}
+
+TEST(TestParam, ValidationWithFunctorSuccess)
+{
+    ///test=1
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("test", "1", {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<ValidatedWithFunctorCfg>("", parser);
+
+    EXPECT_EQ(cfg.test, 1);
+}
+
+TEST(TestParam, ValidationWithFunctorSuccessOptionalParam)
+{
+    ///test=1
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("test", "1", {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<ValidatedWithFunctorOptionalParamCfg>("", parser);
+
+    EXPECT_EQ(cfg.test, 1);
+}
+
+TEST(TestParam, ValidationWithFunctorError)
 {
     ///test=-1
     ///
@@ -246,6 +317,25 @@ TEST(TestParam, ValidationWithFinctorError)
             [&]
             {
                 cfgReader.read<ValidatedWithFunctorCfg>("test = -1", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Parameter 'test': value can't be negative");
+            });
+}
+
+TEST(TestParam, ValidationWithFunctorErrorOptionalParam)
+{
+    ///test=-1
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParam("test", "-1", {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<ValidatedWithFunctorOptionalParamCfg>("test = -1", parser);
             },
             [](const figcone::ConfigError& error)
             {

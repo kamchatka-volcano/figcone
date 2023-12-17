@@ -57,8 +57,24 @@ struct ValidatedCfg : public figcone::Config {
                     });
 };
 
+struct ValidatedOptionalParamListCfg : public figcone::Config {
+    FIGCONE_PARAMLIST(testStrList, figcone::optional<std::vector<std::string>>)
+            .ensure(
+                    [](const std::vector<std::string>& value)
+                    {
+                        if (value.empty())
+                            throw figcone::ValidationError{"a list can't be empty"};
+                    });
+};
+
 struct ValidatedWithFunctorCfg : public figcone::Config {
     FIGCONE_PARAMLIST(testStrList, std::vector<std::string>).ensure<NotEmpty>().ensure<HasNoEmptyElements>();
+};
+
+struct ValidatedWithFunctorOptionalParamListCfg : public figcone::Config {
+    FIGCONE_PARAMLIST(testStrList, figcone::optional<std::vector<std::string>>)
+            .ensure<NotEmpty>()
+            .ensure<HasNoEmptyElements>();
 };
 
 #ifdef NAMEOF_AVAILABLE
@@ -168,6 +184,24 @@ TEST(TestParamList, ValidationSuccess)
     EXPECT_EQ(cfg.testStrList.at(2), "3");
 }
 
+TEST(TestParamList, ValidationSuccessOptionalParamList)
+{
+    ///testStrList = [1, 2, 3]
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParamList("testStrList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<ValidatedOptionalParamListCfg>("", parser);
+
+    ASSERT_EQ(cfg.testStrList.has_value(), true);
+    ASSERT_EQ(cfg.testStrList->size(), 3);
+    EXPECT_EQ(cfg.testStrList->at(0), "1");
+    EXPECT_EQ(cfg.testStrList->at(1), "2");
+    EXPECT_EQ(cfg.testStrList->at(2), "3");
+}
+
 TEST(TestParamList, ValidationError)
 {
     ///testStrList = []
@@ -190,6 +224,63 @@ TEST(TestParamList, ValidationError)
             });
 }
 
+TEST(TestParamList, ValidationErrorOptionalParamList)
+{
+    ///testStrList = []
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParamList("testStrList", std::vector<std::string>{}, {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<ValidatedOptionalParamListCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        "[line:1, column:1] Parameter list 'testStrList': a list can't be empty");
+            });
+}
+
+TEST(TestParamList, ValidationWithFunctorSuccess)
+{
+    ///testStrList = [1, 2, 3]
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParamList("testStrList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<ValidatedWithFunctorCfg>("", parser);
+
+    ASSERT_EQ(cfg.testStrList.size(), 3);
+    EXPECT_EQ(cfg.testStrList.at(0), "1");
+    EXPECT_EQ(cfg.testStrList.at(1), "2");
+    EXPECT_EQ(cfg.testStrList.at(2), "3");
+}
+
+TEST(TestParamList, ValidationWithFunctorSuccessOptionalParamList)
+{
+    ///testStrList = [1, 2, 3]
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParamList("testStrList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<ValidatedWithFunctorOptionalParamListCfg>("", parser);
+
+    ASSERT_EQ(cfg.testStrList.has_value(), true);
+    ASSERT_EQ(cfg.testStrList->size(), 3);
+    EXPECT_EQ(cfg.testStrList->at(0), "1");
+    EXPECT_EQ(cfg.testStrList->at(1), "2");
+    EXPECT_EQ(cfg.testStrList->at(2), "3");
+}
+
 TEST(TestParamList, ValidationWithFunctorError)
 {
     ///testStrList = []
@@ -202,6 +293,27 @@ TEST(TestParamList, ValidationWithFunctorError)
             [&]
             {
                 cfgReader.read<ValidatedWithFunctorCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        "[line:1, column:1] Parameter list 'testStrList': a list can't be empty");
+            });
+}
+
+TEST(TestParamList, ValidationWithFunctorErrorOptionalParamList)
+{
+    ///testStrList = []
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree.asItem().addParamList("testStrList", std::vector<std::string>{}, {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<ValidatedWithFunctorOptionalParamListCfg>("", parser);
             },
             [](const figcone::ConfigError& error)
             {

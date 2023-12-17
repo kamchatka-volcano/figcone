@@ -686,7 +686,9 @@ struct StringConverter<Host>{
 ### Validators
 
 Processed config parameters and nodes can be validated by registering constraint-checking functions or callable objects.
-The signature must be compatible with `void (const T&)` where `T` is the type of the validated config structure field.
+The signature must be compatible with `void (const T&)` where `T` is the type of a validated config structure
+field `T value` or an optional field `figcone::optional<T>` (validators of optional fields aren't invoked if they are
+empty).   
 If the option's value is invalid, the validator must throw a `figcone::ValidationError` exception:
 
 ```c++

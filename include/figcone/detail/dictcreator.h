@@ -41,7 +41,7 @@ public:
         return defaultValue_;
     }
 
-    DictCreator& checkedWith(std::function<void(const TMap&)> validatingFunc)
+    DictCreator& ensure(std::function<void(const sfun::remove_optional_t<TMap>&)> validatingFunc)
     {
         if (cfgReader_)
             cfgReader_->addValidator(std::make_unique<Validator<TMap>>(*dict_, dictMap_, std::move(validatingFunc)));
@@ -49,7 +49,7 @@ public:
     }
 
     template<typename TValidator, typename... TArgs>
-    DictCreator& checkedWith(TArgs&&... args)
+    DictCreator& ensure(TArgs&&... args)
     {
         if (cfgReader_)
             cfgReader_->addValidator(

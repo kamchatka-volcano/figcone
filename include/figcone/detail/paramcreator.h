@@ -24,7 +24,7 @@ public:
         return *this;
     }
 
-    ParamCreator<T>& ensure(std::function<void(const T&)> validatingFunc)
+    ParamCreator<T>& ensure(std::function<void(const sfun::remove_optional_t<T>&)> validatingFunc)
     {
         if (cfgReader_)
             cfgReader_->addValidator(std::make_unique<Validator<T>>(*param_, paramValue_, std::move(validatingFunc)));

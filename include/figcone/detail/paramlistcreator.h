@@ -32,7 +32,7 @@ public:
         return *this;
     }
 
-    ParamListCreator<TParamList>& ensure(std::function<void(const TParamList&)> validatingFunc)
+    ParamListCreator<TParamList>& ensure(std::function<void(const sfun::remove_optional_t<TParamList>&)> validatingFunc)
     {
         if (cfgReader_)
             cfgReader_->addValidator(
