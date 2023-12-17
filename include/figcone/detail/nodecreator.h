@@ -57,7 +57,7 @@ public:
         return TCfg{nestedCfgReader_};
     }
 
-    NodeCreator<TCfg>& ensure(std::function<void(const TCfg&)> validatingFunc)
+    NodeCreator<TCfg>& ensure(std::function<void(const sfun::remove_optional_t<TCfg>&)> validatingFunc)
     {
         if (cfgReader_)
             cfgReader_->addValidator(std::make_unique<Validator<TCfg>>(*node_, nodeCfg_, std::move(validatingFunc)));

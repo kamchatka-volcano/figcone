@@ -68,17 +68,24 @@ struct ValidatedCfg : public figcone::Config {
                         if (nodeList.size() < 2)
                             throw figcone::ValidationError{"can't have less than 2 elements"};
                     });
+};
+
+struct ValidatedOptionalNodeListCfg : public figcone::Config {
     FIGCONE_NODELIST(testNodesOpt, figcone::optional<std::vector<Node>>)
             .ensure(
-                    [](const std::optional<std::vector<Node>>& nodeList)
+                    [](const std::vector<Node>& nodeList)
                     {
-                        if (nodeList && nodeList->size() < 2)
+                        if (nodeList.size() < 2)
                             throw figcone::ValidationError{"can't have less than 2 elements"};
                     });
 };
 
 struct ValidatedWithFunctorCfg : public figcone::Config {
     FIGCONE_NODELIST(testNodes, std::vector<Node>).ensure<NotLessThan>(2);
+};
+
+struct ValidatedWithFunctorOptionalNodeListCfg : public figcone::Config {
+    FIGCONE_NODELIST(testNodesOpt, figcone::optional<std::vector<Node>>).ensure<NotLessThan>(2);
 };
 
 #ifdef NAMEOF_AVAILABLE
@@ -290,10 +297,7 @@ TEST(TestNodeList, ValidationSuccess)
     ///  testInt = 3
     ///[[testNodes]]
     ///  testInt = 4
-    ///[[testNodesOpt]]
-    ///  testInt = 5
-    ///[[testNodesOpt]]
-    ///  testInt = 6
+
     auto tree = figcone::makeTreeRoot();
     auto& testNodes = tree.asItem().addNodeList("testNodes", {1, 1});
     {
@@ -304,6 +308,22 @@ TEST(TestNodeList, ValidationSuccess)
         auto& node = testNodes.asList().addNode({3, 1});
         node.asItem().addParam("testInt", "4", {4, 3});
     }
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<ValidatedCfg>("", parser);
+
+    ASSERT_EQ(cfg.testNodes.size(), 2);
+    EXPECT_EQ(cfg.testNodes[0].testInt, 3);
+    EXPECT_EQ(cfg.testNodes[1].testInt, 4);
+}
+
+TEST(TestNodeList, ValidationSuccessOptionalNodeList)
+{
+    ///[[testNodesOpt]]
+    ///  testInt = 5
+    ///[[testNodesOpt]]
+    ///  testInt = 6
+    auto tree = figcone::makeTreeRoot();
     auto& testNodesOpt = tree.asItem().addNodeList("testNodesOpt", {5, 1});
     {
         auto& node = testNodesOpt.asList().addNode({5, 1});
@@ -315,12 +335,8 @@ TEST(TestNodeList, ValidationSuccess)
     }
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
-    auto cfg = cfgReader.read<ValidatedCfg>("", parser);
-
-    ASSERT_EQ(cfg.testNodes.size(), 2);
-    EXPECT_EQ(cfg.testNodes[0].testInt, 3);
-    EXPECT_EQ(cfg.testNodes[1].testInt, 4);
-    ASSERT_TRUE(cfg.testNodesOpt);
+    auto cfg = cfgReader.read<ValidatedOptionalNodeListCfg>("", parser);
+    ASSERT_TRUE(cfg.testNodesOpt.has_value());
     ASSERT_EQ(cfg.testNodesOpt->size(), 2);
     EXPECT_EQ(cfg.testNodesOpt->at(0).testInt, 5);
     EXPECT_EQ(cfg.testNodesOpt->at(1).testInt, 6);
@@ -353,6 +369,86 @@ TEST(TestNodeList, ValidationFailure)
             });
 }
 
+TEST(TestNodeList, ValidationFailureOptionalNodeList)
+{
+    ///[[testNodes]]
+    ///  testInt = 3
+    ///
+    auto tree = figcone::makeTreeRoot();
+    auto& testNodes = tree.asItem().addNodeList("testNodesOpt", {1, 1});
+    {
+        auto& node = testNodes.asList().addNode({2, 1});
+        node.asItem().addParam("testInt", "3", {2, 3});
+    }
+
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<ValidatedOptionalNodeListCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        "[line:1, column:1] Node list 'testNodesOpt': can't have less than 2 elements");
+            });
+}
+
+TEST(TestNodeList, ValidationWithFunctorSuccess)
+{
+    ///[[testNodes]]
+    ///  testInt = 3
+    ///[[testNodes]]
+    ///  testInt = 4
+
+    auto tree = figcone::makeTreeRoot();
+    auto& testNodes = tree.asItem().addNodeList("testNodes", {1, 1});
+    {
+        auto& node = testNodes.asList().addNode({2, 1});
+        node.asItem().addParam("testInt", "3", {2, 3});
+    }
+    {
+        auto& node = testNodes.asList().addNode({3, 1});
+        node.asItem().addParam("testInt", "4", {4, 3});
+    }
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<ValidatedWithFunctorCfg>("", parser);
+
+    ASSERT_EQ(cfg.testNodes.size(), 2);
+    EXPECT_EQ(cfg.testNodes[0].testInt, 3);
+    EXPECT_EQ(cfg.testNodes[1].testInt, 4);
+}
+
+TEST(TestNodeList, ValidationWithFunctorSuccessOptionalNodeList)
+{
+    ///[[testNodes]]
+    ///  testInt = 3
+    ///[[testNodes]]
+    ///  testInt = 4
+
+    auto tree = figcone::makeTreeRoot();
+    auto& testNodes = tree.asItem().addNodeList("testNodesOpt", {1, 1});
+    {
+        auto& node = testNodes.asList().addNode({2, 1});
+        node.asItem().addParam("testInt", "3", {2, 3});
+    }
+    {
+        auto& node = testNodes.asList().addNode({3, 1});
+        node.asItem().addParam("testInt", "4", {4, 3});
+    }
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<ValidatedWithFunctorOptionalNodeListCfg>("", parser);
+
+    ASSERT_EQ(cfg.testNodesOpt.has_value(), true);
+    ASSERT_EQ(cfg.testNodesOpt->size(), 2);
+    EXPECT_EQ(cfg.testNodesOpt->at(0).testInt, 3);
+    EXPECT_EQ(cfg.testNodesOpt->at(1).testInt, 4);
+}
+
 TEST(TestNodeList, ValidationWithFunctorFailure)
 {
     ///[[testNodes]]
@@ -383,6 +479,39 @@ TEST(TestNodeList, ValidationWithFunctorFailure)
                 EXPECT_EQ(
                         std::string{error.what()},
                         "[line:1, column:1] Node list 'testNodes': can't have less than 2 elements");
+            });
+}
+
+TEST(TestNodeList, ValidationWithFunctorFailureOptionalNodeList)
+{
+    ///[[testNodes]]
+    ///  testInt = 3
+    ///
+    auto tree = figcone::makeTreeRoot();
+    auto& testNodes = tree.asItem().addNodeList("testNodesOpt", {1, 1});
+    {
+        auto& node = testNodes.asList().addNode({2, 1});
+        node.asItem().addParam("testInt", "3", {2, 3});
+    }
+
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<ValidatedWithFunctorOptionalNodeListCfg>(
+                        R"(
+        #testNodes:
+        ###
+            testInt = 3
+    )",
+                        parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(
+                        std::string{error.what()},
+                        "[line:1, column:1] Node list 'testNodesOpt': can't have less than 2 elements");
             });
 }
 

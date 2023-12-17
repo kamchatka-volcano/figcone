@@ -76,8 +76,22 @@ struct ValidatedNodeCfg : public figcone::Config {
             });
 };
 
+struct ValidatedOptionalNodeCfg : public figcone::Config {
+    FIGCONE_NODE(b, figcone::optional<B>)
+            .ensure(
+                    [](const B& b)
+                    {
+                        if (b.testInt == 0 && b.testString.empty())
+                            throw figcone::ValidationError{"both fields can't be empty"};
+                    });
+};
+
 struct ValidatedWithFunctorNodeCfg : public figcone::Config {
     FIGCONE_NODE(b, B).ensure<HasNonEmptyFields>();
+};
+
+struct ValidatedWithFunctorOptionalNodeCfg : public figcone::Config {
+    FIGCONE_NODE(b, figcone::optional<B>).ensure<HasNonEmptyFields>();
 };
 
 struct MultiNodeSingleLevelCfg : public figcone::Config {
@@ -259,6 +273,28 @@ TEST(TestNode, ValidationSuccess)
     EXPECT_EQ(cfg.b.testString, "");
 }
 
+TEST(TestNode, ValidationSuccessOptionalNode)
+{
+    ///
+    ///[b]
+    ///  testInt = 10
+    ///  testString = ""
+    ///
+    auto tree = figcone::makeTreeRoot();
+    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    ;
+    bNode.asItem().addParam("testInt", "10", {2, 3});
+    bNode.asItem().addParam("testString", "", {3, 3});
+
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<ValidatedOptionalNodeCfg>("", parser);
+
+    ASSERT_EQ(cfg.b.has_value(), true);
+    EXPECT_EQ(cfg.b->testInt, 10);
+    EXPECT_EQ(cfg.b->testString, "");
+}
+
 TEST(TestNode, ValidationError)
 {
     ///[b]
@@ -283,6 +319,73 @@ TEST(TestNode, ValidationError)
             });
 }
 
+TEST(TestNode, ValidationErrorOptionalNode)
+{
+    ///[b]
+    ///  testInt = 0
+    ///  testString = "":
+    ///
+    auto tree = figcone::makeTreeRoot();
+    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    bNode.asItem().addParam("testInt", "0", {2, 3});
+    bNode.asItem().addParam("testString", "", {3, 3});
+
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<ValidatedOptionalNodeCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Node 'b': both fields can't be empty");
+            });
+}
+
+TEST(TestNode, ValidationWithFunctorSuccess)
+{
+    ///
+    ///[b]
+    ///  testInt = 10
+    ///  testString = ""
+    ///
+    auto tree = figcone::makeTreeRoot();
+    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    ;
+    bNode.asItem().addParam("testInt", "10", {2, 3});
+    bNode.asItem().addParam("testString", "", {3, 3});
+
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<ValidatedWithFunctorNodeCfg>("", parser);
+
+    EXPECT_EQ(cfg.b.testInt, 10);
+    EXPECT_EQ(cfg.b.testString, "");
+}
+
+TEST(TestNode, ValidationWithFunctorSuccessOptionalNode)
+{
+    ///
+    ///[b]
+    ///  testInt = 10
+    ///  testString = ""
+    ///
+    auto tree = figcone::makeTreeRoot();
+    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    ;
+    bNode.asItem().addParam("testInt", "10", {2, 3});
+    bNode.asItem().addParam("testString", "", {3, 3});
+
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    auto cfg = cfgReader.read<ValidatedWithFunctorOptionalNodeCfg>("", parser);
+
+    ASSERT_EQ(cfg.b.has_value(), true);
+    EXPECT_EQ(cfg.b->testInt, 10);
+    EXPECT_EQ(cfg.b->testString, "");
+}
+
 TEST(TestNode, ValidationWithFunctorError)
 {
     ///[b]
@@ -300,6 +403,30 @@ TEST(TestNode, ValidationWithFunctorError)
             [&]
             {
                 cfgReader.read<ValidatedWithFunctorNodeCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:1, column:1] Node 'b': both fields can't be empty");
+            });
+}
+
+TEST(TestNode, ValidationWithFunctorErrorOptionalNode)
+{
+    ///[b]
+    ///  testInt = 0
+    ///  testString = "":
+    ///
+    auto tree = figcone::makeTreeRoot();
+    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    bNode.asItem().addParam("testInt", "0", {2, 3});
+    bNode.asItem().addParam("testString", "", {3, 3});
+
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader<figcone::NameFormat::CamelCase>{};
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<ValidatedWithFunctorOptionalNodeCfg>("", parser);
             },
             [](const figcone::ConfigError& error)
             {

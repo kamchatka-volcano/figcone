@@ -50,7 +50,7 @@ public:
         return {};
     }
 
-    NodeListCreator<TCfgList>& ensure(std::function<void(const TCfgList&)> validatingFunc)
+    NodeListCreator<TCfgList>& ensure(std::function<void(const sfun::remove_optional_t<TCfgList>&)> validatingFunc)
     {
         if (cfgReader_)
             cfgReader_->addValidator(
