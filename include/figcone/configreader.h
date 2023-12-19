@@ -2,6 +2,7 @@
 #include "config.h"
 #include "errors.h"
 #include "nameformat.h"
+#include "postprocessor.h"
 #include "detail/external/sfun/path.h"
 #include "detail/figcone_ini_import.h"
 #include "detail/figcone_json_import.h"
@@ -252,6 +253,12 @@ private:
         }
         catch (const detail::LoadingError& e) {
             throw ConfigError{std::string{"Root node: "} + e.what(), tree.position()};
+        }
+        try {
+            PostProcessor<TCfg>{}(cfg);
+        }
+        catch (const ValidationError& e) {
+            throw ConfigError{std::string{"Config is invalid: "} + e.what()};
         }
         resetConfigReader(cfg);
         return cfg;
