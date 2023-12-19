@@ -55,8 +55,9 @@ int main()
           * [INI](#ini)
           * [shoal](#shoal)
      * [Creation of figcone-compatible parsers](#creation-of-figcone-compatible-parsers)  
-     * [User defined types](#user-defined-types) 
-     * [Validators](#validators)
+     * [User defined types](#user-defined-types)
+  * [Validators](#validators)
+  * [Post-processors](#post-processors)
 * [Installation](#installation)
 * [Running tests](#running-tests)
 * [Building examples](#building-examples)   
@@ -756,11 +757,46 @@ int main()
 }
 ```
 
-Now the `read` method will throw an exception if configuration provides invalid `rootDir` or `supportedFiles` parameters.
+Now the `read` method will throw an exception if configuration provides invalid `rootDir` or `supportedFiles`
+parameters.
 
+### Post-processors
+
+If you need to modify or validate the config object that is produced by `figcone::ConfigReader`, you can register
+the necessary action by creating a specialization of the `figcone::PostProcessor` class template:
+
+```cpp
+///examples/ex05.cpp
+///
+struct ThumbnailCfg : public figcone::Config
+{
+    FIGCONE_PARAM(maxWidth, int);
+    FIGCONE_PARAM(maxHeight, int);
+};
+
+struct PhotoViewerCfg : public figcone::Config{
+    FIGCONE_PARAM(rootDir, std::filesystem::path);
+    FIGCONE_PARAMLIST(supportedFiles, std::vector<std::string>);
+    FIGCONE_NODE(thumbnailSettings, ThumbnailCfg);
+};
+
+namespace figcone{
+    template<>
+    void PostProcessor<PhotoViewerCfg>::operator()(PhotoViewerCfg& cfg)
+    {
+        auto supportPng = std::find(cfg.supportedFiles.begin(), cfg.supportedFiles.end(), ".png") != cfg.supportedFiles.end();
+        if (supportPng && cfg.thumbnailSettings.maxWidth > 128)
+            throw ValidationError{"thumbnail width can't be larger than 128px when png images are present"};
+
+    }
+}
+}
+```
 
 ## Installation
+
 Download and link the library from your project's CMakeLists.txt:
+
 ```
 cmake_minimum_required(VERSION 3.14)
 
