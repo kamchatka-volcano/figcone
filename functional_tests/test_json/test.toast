@@ -3,3 +3,5 @@
 
 -Check json demo: ${{ format_demo_expected_output }}
 -Check all formats demo with demo.json: ${{ format_demo_expected_output }}
+
+-Check json_root_list demo: ${{ format_demo_root_list_expected_output }}

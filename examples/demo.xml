@@ -4,15 +4,15 @@
                 maxWidth = "128"
                 maxHeight = "128" />
     <sharedAlbums>
-      <_ dir  = "summer_2019"
-         name = "Summer (2019)">
-        <hosts>
-          <_ ip = "127.0.0.1"
-             port = "8080"/>
-        </hosts>
-      </_>
-      <_ dir  = "misc"
-         name = "Misc"/>
+        <album dir="summer_2019"
+               name="Summer (2019)">
+            <hosts>
+                <host ip="127.0.0.1"
+                      port="8080"/>
+            </hosts>
+        </album>
+        <album dir="misc"
+               name="Misc"/>
     </sharedAlbums>
   <envVars DISPLAY = "0.1"/>
 </root>

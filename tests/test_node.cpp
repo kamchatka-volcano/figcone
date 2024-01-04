@@ -113,17 +113,17 @@ struct SingleNodeCfgWithoutMacro : public figcone::Config {
 
 class TreeProvider : public figcone::IParser {
 public:
-    TreeProvider(figcone::TreeNode tree)
-        : tree_(std::move(tree))
+    TreeProvider(std::unique_ptr<figcone::TreeNode> tree)
+        : tree_{std::move(tree)}
     {
     }
 
-    figcone::TreeNode parse(std::istream&) override
+    figcone::Tree parse(std::istream&) override
     {
         return std::move(tree_);
     }
 
-    figcone::TreeNode tree_;
+    std::unique_ptr<figcone::TreeNode> tree_;
 };
 
 TEST(TestNode, SingleNodeSingleLevel)
@@ -138,9 +138,43 @@ TEST(TestNode, SingleNodeSingleLevel)
     auto makeTreeProvider = []
     {
         auto tree = figcone::makeTreeRoot();
-        tree.asItem().addParam("foo", "5", {1, 1});
-        tree.asItem().addParam("bar", "test", {2, 1});
-        auto& aNode = tree.asItem().addNode("a", {3, 1});
+        tree->asItem().addParam("foo", "5", {1, 1});
+        tree->asItem().addParam("bar", "test", {2, 1});
+        auto& aNode = tree->asItem().addNode("a", {3, 1});
+        aNode.asItem().addParam("testInt", "10", {4, 1});
+        return TreeProvider{std::move(tree)};
+    };
+
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
+    auto parser = makeTreeProvider();
+    auto cfg = cfgReader.read<SingleNodeSingleLevelCfg>("", parser);
+    auto parser2 = makeTreeProvider();
+    auto cfg2 = cfgReader.read<SingleNodeSingleLevelCfg>("", parser2);
+
+    EXPECT_EQ(cfg.foo, 5);
+    EXPECT_EQ(cfg.bar, "test");
+    EXPECT_EQ(cfg.a.testInt, 10);
+
+    EXPECT_EQ(cfg2.foo, 5);
+    EXPECT_EQ(cfg2.bar, "test");
+    EXPECT_EQ(cfg2.a.testInt, 10);
+}
+
+TEST(TestNode, SingleAnyNodeSingleLevel)
+{
+
+    ///
+    ///foo = 5
+    ///bar = test
+    ///[a]
+    ///  testInt = 10
+    ///
+    auto makeTreeProvider = []
+    {
+        auto tree = figcone::makeTreeRoot();
+        tree->asItem().addParam("foo", "5", {1, 1});
+        tree->asItem().addParam("bar", "test", {2, 1});
+        auto& aNode = tree->asItem().addAny("a", {3, 1});
         aNode.asItem().addParam("testInt", "10", {4, 1});
         return TreeProvider{std::move(tree)};
     };
@@ -171,9 +205,42 @@ TEST(TestNode, NonAggregateSingleNodeSingleLevel)
     auto makeTreeProvider = []
     {
         auto tree = figcone::makeTreeRoot();
-        tree.asItem().addParam("foo", "5", {1, 1});
-        tree.asItem().addParam("bar", "test", {2, 1});
-        auto& aNode = tree.asItem().addNode("a", {3, 1});
+        tree->asItem().addParam("foo", "5", {1, 1});
+        tree->asItem().addParam("bar", "test", {2, 1});
+        auto& aNode = tree->asItem().addNode("a", {3, 1});
+        aNode.asItem().addParam("testInt", "10", {4, 1});
+        return TreeProvider{std::move(tree)};
+    };
+
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
+    auto parser = makeTreeProvider();
+    auto cfg = cfgReader.read<NonAggregateSingleNodeSingleLevelCfg>("", parser);
+    auto parser2 = makeTreeProvider();
+    auto cfg2 = cfgReader.read<NonAggregateSingleNodeSingleLevelCfg>("", parser2);
+
+    EXPECT_EQ(cfg.foo, 5);
+    EXPECT_EQ(cfg.bar, "test");
+    EXPECT_EQ(cfg.a.testInt, 10);
+
+    EXPECT_EQ(cfg2.foo, 5);
+    EXPECT_EQ(cfg2.bar, "test");
+    EXPECT_EQ(cfg2.a.testInt, 10);
+}
+
+TEST(TestNode, NonAggregateSingleAnyNodeSingleLevel)
+{
+    ///
+    ///foo = 5
+    ///bar = test
+    ///[a]
+    ///  testInt = 10
+    ///
+    auto makeTreeProvider = []
+    {
+        auto tree = figcone::makeTreeRoot();
+        tree->asItem().addParam("foo", "5", {1, 1});
+        tree->asItem().addParam("bar", "test", {2, 1});
+        auto& aNode = tree->asItem().addAny("a", {3, 1});
         aNode.asItem().addParam("testInt", "10", {4, 1});
         return TreeProvider{std::move(tree)};
     };
@@ -202,9 +269,32 @@ TEST(TestNode, OptionalNode)
     ///  testInt = 10
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("foo", "5", {1, 1});
-    tree.asItem().addParam("bar", "test", {2, 1});
-    auto& aNode = tree.asItem().addNode("d", {3, 1});
+    tree->asItem().addParam("foo", "5", {1, 1});
+    tree->asItem().addParam("bar", "test", {2, 1});
+    auto& aNode = tree->asItem().addNode("d", {3, 1});
+    aNode.asItem().addParam("testInt", "10", {4, 1});
+
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
+    auto cfg = cfgReader.read<OptionalNodeCfg>("", parser);
+
+    EXPECT_EQ(cfg.foo, 5);
+    EXPECT_EQ(cfg.bar, "test");
+    EXPECT_EQ(cfg.d.testInt, 10);
+}
+
+TEST(TestNode, OptionalAnyNode)
+{
+    ///
+    ///foo = 5
+    ///bar = test
+    ///[d]
+    ///  testInt = 10
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree->asItem().addParam("foo", "5", {1, 1});
+    tree->asItem().addParam("bar", "test", {2, 1});
+    auto& aNode = tree->asItem().addAny("d", {3, 1});
     aNode.asItem().addParam("testInt", "10", {4, 1});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -223,8 +313,8 @@ TEST(TestNode, WithoutOptionalNode)
     ///bar = test
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("foo", "5", {1, 1});
-    tree.asItem().addParam("bar", "test", {2, 1});
+    tree->asItem().addParam("foo", "5", {1, 1});
+    tree->asItem().addParam("bar", "test", {2, 1});
 
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
@@ -242,7 +332,7 @@ TEST(TestNode, SingleNodeWithoutMacro)
     /// testInt = 10
     ///
     auto tree = figcone::makeTreeRoot();
-    auto& aNode = tree.asItem().addNode("a", {1, 1});
+    auto& aNode = tree->asItem().addNode("a", {1, 1});
     aNode.asItem().addParam("testInt", "10", {2, 3});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -260,7 +350,28 @@ TEST(TestNode, ValidationSuccess)
     ///  testString = ""
     ///
     auto tree = figcone::makeTreeRoot();
-    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    auto& bNode = tree->asItem().addNode("b", {1, 1});
+    ;
+    bNode.asItem().addParam("testInt", "10", {2, 3});
+    bNode.asItem().addParam("testString", "", {3, 3});
+
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
+    auto cfg = cfgReader.read<ValidatedNodeCfg>("", parser);
+
+    EXPECT_EQ(cfg.b.testInt, 10);
+    EXPECT_EQ(cfg.b.testString, "");
+}
+
+TEST(TestNode, AnyNodeValidationSuccess)
+{
+    ///
+    ///[b]
+    ///  testInt = 10
+    ///  testString = ""
+    ///
+    auto tree = figcone::makeTreeRoot();
+    auto& bNode = tree->asItem().addAny("b", {1, 1});
     ;
     bNode.asItem().addParam("testInt", "10", {2, 3});
     bNode.asItem().addParam("testString", "", {3, 3});
@@ -281,7 +392,7 @@ TEST(TestNode, ValidationSuccessOptionalNode)
     ///  testString = ""
     ///
     auto tree = figcone::makeTreeRoot();
-    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    auto& bNode = tree->asItem().addNode("b", {1, 1});
     ;
     bNode.asItem().addParam("testInt", "10", {2, 3});
     bNode.asItem().addParam("testString", "", {3, 3});
@@ -302,7 +413,7 @@ TEST(TestNode, ValidationError)
     ///  testString = "":
     ///
     auto tree = figcone::makeTreeRoot();
-    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    auto& bNode = tree->asItem().addNode("b", {1, 1});
     bNode.asItem().addParam("testInt", "0", {2, 3});
     bNode.asItem().addParam("testString", "", {3, 3});
 
@@ -326,7 +437,7 @@ TEST(TestNode, ValidationErrorOptionalNode)
     ///  testString = "":
     ///
     auto tree = figcone::makeTreeRoot();
-    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    auto& bNode = tree->asItem().addNode("b", {1, 1});
     bNode.asItem().addParam("testInt", "0", {2, 3});
     bNode.asItem().addParam("testString", "", {3, 3});
 
@@ -351,7 +462,7 @@ TEST(TestNode, ValidationWithFunctorSuccess)
     ///  testString = ""
     ///
     auto tree = figcone::makeTreeRoot();
-    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    auto& bNode = tree->asItem().addNode("b", {1, 1});
     ;
     bNode.asItem().addParam("testInt", "10", {2, 3});
     bNode.asItem().addParam("testString", "", {3, 3});
@@ -372,7 +483,7 @@ TEST(TestNode, ValidationWithFunctorSuccessOptionalNode)
     ///  testString = ""
     ///
     auto tree = figcone::makeTreeRoot();
-    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    auto& bNode = tree->asItem().addNode("b", {1, 1});
     ;
     bNode.asItem().addParam("testInt", "10", {2, 3});
     bNode.asItem().addParam("testString", "", {3, 3});
@@ -393,7 +504,7 @@ TEST(TestNode, ValidationWithFunctorError)
     ///  testString = "":
     ///
     auto tree = figcone::makeTreeRoot();
-    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    auto& bNode = tree->asItem().addNode("b", {1, 1});
     bNode.asItem().addParam("testInt", "0", {2, 3});
     bNode.asItem().addParam("testString", "", {3, 3});
 
@@ -417,7 +528,7 @@ TEST(TestNode, ValidationWithFunctorErrorOptionalNode)
     ///  testString = "":
     ///
     auto tree = figcone::makeTreeRoot();
-    auto& bNode = tree.asItem().addNode("b", {1, 1});
+    auto& bNode = tree->asItem().addNode("b", {1, 1});
     bNode.asItem().addParam("testInt", "0", {2, 3});
     bNode.asItem().addParam("testString", "", {3, 3});
 
@@ -447,12 +558,12 @@ TEST(TestNode, MultiNodeSingleLevel)
     ///  testInt = 11
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("foo", "5", {1, 1});
-    tree.asItem().addParam("bar", "test", {2, 1});
-    auto& aNode = tree.asItem().addNode("a", {3, 1});
+    tree->asItem().addParam("foo", "5", {1, 1});
+    tree->asItem().addParam("bar", "test", {2, 1});
+    auto& aNode = tree->asItem().addNode("a", {3, 1});
     aNode.asItem().addParam("testInt", "10", {4, 3});
 
-    auto& bNode = tree.asItem().addNode("b", {5, 1});
+    auto& bNode = tree->asItem().addNode("b", {5, 1});
     bNode.asItem().addParam("testInt", "11", {6, 3});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -477,9 +588,9 @@ TEST(TestNode, MultiNodeSingleLevelWithoutOptionalNode)
     ///
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("foo", "5", {1, 1});
-    tree.asItem().addParam("bar", "test", {2, 1});
-    auto& aNode = tree.asItem().addNode("a", {3, 1});
+    tree->asItem().addParam("foo", "5", {1, 1});
+    tree->asItem().addParam("bar", "test", {2, 1});
+    auto& aNode = tree->asItem().addNode("a", {3, 1});
     aNode.asItem().addParam("testInt", "10", {4, 3});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -514,15 +625,55 @@ TEST(TestNode, MultiLevel)
     ///  testInt = 9
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("foo", "5", {1, 1});
-    tree.asItem().addParam("bar", "test", {2, 1});
-    auto& cNode = tree.asItem().addNode("c", {3, 1});
+    tree->asItem().addParam("foo", "5", {1, 1});
+    tree->asItem().addParam("bar", "test", {2, 1});
+    auto& cNode = tree->asItem().addNode("c", {3, 1});
     cNode.asItem().addParam("testInt", "11", {4, 3});
     cNode.asItem().addParam("testDouble", "12", {5, 3});
     auto& bNode = cNode.asItem().addNode("b", {6, 1});
     bNode.asItem().addParam("testInt", "10", {7, 3});
     bNode.asItem().addParam("testString", "Hello world", {8, 3});
-    auto& bNode2 = tree.asItem().addNode("b", {10, 1});
+    auto& bNode2 = tree->asItem().addNode("b", {10, 1});
+    bNode2.asItem().addParam("testInt", "9", {11, 3});
+
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
+    auto cfg = cfgReader.read<MultiLevelCfg>("", parser);
+
+    EXPECT_EQ(cfg.foo, 5);
+    EXPECT_EQ(cfg.bar, "test");
+    EXPECT_EQ(cfg.b.testInt, 9);
+    EXPECT_EQ(cfg.b.testString, "");
+    EXPECT_EQ(cfg.c.testInt, 11);
+    EXPECT_EQ(cfg.c.testDouble, 12);
+    EXPECT_EQ(cfg.c.b.testInt, 10);
+    EXPECT_EQ(cfg.c.b.testString, "Hello world");
+}
+
+TEST(TestNode, MultiLevelAnyNodes)
+{
+    ///foo = 5
+    ///bar = test
+    ///[c]
+    ///  testInt = 11
+    ///  testDouble = 12
+    ///  [c.b]
+    ///    testInt = 10
+    ///    testString = 'Hello world'
+    ///
+    ///[b]
+    ///  testInt = 9
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree->asItem().addParam("foo", "5", {1, 1});
+    tree->asItem().addParam("bar", "test", {2, 1});
+    auto& cNode = tree->asItem().addAny("c", {3, 1});
+    cNode.asItem().addParam("testInt", "11", {4, 3});
+    cNode.asItem().addParam("testDouble", "12", {5, 3});
+    auto& bNode = cNode.asItem().addAny("b", {6, 1});
+    bNode.asItem().addParam("testInt", "10", {7, 3});
+    bNode.asItem().addParam("testString", "Hello world", {8, 3});
+    auto& bNode2 = tree->asItem().addAny("b", {10, 1});
     bNode2.asItem().addParam("testInt", "9", {11, 3});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -545,7 +696,7 @@ TEST(TestNode, UnknownNodeError)
     ///  foo = bar
     ///
     auto tree = figcone::makeTreeRoot();
-    auto& testNode = tree.asItem().addNode("test", {1, 1});
+    auto& testNode = tree->asItem().addNode("test", {1, 1});
     testNode.asItem().addParam("foo", "bar", {2, 3});
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto parser = TreeProvider{std::move(tree)};
@@ -575,15 +726,104 @@ TEST(TestNode, NodeListError)
     ///  testInt = 9
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("foo", "5", {1, 1});
-    tree.asItem().addParam("bar", "test", {2, 1});
-    auto& cNode = tree.asItem().addNode("c", {3, 1});
+    tree->asItem().addParam("foo", "5", {1, 1});
+    tree->asItem().addParam("bar", "test", {2, 1});
+    auto& cNode = tree->asItem().addNode("c", {3, 1});
     cNode.asItem().addParam("testInt", "11", {4, 3});
     cNode.asItem().addParam("testDouble", "12", {5, 3});
     cNode.asItem().addNodeList("b", {6, 1});
 
-    auto& bNode2 = tree.asItem().addNode("b", {10, 1});
+    auto& bNode2 = tree->asItem().addNode("b", {10, 1});
     bNode2.asItem().addParam("testInt", "9", {11, 3});
+
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
+    auto parser = TreeProvider{std::move(tree)};
+    assert_exception<figcone::ConfigError>(
+            [&]
+            {
+                cfgReader.read<MultiLevelCfg>("", parser);
+            },
+            [](const figcone::ConfigError& error)
+            {
+                EXPECT_EQ(std::string{error.what()}, "[line:6, column:1] Node 'b': config node can't be a list.");
+            });
+}
+
+TEST(TestNode, AnyNodeSingleElementListNoError)
+{
+    ///foo = 5
+    ///bar = test
+    ///[c]
+    ///  testInt = 11
+    ///  testDouble = 12
+    ///  [c.b.0]
+    ///    testInt = 10
+    ///    testString = 'Hello world'
+    ///
+    ///[b]
+    ///  testInt = 9
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree->asItem().addParam("foo", "5", {1, 1});
+    tree->asItem().addParam("bar", "test", {2, 1});
+    auto& cNode = tree->asItem().addNode("c", {3, 1});
+    cNode.asItem().addParam("testInt", "11", {4, 3});
+    cNode.asItem().addParam("testDouble", "12", {5, 3});
+    auto& bListNode = cNode.asItem().addAny("b", {6, 1});
+    auto& bListNodeElem = bListNode.asList().emplaceBack({7, 1});
+    bListNodeElem.asItem().addParam("testInt", "10", {8, 3});
+    bListNodeElem.asItem().addParam("testString", "Hello world", {9, 3});
+
+    auto& bNode2 = tree->asItem().addNode("b", {10, 1});
+    bNode2.asItem().addParam("testInt", "9", {11, 3});
+
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
+    auto parser = TreeProvider{std::move(tree)};
+
+    auto cfg = cfgReader.read<MultiLevelCfg>("", parser);
+    EXPECT_EQ(cfg.foo, 5);
+    EXPECT_EQ(cfg.bar, "test");
+    EXPECT_EQ(cfg.c.testInt, 11);
+    EXPECT_EQ(cfg.c.testDouble, 12);
+    EXPECT_EQ(cfg.c.b.testInt, 10);
+    EXPECT_EQ(cfg.c.b.testString, "Hello world");
+    EXPECT_EQ(cfg.b.testInt, 9);
+    EXPECT_EQ(cfg.b.testString, "");
+}
+
+TEST(TestNode, AnyNodeMultiElementListError)
+{
+    ///foo = 5
+    ///bar = test
+    ///[c]
+    ///  testInt = 11
+    ///  testDouble = 12
+    ///  [c.b.0]
+    ///    testInt = 10
+    ///    testString = 'Hello world'
+    ///  [c.b.1]
+    ///    testInt = 210
+    ///    testString = '2Hello world'
+    ///
+    ///[b]
+    ///  testInt = 9
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree->asItem().addParam("foo", "5", {1, 1});
+    tree->asItem().addParam("bar", "test", {2, 1});
+    auto& cNode = tree->asItem().addNode("c", {3, 1});
+    cNode.asItem().addParam("testInt", "11", {4, 3});
+    cNode.asItem().addParam("testDouble", "12", {5, 3});
+    auto& bListNode = cNode.asItem().addAny("b", {6, 1});
+    auto& bListNodeElem = bListNode.asList().emplaceBack({7, 1});
+    bListNodeElem.asItem().addParam("testInt", "10", {8, 3});
+    bListNodeElem.asItem().addParam("testString", "Hello world", {9, 3});
+    auto& bListNodeElem2 = bListNode.asList().emplaceBack({10, 1});
+    bListNodeElem2.asItem().addParam("testInt", "210", {11, 3});
+    bListNodeElem2.asItem().addParam("testString", "2Hello world", {12, 3});
+
+    auto& bNode2 = tree->asItem().addNode("b", {13, 1});
+    bNode2.asItem().addParam("testInt", "9", {14, 3});
 
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto parser = TreeProvider{std::move(tree)};
@@ -604,8 +844,8 @@ TEST(TestNode, MissingNodeError)
     ///bar = test
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("foo", "5", {1, 1});
-    tree.asItem().addParam("bar", "test", {2, 1});
+    tree->asItem().addParam("foo", "5", {1, 1});
+    tree->asItem().addParam("bar", "test", {2, 1});
 
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
@@ -632,13 +872,13 @@ TEST(TestNode, MissingNodeError2)
     ///  testInt = 9
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("foo", "5", {1, 1});
-    tree.asItem().addParam("bar", "test", {2, 1});
-    auto& cNode = tree.asItem().addNode("c", {3, 1});
+    tree->asItem().addParam("foo", "5", {1, 1});
+    tree->asItem().addParam("bar", "test", {2, 1});
+    auto& cNode = tree->asItem().addNode("c", {3, 1});
     cNode.asItem().addParam("testInt", "11", {4, 3});
     cNode.asItem().addParam("testDouble", "12", {5, 3});
 
-    auto& bNode = tree.asItem().addNode("b", {7, 1});
+    auto& bNode = tree->asItem().addNode("b", {7, 1});
     bNode.asItem().addParam("testInt", "9", {8, 3});
 
     auto parser = TreeProvider{std::move(tree)};

@@ -273,13 +273,39 @@ int main()
 }
 ```
 
+JSON configurations that have a node list in its root are supported. Pass `figcone::RootType::NodeList` as the second
+template argument of the used read function:
+
+```C++
+///examples/demo_json_root_list.cpp
+///
+#include "demo.h"
+#include "print_demo.h"
+#include <figcone/configreader.h>
+#include <iostream>
+
+int main()
+{
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfgList = cfgReader.readJsonFile<PhotoViewerCfg, figcone::RootType::NodeList>(
+            std::filesystem::canonical("../../examples/demo_root_list.json"));
+    for (const auto& cfg : cfgList) {
+        std::cout << "Launching PhotoViewer in directory " << cfg.rootDir << std::endl;
+        printDemoConfig(cfg);
+        std::cout << "---" << std::endl;
+    }
+}
+
+```
 
 #### YAML
 
-YAML support is provided by the [`rapidyaml`](https://github.com/biojppm/rapidyaml) library which is fetched and adapted to the `figcone` interface by the [`figcone_yaml`](https://github.com/kamchatka-volcano/figcone_yaml) library.
+YAML support is provided by the [`rapidyaml`](https://github.com/biojppm/rapidyaml) library which is fetched and adapted
+to the `figcone` interface by the [`figcone_yaml`](https://github.com/kamchatka-volcano/figcone_yaml) library.
 
 A YAML config that matches the configuration listed in [`demo.h`](#demoh) earlier, looks like this:  
 `demo.yaml`
+
 ```yaml
   rootDir: ~/Photos
   supportedFiles: [ ".jpg", "png"]
@@ -317,18 +343,42 @@ int main()
     return 0;
 }
 ```
-Notes:  
-* `figcone_yaml` supports only a single document section (starting with `---`) in your YAML config file.
+
+YAML configurations that have a node list in its root are supported. Pass `figcone::RootType::NodeList` as the second
+template argument of the used read function:
+
+```c++
+///examples/demo_yaml_root_list.cpp
+///
+#include "demo.h"
+#include "print_demo.h"
+#include <figcone/configreader.h>
+#include <iostream>
+
+int main()
+{
+    auto cfgReader = figcone::ConfigReader{};
+    auto cfgList = cfgReader.readYamlFile<PhotoViewerCfg, figcone::RootType::NodeList>(
+            std::filesystem::canonical("../../examples/demo_root_list.yaml"));
+    for (const auto& cfg : cfgList) {
+        std::cout << "Launching PhotoViewer in directory " << cfg.rootDir << std::endl;
+        printDemoConfig(cfg);
+        std::cout << "---" << std::endl;
+    }
+}
+```
 
 #### TOML
 
-TOML support is provided by the [`toml11`](https://github.com/ToruNiina/toml11) library which is fetched and adapted to the `figcone` interface by the [`figcone_toml`](https://github.com/kamchatka-volcano/figcone_toml) library.
+TOML support is provided by the [`toml11`](https://github.com/ToruNiina/toml11) library which is fetched and adapted to
+the `figcone` interface by the [`figcone_toml`](https://github.com/kamchatka-volcano/figcone_toml) library.
 
 A TOML config that matches the configuration listed in [`demo.h`](#demoh) earlier, looks like this:  
 `demo.toml`
+
 ```toml
   rootDir = "~/Photos"
-  supportedFiles = [ ".jpg", "png"]
+supportedFiles = [".jpg", "png"]
   [thumbnails]
     enabled = 1
     maxWidth = 128
@@ -389,23 +439,24 @@ An XML config that matches the configuration listed in [`demo.h`](#demoh) earlie
 ```xml
 <root rootDir="~/Photos"
       supportedFiles = "[ '.jpg', 'png']">
-    <thumbnails enabled = "1"
-                maxWidth = "128"
-                maxHeight = "128" />
+    <thumbnails enabled="1"
+                maxWidth="128"
+                maxHeight="128"/>
     <sharedAlbums>
-      <_ dir  = "summer_2019"
-         name = "Summer (2019)">
-        <hosts>
-          <_ ip = "127.0.0.1"
-             port = "8080"/>  
-        </hosts>
-      </_>
-      <_ dir  = "misc"
-         name = "Misc"/>
+        <album dir="summer_2019"
+               name="Summer (2019)">
+            <hosts>
+                <host ip="127.0.0.1"
+                      port="8080"/>
+            </hosts>
+        </album>
+        <album dir="misc"
+               name="Misc"/>
     </sharedAlbums>
-  <envVars DISPLAY = "0.1"/>
+    <envVars DISPLAY="0.1"/>
 </root>
 ```
+
 ```c++
 ///examples/demo_xml.cpp
 ///
@@ -422,7 +473,9 @@ int main()
 }
 ```
 Notes:
-* Node lists are created by adding an attribute `_list="1"` or placing child elements in XML elements with tag name `_` : `<_> </_>`
+
+* Node list tags can't contain attributes and all its children tags representing node list elements must use the same
+  name.
 * Parameter lists are stored in attributes and have the format: `[value1, value2, ...]`
 
 #### INI
@@ -538,20 +591,20 @@ class DemoTreeProvider : public figcone::IParser
     figcone::TreeNode parse(std::istream& stream) final
     {
         auto tree = figcone::makeTreeRoot();
-        tree.asItem().addParam("rootDir", "~/Photos");
-        tree.asItem().addParamList("supportedFiles", {".jpg", ".png"});
+        tree->asItem().addParam("rootDir", "~/Photos");
+        tree->asItem().addParamList("supportedFiles", {".jpg", ".png"});
 
-        auto& thumbNode = tree.asItem().addNode("thumbnails");
+        auto& thumbNode = tree->asItem().addNode("thumbnails");
         thumbNode.asItem().addParam("enabled", "1");
         thumbNode.asItem().addParam("maxWidth", "128");
         thumbNode.asItem().addParam("maxHeight", "128");
 
-        auto& albumsNodeList = tree.asItem().addNodeList("sharedAlbums");
-        auto& albumNode = albumsNodeList.asList().addNode();
+        auto& albumsNodeList = tree->asItem().addNodeList("sharedAlbums");
+        auto& albumNode = albumsNodeList.asList().emplaceBack();
         albumNode.asItem().addParam("dir", "summer_2019");
         albumNode.asItem().addParam("name", "Summer (2019)");
         auto& hostsNodeList = albumNode.asItem().addNodeList("hosts");
-        auto& hostNode = hostsNodeList.asList().addNode();
+        auto& hostNode = hostsNodeList.asList().emplaceBack();
         hostNode.asItem().addParam("ip", "127.0.0.1");
         hostNode.asItem().addParam("port", "80");
 
@@ -561,7 +614,7 @@ class DemoTreeProvider : public figcone::IParser
 
         //Stream position information can be added to objects
         auto pos = figcone::StreamPosition{13, 1};
-        auto& envVarsNode = tree.asItem().addNode("envVars", pos);
+        auto& envVarsNode = tree->asItem().addNode("envVars", pos);
         envVarsNode.asItem().addParam("DISPLAY", "0.1");
 
         //and to ConfigError exceptions

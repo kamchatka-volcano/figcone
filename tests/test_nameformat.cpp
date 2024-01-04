@@ -18,17 +18,17 @@ struct OriginalNamesCfg : public figcone::Config {
 
 class TreeProvider : public figcone::IParser {
 public:
-    TreeProvider(figcone::TreeNode tree)
-        : tree_(std::move(tree))
+    TreeProvider(std::unique_ptr<figcone::TreeNode> tree)
+        : tree_{std::move(tree)}
     {
     }
 
-    figcone::TreeNode parse(std::istream&) override
+    figcone::Tree parse(std::istream&) override
     {
         return std::move(tree_);
     }
 
-    figcone::TreeNode tree_;
+    std::unique_ptr<figcone::TreeNode> tree_;
 };
 
 TEST(NameFormat, OriginalNames)
@@ -38,8 +38,8 @@ TEST(NameFormat, OriginalNames)
     ///  testStr = Hello
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("test_int", "10", {1, 1});
-    auto& node = tree.asItem().addNode("test_Inner", {2, 1});
+    tree->asItem().addParam("test_int", "10", {1, 1});
+    auto& node = tree->asItem().addNode("test_Inner", {2, 1});
     node.asItem().addParam("testStr", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -67,8 +67,8 @@ TEST(NameFormat, SnakeStructCamelCfg)
     ///  testStr = Hello
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("testInt", "10", {1, 1});
-    auto& node = tree.asItem().addNode("testInner", {2, 1});
+    tree->asItem().addParam("testInt", "10", {1, 1});
+    auto& node = tree->asItem().addNode("testInner", {2, 1});
     node.asItem().addParam("testStr", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -94,8 +94,8 @@ TEST(NameFormat, SnakeStructSnakeCfg)
     ///  test_str = Hello
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("test_int", "10", {1, 1});
-    auto& node = tree.asItem().addNode("test_inner", {2, 1});
+    tree->asItem().addParam("test_int", "10", {1, 1});
+    auto& node = tree->asItem().addNode("test_inner", {2, 1});
     node.asItem().addParam("test_str", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -121,8 +121,8 @@ TEST(NameFormat, SnakeStructKebabCfg)
     ///  test-str = Hello
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("test-int", "10", {1, 1});
-    auto& node = tree.asItem().addNode("test-inner", {2, 1});
+    tree->asItem().addParam("test-int", "10", {1, 1});
+    auto& node = tree->asItem().addNode("test-inner", {2, 1});
     node.asItem().addParam("test-str", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -148,8 +148,8 @@ TEST(NameFormat, CamelStructCamelCfg)
     ///  testStr = Hello
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("testInt", "10", {1, 1});
-    auto& node = tree.asItem().addNode("testInner", {2, 1});
+    tree->asItem().addParam("testInt", "10", {1, 1});
+    auto& node = tree->asItem().addNode("testInner", {2, 1});
     node.asItem().addParam("testStr", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -175,8 +175,8 @@ TEST(NameFormat, CamelStructSnakeCfg)
     ///  test_str = Hello
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("test_int", "10", {1, 1});
-    auto& node = tree.asItem().addNode("test_inner", {2, 1});
+    tree->asItem().addParam("test_int", "10", {1, 1});
+    auto& node = tree->asItem().addNode("test_inner", {2, 1});
     node.asItem().addParam("test_str", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -202,8 +202,8 @@ TEST(NameFormat, CamelStructKebabCfg)
     ///  test-str = Hello
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("test-int", "10", {1, 1});
-    auto& node = tree.asItem().addNode("test-inner", {2, 1});
+    tree->asItem().addParam("test-int", "10", {1, 1});
+    auto& node = tree->asItem().addNode("test-inner", {2, 1});
     node.asItem().addParam("test-str", "Hello", {3, 3});
 
     auto parser = TreeProvider{std::move(tree)};

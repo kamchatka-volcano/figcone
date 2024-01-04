@@ -31,15 +31,22 @@ template<typename TConfigReaderPtr>
 class ConfigReaderAccess;
 }
 
+enum class RootType {
+    SingleNode,
+    NodeList
+};
+
 class ConfigReader {
+
 public:
     explicit ConfigReader(NameFormat nameFormat = NameFormat::Original)
         : nameFormat_{nameFormat}
     {
     }
 
-    template<typename TCfg>
-    TCfg readFile(const std::filesystem::path& configFile, IParser& parser)
+    template<typename TCfg, RootType rootType = RootType::SingleNode>
+    auto readFile(const std::filesystem::path& configFile, IParser& parser)
+            -> std::conditional_t<rootType == RootType::SingleNode, TCfg, std::vector<TCfg>>
     {
         if (!std::filesystem::exists(configFile))
             throw ConfigError{"Config file " + sfun::path_string(configFile) + " doesn't exist"};
@@ -52,56 +59,67 @@ public:
         if (!configStream.is_open())
             throw ConfigError{"Can't open config file " + sfun::path_string(configFile) + " for reading"};
 
-        return read<TCfg>(configStream, parser);
+        return read<TCfg, rootType>(configStream, parser);
     }
 
-    template<typename TCfg>
-    TCfg read(const std::string& configContent, IParser& parser)
+    template<typename TCfg, RootType rootType = RootType::SingleNode>
+    auto read(const std::string& configContent, IParser& parser)
+            -> std::conditional_t<rootType == RootType::SingleNode, TCfg, std::vector<TCfg>>
     {
         auto configStream = std::stringstream{configContent};
-        return read<TCfg>(configStream, parser);
+        return read<TCfg, rootType>(configStream, parser);
     }
 
 #ifdef FIGCONE_JSON_AVAILABLE
-    template<typename TCfg>
-    TCfg readJsonFile(const std::filesystem::path& configFile)
+    template<typename TCfg, RootType rootType = RootType::SingleNode>
+    auto readJsonFile(const std::filesystem::path& configFile)
+            -> std::conditional_t<rootType == RootType::SingleNode, TCfg, std::vector<TCfg>>
     {
         auto parser = figcone::json::Parser{};
-        return readFile<TCfg>(configFile, parser);
+        return readFile<TCfg, rootType>(configFile, parser);
     }
-    template<typename TCfg>
-    TCfg readJson(const std::string& configContent)
-    {
-        auto configStream = std::stringstream{configContent};
-        return readJson<TCfg>(configStream);
-    }
-    template<typename TCfg>
-    TCfg readJson(std::istream& configStream)
+
+    template<typename TCfg, RootType rootType = RootType::SingleNode>
+    auto readJson(const std::string& configContent)
+            -> std::conditional_t<rootType == RootType::SingleNode, TCfg, std::vector<TCfg>>
     {
         auto parser = figcone::json::Parser{};
-        return read<TCfg>(configStream, parser);
+        return read<TCfg, rootType>(configContent, parser);
     }
+
+    template<typename TCfg, RootType rootType = RootType::SingleNode>
+    auto readJson(std::istream& configStream)
+            -> std::conditional_t<rootType == RootType::SingleNode, TCfg, std::vector<TCfg>>
+    {
+        auto parser = figcone::json::Parser{};
+        return read<TCfg, rootType>(configStream, parser);
+    }
+
 #endif
 
 #ifdef FIGCONE_YAML_AVAILABLE
-    template<typename TCfg>
-    TCfg readYamlFile(const std::filesystem::path& configFile)
+    template<typename TCfg, RootType rootType = RootType::SingleNode>
+    auto readYamlFile(const std::filesystem::path& configFile)
+            -> std::conditional_t<rootType == RootType::SingleNode, TCfg, std::vector<TCfg>>
     {
         auto parser = figcone::yaml::Parser{};
-        return readFile<TCfg>(configFile, parser);
-    }
-    template<typename TCfg>
-    TCfg readYaml(const std::string& configContent)
-    {
-        auto configStream = std::stringstream{configContent};
-        return readYaml<TCfg>(configStream);
+        return readFile<TCfg, rootType>(configFile, parser);
     }
 
-    template<typename TCfg>
-    TCfg readYaml(std::istream& configStream)
+    template<typename TCfg, RootType rootType = RootType::SingleNode>
+    auto readYaml(const std::string& configContent)
+            -> std::conditional_t<rootType == RootType::SingleNode, TCfg, std::vector<TCfg>>
     {
         auto parser = figcone::yaml::Parser{};
-        return read<TCfg>(configStream, parser);
+        return read<TCfg, rootType>(configContent, parser);
+    }
+
+    template<typename TCfg, RootType rootType = RootType::SingleNode>
+    auto readYaml(std::istream& configStream)
+            -> std::conditional_t<rootType == RootType::SingleNode, TCfg, std::vector<TCfg>>
+    {
+        auto parser = figcone::yaml::Parser{};
+        return read<TCfg, rootType>(configStream, parser);
     }
 #endif
 
@@ -207,7 +225,8 @@ private:
 
     void load(const TreeNode& treeNode)
     {
-        for (const auto& [nodeName, node] : treeNode.asItem().nodes()) {
+        for (const auto& nodeName : treeNode.asItem().nodeNames()) {
+            const auto& node = treeNode.asItem().node(nodeName);
             if (!nodes_.count(nodeName))
                 throw ConfigError{"Unknown node '" + nodeName + "'", node.position()};
             try {
@@ -218,7 +237,8 @@ private:
             }
         }
 
-        for (const auto& [paramName, param] : treeNode.asItem().params()) {
+        for (const auto& paramName : treeNode.asItem().paramNames()) {
+            const auto& param = treeNode.asItem().param(paramName);
             if (!params_.count(paramName))
                 throw ConfigError{"Unknown param '" + paramName + "'", param.position()};
             params_.at(paramName)->load(param);
@@ -246,31 +266,27 @@ private:
         return nestedReaders_[name]->makePtr();
     }
 
-    template<typename TCfg>
-    TCfg read(std::istream& configStream, IParser& parser)
+    template<typename TCfg, RootType rootType = RootType::SingleNode>
+    auto read(std::istream& configStream, IParser& parser)
+            -> std::conditional_t<rootType == RootType::SingleNode, TCfg, std::vector<TCfg>>
     {
-        clear();
-        if constexpr (!std::is_aggregate_v<TCfg>)
-            static_assert(
-                    std::is_constructible_v<TCfg, detail::ConfigReaderPtr>,
-                    "Non aggregate config objects must inherit figcone::Config constructors with 'using "
-                    "Config::Config;'");
-        auto cfg = TCfg{makePtr()};
         auto tree = parser.parse(configStream);
-        try {
-            load(tree);
+        auto result = std::vector<TCfg>{};
+        if (tree.root().isList()) {
+            for (auto i = 0; i < tree.root().asList().size(); ++i)
+                result.emplace_back(readConfig<TCfg>(tree.root().asList().at(i)));
         }
-        catch (const detail::LoadingError& e) {
-            throw ConfigError{std::string{"Root node: "} + e.what(), tree.position()};
+        else
+            result.emplace_back(readConfig<TCfg>(tree.root()));
+
+        if constexpr (rootType == RootType::SingleNode) {
+            if (result.size() != 1)
+                throw ConfigError{"Expected a single element root of the document, use 'readList*' methods instead"};
+
+            return std::move(result.at(0));
         }
-        try {
-            PostProcessor<TCfg>{}(cfg);
-        }
-        catch (const ValidationError& e) {
-            throw ConfigError{std::string{"Config is invalid: "} + e.what()};
-        }
-        resetConfigReader(cfg);
-        return cfg;
+        else
+            return result;
     }
 
     void clear()
@@ -290,6 +306,32 @@ private:
     void resetConfigReader(TCfg& cfg)
     {
         cfg.cfgReader_ = detail::ConfigReaderPtr{};
+    }
+
+    template<typename TCfg>
+    TCfg readConfig(const figcone::TreeNode& root)
+    {
+        if constexpr (!std::is_aggregate_v<TCfg>)
+            static_assert(
+                    std::is_constructible_v<TCfg, detail::ConfigReaderPtr>,
+                    "Non aggregate config objects must inherit figcone::Config constructors with 'using "
+                    "Config::Config;'");
+        clear();
+        auto cfg = TCfg{makePtr()};
+        try {
+            load(root);
+        }
+        catch (const detail::LoadingError& e) {
+            throw ConfigError{std::string{"Root node: "} + e.what(), root.position()};
+        }
+        try {
+            PostProcessor<TCfg>{}(cfg);
+        }
+        catch (const ValidationError& e) {
+            throw ConfigError{std::string{"Config is invalid: "} + e.what()};
+        }
+        resetConfigReader(cfg);
+        return cfg;
     }
 
 private:

@@ -1,0 +1,35 @@
+rootDir: ~/Photos
+supportedFiles: [ ".jpg", "png" ]
+thumbnails:
+  enabled: 1
+  maxWidth: 128
+  maxHeight: 128
+
+sharedAlbums:
+  - dir: "summer_2019"
+    name: "Summer (2019)"
+    hosts:
+      - ip: "127.0.0.1"
+        port: 8080
+  - dir: "misc"
+    name: "Misc"
+envVars:
+  DISPLAY: "0.1"
+---
+rootDir: ~/Photos2
+supportedFiles: [ ".jpg", "png" ]
+thumbnails:
+  enabled: 1
+  maxWidth: 128
+  maxHeight: 128
+
+sharedAlbums:
+  - dir: "summer_2024"
+    name: "Summer (2024)"
+    hosts:
+      - ip: "127.0.0.1"
+        port: 8080
+  - dir: "misc"
+    name: "Misc"
+envVars:
+  DISPLAY: "0.1"

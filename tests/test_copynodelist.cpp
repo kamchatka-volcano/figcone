@@ -53,17 +53,17 @@ struct NestedCfgList : public figcone::Config {
 
 class TreeProvider : public figcone::IParser {
 public:
-    TreeProvider(figcone::TreeNode tree)
-        : tree_(std::move(tree))
+    TreeProvider(std::unique_ptr<figcone::TreeNode> tree)
+        : tree_{std::move(tree)}
     {
     }
 
-    figcone::TreeNode parse(std::istream&) override
+    figcone::Tree parse(std::istream&) override
     {
         return std::move(tree_);
     }
 
-    figcone::TreeNode tree_;
+    std::unique_ptr<figcone::TreeNode> tree_;
 };
 
 TEST(TestCopyNodeList, Basic)
@@ -78,21 +78,21 @@ TEST(TestCopyNodeList, Basic)
     ///[[testNodes]]
 
     auto tree = figcone::makeTreeRoot();
-    auto& testNodes = tree.asItem().addNodeList("testNodes");
+    auto& testNodes = tree->asItem().addNodeList("testNodes");
     {
-        auto& node = testNodes.asList().addNode();
+        auto& node = testNodes.asList().emplaceBack();
         node.asItem().addParam("testInt", "3");
         node.asItem().addParam("testStr", "Hello");
     }
     {
-        auto& node = testNodes.asList().addNode();
+        auto& node = testNodes.asList().emplaceBack();
         node.asItem().addParam("testInt", "2");
     }
     {
-        auto& node = testNodes.asList().addNode();
+        auto& node = testNodes.asList().emplaceBack();
         node.asItem().addParam("testStr", "World");
     }
-    testNodes.asList().addNode();
+    testNodes.asList().emplaceBack();
 
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
@@ -121,21 +121,21 @@ TEST(TestCopyNodeList, BasicNonAggregate)
     ///[[testNodes]]
 
     auto tree = figcone::makeTreeRoot();
-    auto& testNodes = tree.asItem().addNodeList("testNodes");
+    auto& testNodes = tree->asItem().addNodeList("testNodes");
     {
-        auto& node = testNodes.asList().addNode();
+        auto& node = testNodes.asList().emplaceBack();
         node.asItem().addParam("testInt", "3");
         node.asItem().addParam("testStr", "Hello");
     }
     {
-        auto& node = testNodes.asList().addNode();
+        auto& node = testNodes.asList().emplaceBack();
         node.asItem().addParam("testInt", "2");
     }
     {
-        auto& node = testNodes.asList().addNode();
+        auto& node = testNodes.asList().emplaceBack();
         node.asItem().addParam("testStr", "World");
     }
-    testNodes.asList().addNode();
+    testNodes.asList().emplaceBack();
 
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
@@ -164,21 +164,21 @@ TEST(TestCopyNodeList, BasicWithoutMacro)
     ///[[testNodes]]
 
     auto tree = figcone::makeTreeRoot();
-    auto& testNodes = tree.asItem().addNodeList("testNodes");
+    auto& testNodes = tree->asItem().addNodeList("testNodes");
     {
-        auto& node = testNodes.asList().addNode();
+        auto& node = testNodes.asList().emplaceBack();
         node.asItem().addParam("testInt", "3");
         node.asItem().addParam("testStr", "Hello");
     }
     {
-        auto& node = testNodes.asList().addNode();
+        auto& node = testNodes.asList().emplaceBack();
         node.asItem().addParam("testInt", "2");
     }
     {
-        auto& node = testNodes.asList().addNode();
+        auto& node = testNodes.asList().emplaceBack();
         node.asItem().addParam("testStr", "World");
     }
-    testNodes.asList().addNode();
+    testNodes.asList().emplaceBack();
 
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
@@ -213,36 +213,36 @@ TEST(TestCopyNodeList, NestedCfgList)
     ///  testDouble = 0.33
 
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("testStr", "Root");
-    auto& testList = tree.asItem().addNodeList("testList");
+    tree->asItem().addParam("testStr", "Root");
+    auto& testList = tree->asItem().addNodeList("testList");
     {
-        auto& node = testList.asList().addNode();
+        auto& node = testList.asList().emplaceBack();
         node.asItem().addParam("testDouble", "0.12");
         auto& testNodes = node.asItem().addNodeList("testNodes");
         {
-            auto& newNode = testNodes.asList().addNode();
+            auto& newNode = testNodes.asList().emplaceBack();
             newNode.asItem().addParam("testInt", "3");
             newNode.asItem().addParam("testStr", "Foo");
         }
         {
-            testNodes.asList().addNode();
+            testNodes.asList().emplaceBack();
         }
     }
     {
-        auto& node = testList.asList().addNode();
+        auto& node = testList.asList().emplaceBack();
         auto& testNodes = node.asItem().addNodeList("testNodes");
         {
-            auto& newNode = testNodes.asList().addNode();
+            auto& newNode = testNodes.asList().emplaceBack();
             newNode.asItem().addParam("testInt", "5");
             newNode.asItem().addParam("testStr", "Bar");
         }
         {
-            auto& newNode = testNodes.asList().addNode();
+            auto& newNode = testNodes.asList().emplaceBack();
             newNode.asItem().addParam("testInt", "6");
         }
     }
     {
-        auto& node = testList.asList().addNode();
+        auto& node = testList.asList().emplaceBack();
         node.asItem().addParam("testDouble", "0.33");
     }
 
@@ -298,13 +298,13 @@ TEST(TestNodeList, InvalidListElementError)
     ///    testInt = 2
 
     auto tree = figcone::makeTreeRoot();
-    auto& testNodes = tree.asItem().addNodeList("testNodes", {1, 1});
+    auto& testNodes = tree->asItem().addNodeList("testNodes", {1, 1});
     {
-        auto& node = testNodes.asList().addNode({1, 1});
+        auto& node = testNodes.asList().emplaceBack({1, 1});
         node.asItem().addParam("testInt", "error", {2, 3});
     }
     {
-        auto& node = testNodes.asList().addNode({3, 1});
+        auto& node = testNodes.asList().emplaceBack({3, 1});
         node.asItem().addParam("testInt", "2", {4, 3});
     }
 
@@ -330,10 +330,10 @@ TEST(TestNodeList, IncompleteListElementError)
     ///    testInt = 2
 
     auto tree = figcone::makeTreeRoot();
-    auto& testNodes = tree.asItem().addNodeList("testNodes", {1, 1});
-    testNodes.asList().addNode({1, 1});
+    auto& testNodes = tree->asItem().addNodeList("testNodes", {1, 1});
+    testNodes.asList().emplaceBack({1, 1});
     {
-        auto& node = testNodes.asList().addNode({2, 1});
+        auto& node = testNodes.asList().emplaceBack({2, 1});
         node.asItem().addParam("testInt", "2", {3, 3});
     }
 

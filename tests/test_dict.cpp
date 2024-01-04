@@ -81,17 +81,17 @@ struct DictCfgWithoutMacro : public figcone::Config {
 
 class TreeProvider : public figcone::IParser {
 public:
-    TreeProvider(figcone::TreeNode tree)
-        : tree_(std::move(tree))
+    TreeProvider(std::unique_ptr<figcone::TreeNode> tree)
+        : tree_{std::move(tree)}
     {
     }
 
-    figcone::TreeNode parse(std::istream&) override
+    figcone::Tree parse(std::istream&) override
     {
         return std::move(tree_);
     }
 
-    figcone::TreeNode tree_;
+    std::unique_ptr<figcone::TreeNode> tree_;
 };
 
 TEST(TestDict, MultiParam)
@@ -110,17 +110,17 @@ TEST(TestDict, MultiParam)
     /// testInt = 200
 
     auto tree = figcone::makeTreeRoot();
-    auto& testNode = tree.asItem().addNode("test", {1, 1}).asItem();
+    auto& testNode = tree->asItem().addNode("test", {1, 1}).asItem();
     testNode.addParam("testInt", "5", {2, 3});
     testNode.addParam("testDouble", "5.0", {3, 3});
     testNode.addParam("testString", "foo", {4, 3});
     testNode.addParam("testMultilineString", "Hello\n world", {5, 3});
     testNode.addParam("testEmpty", "", {6, 3});
 
-    auto& optTestNode = tree.asItem().addNode("optTest", {7, 1}).asItem();
+    auto& optTestNode = tree->asItem().addNode("optTest", {7, 1}).asItem();
     optTestNode.addParam("testInt", "100", {8, 3});
 
-    auto& optTestNode2 = tree.asItem().addNode("optTest2", {9, 1}).asItem();
+    auto& optTestNode2 = tree->asItem().addNode("optTest2", {9, 1}).asItem();
     optTestNode2.addParam("testInt", "200", {10, 3});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -150,7 +150,7 @@ TEST(TestDict, MultiParamWithoutOptional)
     /// world"
     ///  testEmpty = ""
     auto tree = figcone::makeTreeRoot();
-    auto& testNode = tree.asItem().addNode("test", {1, 1}).asItem();
+    auto& testNode = tree->asItem().addNode("test", {1, 1}).asItem();
     testNode.addParam("testInt", "5", {2, 3});
     testNode.addParam("testDouble", "5.0", {3, 3});
     testNode.addParam("testString", "foo", {4, 3});
@@ -179,7 +179,7 @@ TEST(TestDict, IntMultiParam)
     ///  baz = 777
 
     auto tree = figcone::makeTreeRoot();
-    auto& testNode = tree.asItem().addNode("test", {1, 1}).asItem();
+    auto& testNode = tree->asItem().addNode("test", {1, 1}).asItem();
     testNode.addParam("foo", "5", {2, 3});
     testNode.addParam("bar", "42", {3, 3});
     testNode.addParam("baz", "777", {4, 3});
@@ -214,7 +214,7 @@ TEST(TestDict, ValidationSuccess)
     ///[testOpt]
     ///  testStr = Foo
     auto tree = figcone::makeTreeRoot();
-    auto& testNode = tree.asItem().addNode("test", {1, 1});
+    auto& testNode = tree->asItem().addNode("test", {1, 1});
     testNode.asItem().addParam("testInt", "5", {2, 3});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -232,7 +232,7 @@ TEST(TestDict, ValidationSuccessOptionalDict)
     ///[testOpt]
     ///  testStr = Foo
     auto tree = figcone::makeTreeRoot();
-    auto& testNodeOpt = tree.asItem().addNode("testOpt", {3, 1});
+    auto& testNodeOpt = tree->asItem().addNode("testOpt", {3, 1});
     testNodeOpt.asItem().addParam("testStr", "Foo", {4, 3});
 
     auto parser = TreeProvider{std::move(tree)};
@@ -249,7 +249,7 @@ TEST(TestDict, ValidationFailure)
     ///[test]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addNode("test", {1, 1});
+    tree->asItem().addNode("test", {1, 1});
     auto cfgReader = figcone::ConfigReader{};
     auto parser = TreeProvider{std::move(tree)};
     assert_exception<figcone::ConfigError>(
@@ -268,7 +268,7 @@ TEST(TestDict, ValidationFailureOptionalDict)
     ///[test]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addNode("testOpt", {1, 1});
+    tree->asItem().addNode("testOpt", {1, 1});
     auto cfgReader = figcone::ConfigReader{};
     auto parser = TreeProvider{std::move(tree)};
     assert_exception<figcone::ConfigError>(
@@ -287,7 +287,7 @@ TEST(TestDict, ValidationWithFunctorFailure)
     ///[test]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addNode("test", {1, 1});
+    tree->asItem().addNode("test", {1, 1});
     auto cfgReader = figcone::ConfigReader{};
 
     auto parser = TreeProvider{std::move(tree)};
@@ -307,7 +307,7 @@ TEST(TestDict, ValidationWithFunctorFailureOptionalDict)
     ///[test]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addNode("testOpt", {1, 1});
+    tree->asItem().addNode("testOpt", {1, 1});
     auto cfgReader = figcone::ConfigReader{};
 
     auto parser = TreeProvider{std::move(tree)};
@@ -329,7 +329,7 @@ TEST(TestDict, ParamWithoutMacro)
     ///  testEmpty = ""
     ///
     auto tree = figcone::makeTreeRoot();
-    auto& testNode = tree.asItem().addNode("test", {1, 1});
+    auto& testNode = tree->asItem().addNode("test", {1, 1});
     testNode.asItem().addParam("testInt", "5", {2, 3});
     testNode.asItem().addParam("testEmpty", "", {3, 3});
 
@@ -350,7 +350,7 @@ TEST(TestDict, EmptyDict)
     ///[test]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addNode("test", {1, 1});
+    tree->asItem().addNode("test", {1, 1});
 
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{};
@@ -364,7 +364,7 @@ TEST(TestDict, NodeListDictError)
     ///[[test]]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addNodeList("test", {1, 1});
+    tree->asItem().addNodeList("test", {1, 1});
 
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{};

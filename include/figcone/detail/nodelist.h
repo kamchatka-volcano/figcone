@@ -46,8 +46,8 @@ public:
             nodeList_.emplace();
 
         maybeOptValue(nodeList_).clear();
-        for (auto i = 0; i < nodeList.asList().count(); ++i) {
-            const auto& treeNode = nodeList.asList().node(i);
+        for (auto i = 0; i < nodeList.asList().size(); ++i) {
+            const auto& treeNode = nodeList.asList().at(i);
             try {
                 using Cfg = typename sfun::remove_optional_t<TCfgList>::value_type;
                 if constexpr (!std::is_aggregate_v<Cfg>)
@@ -59,7 +59,7 @@ public:
                 auto cfg = Cfg{cfgReader_};
                 if (cfgReader_) {
                     if (type_ == NodeListType::Copy && i > 0)
-                        ConfigReaderAccess{cfgReader_}.load<Cfg>(nodeList.asList().node(0));
+                        ConfigReaderAccess{cfgReader_}.load<Cfg>(nodeList.asList().at(0));
                     ConfigReaderAccess{cfgReader_}.load<Cfg>(treeNode);
                 }
                 maybeOptValue(nodeList_).emplace_back(std::move(cfg));

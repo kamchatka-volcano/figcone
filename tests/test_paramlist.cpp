@@ -94,17 +94,17 @@ struct CfgStr : public figcone::Config {
 
 class TreeProvider : public figcone::IParser {
 public:
-    TreeProvider(figcone::TreeNode tree)
-        : tree_(std::move(tree))
+    TreeProvider(std::unique_ptr<figcone::TreeNode> tree)
+        : tree_{std::move(tree)}
     {
     }
 
-    figcone::TreeNode parse(std::istream&) override
+    figcone::Tree parse(std::istream&) override
     {
         return std::move(tree_);
     }
 
-    figcone::TreeNode tree_;
+    std::unique_ptr<figcone::TreeNode> tree_;
 };
 
 TEST(TestParamList, Basic)
@@ -112,7 +112,7 @@ TEST(TestParamList, Basic)
     ///testIntList = [1, 2, 3]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testIntList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
+    tree->asItem().addParamList("testIntList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
 
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
@@ -129,7 +129,7 @@ TEST(TestParamList, BasicOptional)
     ///testIntList = [1, 2, 3]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testIntList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
+    tree->asItem().addParamList("testIntList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<CfgOptInt>("", parser);
@@ -156,7 +156,7 @@ TEST(TestParamList, BasicWithoutMacro)
     ///testIntList = [1, 2, 3]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testIntList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
+    tree->asItem().addParamList("testIntList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<CfgIntWithoutMacro>("", parser);
@@ -172,7 +172,7 @@ TEST(TestParamList, ValidationSuccess)
     ///testStrList = [1, 2, 3]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testStrList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
+    tree->asItem().addParamList("testStrList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
 
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
@@ -189,7 +189,7 @@ TEST(TestParamList, ValidationSuccessOptionalParamList)
     ///testStrList = [1, 2, 3]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testStrList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
+    tree->asItem().addParamList("testStrList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
 
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
@@ -207,7 +207,7 @@ TEST(TestParamList, ValidationError)
     ///testStrList = []
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testStrList", std::vector<std::string>{}, {1, 1});
+    tree->asItem().addParamList("testStrList", std::vector<std::string>{}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
 
@@ -229,7 +229,7 @@ TEST(TestParamList, ValidationErrorOptionalParamList)
     ///testStrList = []
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testStrList", std::vector<std::string>{}, {1, 1});
+    tree->asItem().addParamList("testStrList", std::vector<std::string>{}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{};
 
@@ -251,7 +251,7 @@ TEST(TestParamList, ValidationWithFunctorSuccess)
     ///testStrList = [1, 2, 3]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testStrList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
+    tree->asItem().addParamList("testStrList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
 
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
@@ -268,7 +268,7 @@ TEST(TestParamList, ValidationWithFunctorSuccessOptionalParamList)
     ///testStrList = [1, 2, 3]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testStrList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
+    tree->asItem().addParamList("testStrList", std::vector<std::string>{"1", "2", "3"}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
 
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
@@ -286,7 +286,7 @@ TEST(TestParamList, ValidationWithFunctorError)
     ///testStrList = []
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testStrList", std::vector<std::string>{}, {1, 1});
+    tree->asItem().addParamList("testStrList", std::vector<std::string>{}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     assert_exception<figcone::ConfigError>(
@@ -307,7 +307,7 @@ TEST(TestParamList, ValidationWithFunctorErrorOptionalParamList)
     ///testStrList = []
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testStrList", std::vector<std::string>{}, {1, 1});
+    tree->asItem().addParamList("testStrList", std::vector<std::string>{}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     assert_exception<figcone::ConfigError>(
@@ -328,7 +328,7 @@ TEST(TestParamList, ValidationWithFunctorError2)
     ///testStrList = ['hello', '']
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testStrList", std::vector<std::string>{"hello", ""}, {1, 1});
+    tree->asItem().addParamList("testStrList", std::vector<std::string>{"hello", ""}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
 
@@ -350,7 +350,7 @@ TEST(TestParamList, MissingParamListError)
     ///testIntList = [1, 2]
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testIntList", std::vector<std::string>{"1", "2"}, {1, 1});
+    tree->asItem().addParamList("testIntList", std::vector<std::string>{"1", "2"}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
 
@@ -372,7 +372,7 @@ TEST(TestParamList, ParamNotListError)
     ///testIntList = 1
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParam("testIntList", "1", {1, 1});
+    tree->asItem().addParam("testIntList", "1", {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
 
@@ -394,7 +394,7 @@ TEST(TestParamList, DefaultValue)
     ///testStrList = []
     ///
     auto tree = figcone::makeTreeRoot();
-    tree.asItem().addParamList("testStrList", std::vector<std::string>{}, {1, 1});
+    tree->asItem().addParamList("testStrList", std::vector<std::string>{}, {1, 1});
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
     auto cfg = cfgReader.read<CfgStr>("", parser);

@@ -3,3 +3,5 @@
 
 -Check yaml demo: ${{ format_demo_expected_output }}
 -Check all formats demo with demo.yaml: ${{ format_demo_expected_output }}
+
+-Check yaml_root_list demo: ${{ format_demo_root_list_expected_output }}

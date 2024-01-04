@@ -42,7 +42,8 @@ private:
             dictMap_.emplace();
         maybeOptValue(dictMap_).clear();
 
-        for (const auto& [paramName, paramValue] : node.asItem().params()) {
+        for (const auto& paramName : node.asItem().paramNames()) {
+            const auto& paramValue = node.asItem().param(paramName);
             using Param = typename sfun::remove_optional_t<TMap>::mapped_type;
             const auto paramNameStr = paramName;
             const auto paramValueStr = paramValue;
