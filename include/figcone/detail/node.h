@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_NODE_H
+#define FIGCONE_NODE_H
+
 #include "configreaderaccess.h"
 #include "iconfigentity.h"
 #include "inode.h"
@@ -68,3 +70,5 @@ private:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_NODE_H

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_IPARAM_H
+#define FIGCONE_IPARAM_H
+
 #include "iconfigentity.h"
 #include <figcone_tree/tree.h>
 
@@ -11,3 +13,5 @@ public:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_IPARAM_H

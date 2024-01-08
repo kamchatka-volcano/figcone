@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_PARAMLISTCREATOR_H
+#define FIGCONE_PARAMLISTCREATOR_H
+
 #include "configreaderaccess.h"
 #include "inode.h"
 #include "paramlist.h"
@@ -67,3 +69,5 @@ private:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_PARAMLISTCREATOR_H

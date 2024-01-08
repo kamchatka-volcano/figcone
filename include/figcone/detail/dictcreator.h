@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_DICTCREATOR_H
+#define FIGCONE_DICTCREATOR_H
+
 #include "configreaderaccess.h"
 #include "dict.h"
 #include "validator.h"
@@ -68,3 +70,5 @@ private:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_DICTCREATOR_H

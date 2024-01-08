@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_ICONFIGIDENTITY_H
+#define FIGCONE_ICONFIGIDENTITY_H
+
 #include "external/sfun/interface.h"
 #include <figcone_tree/streamposition.h>
 #include <functional>
@@ -13,3 +15,5 @@ public:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_ICONFIGIDENTITY_H

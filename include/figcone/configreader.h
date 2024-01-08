@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_CONFIGREADER_H
+#define FIGCONE_CONFIGREADER_H
+
 #include "errors.h"
 #include "nameformat.h"
 #include "postprocessor.h"
@@ -356,3 +358,5 @@ private:
 };
 
 } //namespace figcone
+
+#endif //FIGCONE_CONFIGREADER_H

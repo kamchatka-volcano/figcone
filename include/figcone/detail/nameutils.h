@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_NAMEUTILS_H
+#define FIGCONE_NAMEUTILS_H
+
 #include "external/sfun/string_utils.h"
 #include "external/sfun/utility.h"
 #include <figcone/nameformat.h>
@@ -107,3 +109,5 @@ inline std::string convertName(NameFormat nameFormat, const std::string& configN
 }
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_NAMEUTILS_H

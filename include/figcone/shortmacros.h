@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_SHORTMACROS_H
+#define FIGCONE_SHORTMACROS_H
+
 #include "figcone/detail/configmacros.h"
 
 #define PARAM FIGCONE_PARAM
@@ -7,3 +9,5 @@
 #define NODELIST FIGCONE_NODELIST
 #define PARAMLIST FIGCONE_PARAMLIST
 #define DICT FIGCONE_DICT
+
+#endif //FIGCONE_SHORTMACROS_H

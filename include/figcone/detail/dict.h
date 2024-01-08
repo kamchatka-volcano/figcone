@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_DICT_H
+#define FIGCONE_DICT_H
+
 #include "inode.h"
 #include "param.h"
 #include "utils.h"
@@ -90,3 +92,5 @@ private:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_DICT_H

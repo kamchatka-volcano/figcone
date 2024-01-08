@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_UNREGISTEREDFIELDHANDLER_H
+#define FIGCONE_UNREGISTEREDFIELDHANDLER_H
+
 #include "errors.h"
 #include <figcone_tree/streamposition.h>
 #include <string>
@@ -14,3 +16,5 @@ template<typename TCfg>
 struct UnregisteredFieldHandler;
 
 } //namespace figcone
+
+#endif //FIGCONE_UNREGISTEREDFIELDHANDLER_H

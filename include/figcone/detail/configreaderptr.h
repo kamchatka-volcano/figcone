@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FIGCONE_CONFIGREADERPTR_H
+#define FIGCONE_CONFIGREADERPTR_H
 
 namespace figcone {
 class ConfigReader;
@@ -48,3 +49,5 @@ private:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_CONFIGREADERPTR_H

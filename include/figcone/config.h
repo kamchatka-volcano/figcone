@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_CONFIG_H
+#define FIGCONE_CONFIG_H
+
 #include "detail/configmacros.h"
 #include "detail/dict.h"
 #include "detail/dictcreator.h"
@@ -179,3 +181,5 @@ template<typename T>
 using optional = std::conditional_t<std::is_base_of_v<Config, T>, detail::InitializedOptional<T>, std::optional<T>>;
 
 } //namespace figcone
+
+#endif //FIGCONE_CONFIG_H

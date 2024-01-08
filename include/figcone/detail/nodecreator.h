@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_NODECREATOR_H
+#define FIGCONE_NODECREATOR_H
+
 #include "configreaderaccess.h"
 #include "inode.h"
 #include "node.h"
@@ -82,3 +84,5 @@ private:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_NODECREATOR_H

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_NODELIST_H
+#define FIGCONE_NODELIST_H
+
 #include "configreaderaccess.h"
 #include "inode.h"
 #include "loadingerror.h"
@@ -98,3 +100,5 @@ private:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_NODELIST_H

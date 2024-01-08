@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FIGCONE_POST_PROCESSOR_H
+#define FIGCONE_POST_PROCESSOR_H
 
 namespace figcone {
 
@@ -8,3 +9,5 @@ struct PostProcessor {
 };
 
 } //namespace figcone
+
+#endif //FIGCONE_POST_PROCESSOR_H

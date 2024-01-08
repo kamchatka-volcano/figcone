@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_UNREGISTEREDFIELDUTILS_H
+#define FIGCONE_UNREGISTEREDFIELDUTILS_H
+
 #include "external/sfun/type_traits.h"
 #include <figcone/unregisteredfieldhandler.h>
 
@@ -17,3 +19,5 @@ void handleUnregisteredField(FieldType fieldType, const std::string& fieldName, 
 }
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_UNREGISTEREDFIELDUTILS_H

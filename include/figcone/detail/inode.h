@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_INODE_H
+#define FIGCONE_INODE_H
+
 #include "iconfigentity.h"
 #include <figcone_tree/tree.h>
 #include <memory>
@@ -13,3 +15,5 @@ public:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_INODE_H

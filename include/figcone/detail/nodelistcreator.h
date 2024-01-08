@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_NODELISTCREATOR_H
+#define FIGCONE_NODELISTCREATOR_H
+
 #include "configreaderaccess.h"
 #include "nodelist.h"
 #include "external/sfun/contract.h"
@@ -77,3 +79,5 @@ private:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_NODELISTCREATOR_H

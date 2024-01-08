@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_CONFIGMACROS_H
+#define FIGCONE_CONFIGMACROS_H
+
 #include "dictcreator.h"
 #include "nodecreator.h"
 #include "nodelistcreator.h"
@@ -12,3 +14,5 @@
 #define FIGCONE_NODELIST(name, listType) listType name = nodeList<&std::remove_pointer_t<decltype(this)>::name>(#name)
 #define FIGCONE_PARAMLIST(name, listType) listType name = paramList<&std::remove_pointer_t<decltype(this)>::name>(#name)
 #define FIGCONE_DICT(name, mapType) mapType name = dict<&std::remove_pointer_t<decltype(this)>::name>(#name)
+
+#endif //FIGCONE_CONFIGMACROS_H

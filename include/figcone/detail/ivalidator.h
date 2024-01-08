@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_IVALIDATOR_H
+#define FIGCONE_IVALIDATOR_H
+
 #include "external/sfun/interface.h"
 
 namespace figcone::detail {
@@ -9,3 +11,5 @@ public:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_IVALIDATOR_H

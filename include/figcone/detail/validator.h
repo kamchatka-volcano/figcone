@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_VALIDATOR_H
+#define FIGCONE_VALIDATOR_H
+
 #include "iconfigentity.h"
 #include "ivalidator.h"
 #include "utils.h"
@@ -43,3 +45,5 @@ private:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_VALIDATOR_H

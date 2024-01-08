@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_PARAMCREATOR_H
+#define FIGCONE_PARAMCREATOR_H
+
 #include "configreaderaccess.h"
 #include "param.h"
 #include "validator.h"
@@ -57,3 +59,5 @@ private:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_PARAMCREATOR_H

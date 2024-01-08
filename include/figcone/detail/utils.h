@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_UTILS_H
+#define FIGCONE_UTILS_H
+
 #include "initializedoptional.h"
 #include "external/sfun/type_traits.h"
 #include <optional>
@@ -33,3 +35,5 @@ struct remove_optional<figcone::detail::InitializedOptional<T>> {
     using type = T;
 };
 } //namespace figcone::sfun
+
+#endif //FIGCONE_UTILS_H

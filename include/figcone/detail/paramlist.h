@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_PARAMLIST_H
+#define FIGCONE_PARAMLIST_H
+
 #include "iparam.h"
 #include "stringconverter.h"
 #include "utils.h"
@@ -87,3 +89,5 @@ private:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_PARAMLIST_H

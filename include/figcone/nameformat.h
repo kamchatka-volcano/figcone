@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FIGCONE_NAMEFORMAT_H
+#define FIGCONE_NAMEFORMAT_H
 
 namespace figcone {
 
@@ -10,3 +11,5 @@ enum class NameFormat {
 };
 
 } //namespace figcone
+
+#endif //FIGCONE_NAMEFORMAT_H

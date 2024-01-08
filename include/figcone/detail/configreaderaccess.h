@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_CONFIGREADERACCESS_H
+#define FIGCONE_CONFIGREADERACCESS_H
+
 #include "configreaderptr.h"
 #include <memory>
 #include <string>
@@ -51,3 +53,5 @@ private:
 };
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_CONFIGREADERACCESS_H

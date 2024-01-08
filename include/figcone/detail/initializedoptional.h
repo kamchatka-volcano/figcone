@@ -1,4 +1,6 @@
-#pragma once
+#ifndef FIGCONE_INITIALIZEDOPTIONAL_H
+#define FIGCONE_INITIALIZEDOPTIONAL_H
+
 #include <optional>
 #include <stdexcept>
 #include <utility>
@@ -294,3 +296,5 @@ bool operator>=(const U& lhs, const InitializedOptional<T>& rhs)
 }
 
 } //namespace figcone::detail
+
+#endif //FIGCONE_INITIALIZEDOPTIONAL_H
