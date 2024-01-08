@@ -6,8 +6,12 @@
 #include "postprocessor.h"
 #include "unregisteredfieldhandler.h"
 #include "detail/configreaderptr.h"
+#include "detail/creatormode.h"
+#include "detail/dictcreator.h"
+#include "detail/external/pfr.hpp"
 #include "detail/external/sfun/path.h"
 #include "detail/external/sfun/type_traits.h"
+#include "detail/fieldtraits.h"
 #include "detail/figcone_ini_import.h"
 #include "detail/figcone_json_import.h"
 #include "detail/figcone_shoal_import.h"
@@ -19,8 +23,14 @@
 #include "detail/ivalidator.h"
 #include "detail/loadingerror.h"
 #include "detail/nameutils.h"
+#include "detail/nodecreator.h"
+#include "detail/nodelistcreator.h"
+#include "detail/paramcreator.h"
+#include "detail/paramlistcreator.h"
 #include "detail/unregisteredfieldutils.h"
+#include "detail/utils.h"
 #include <figcone_tree/iparser.h>
+#include <figcone_tree/stringconverter.h>
 #include <figcone_tree/tree.h>
 #include <filesystem>
 #include <fstream>
@@ -36,10 +46,23 @@ template<typename TConfigReaderPtr>
 class ConfigReaderAccess;
 }
 
+class Config;
+
 enum class RootType {
     SingleNode,
     NodeList
 };
+
+namespace detail {
+template<typename TField>
+constexpr auto canBeReadAsParam()
+{
+    return detail::is_string_streamable_v<TField> || //
+            sfun::is_complete_type_v<StringConverter<TField>> ||
+            detail::is_string_streamable_v<tree::sfun::remove_optional_t<TField>> ||
+            sfun::is_complete_type_v<StringConverter<tree::sfun::remove_optional_t<TField>>>;
+}
+}; //namespace detail
 
 class ConfigReader {
 
@@ -319,30 +342,121 @@ private:
         cfg.cfgReader_ = detail::ConfigReaderPtr{};
     }
 
+    template<typename TCfg, typename TField>
+    void loadField(TCfg& cfg, TField& field, std::string_view name)
+    {
+        const auto isOptionalField = detail::isOptionalField(cfg, field);
+        const auto isCopyNodeListField = detail::isCopyNodeListField(cfg, field);
+        if constexpr (detail::canBeReadAsParam<TField>()) {
+            auto paramCreator = detail::ParamCreator{makePtr(), std::string{name}, field, isOptionalField};
+            detail::setFieldValidators(cfg, field, paramCreator);
+            paramCreator.createParam();
+        }
+        else if constexpr (sfun::is_associative_container_v<sfun::remove_optional_t<TField>>) {
+            static_assert(
+                    detail::canBeReadAsParam<typename sfun::remove_optional_t<TField>::mapped_type>(),
+                    "Dict value type must be readable from stringtream or registered with StringConverter");
+            auto dictCreator = detail::DictCreator{makePtr(), std::string{name}, field, isOptionalField};
+            detail::setFieldValidators(cfg, field, dictCreator);
+            dictCreator.createDict();
+        }
+        else if constexpr (sfun::is_dynamic_sequence_container_v<sfun::remove_optional_t<TField>>) {
+            if constexpr (detail::canBeReadAsParam<typename sfun::remove_optional_t<TField>::value_type>()) {
+                auto paramListCreator = detail::ParamListCreator{makePtr(), std::string{name}, field, isOptionalField};
+                detail::setFieldValidators(cfg, field, paramListCreator);
+                paramListCreator.createParamList();
+            }
+            else {
+                auto nodeListCreator = detail::NodeListCreator<TField, detail::CreatorMode::StaticReflection>{
+                        makePtr(),
+                        std::string{name},
+                        field,
+                        isCopyNodeListField ? detail::NodeListType::Copy : detail::NodeListType::Normal,
+                        isOptionalField};
+                detail::setFieldValidators(cfg, field, nodeListCreator);
+                nodeListCreator.createNodeList();
+            }
+        }
+        else {
+            auto nodeCreator = detail::NodeCreator<TField, detail::CreatorMode::StaticReflection>{
+                    makePtr(),
+                    std::string{name},
+                    field,
+                    isOptionalField};
+            detail::setFieldValidators(cfg, field, nodeCreator);
+            nodeCreator.createNode();
+        }
+    }
+
+    template<typename TCfg, std::size_t... indices>
+    void loadStructure(TCfg& cfg, std::index_sequence<indices...>)
+    {
+        (loadField(cfg, pfr::get<indices>(cfg), pfr::get_name<indices, TCfg>()), ...);
+    }
+
+    template<typename TCfg>
+    void loadStructure(TCfg& cfg)
+    {
+#if __cplusplus < 202002L
+        static_assert(
+                sfun::dependent_false<TCfg>,
+                "Static reflection interface requires C++20. Inherit from figcone::Config to use runtime reflection "
+                "interface");
+#endif
+        loadStructure(cfg, std::make_index_sequence<pfr::tuple_size_v<TCfg>>{});
+    }
+
     template<typename TCfg>
     TCfg readConfig(const figcone::TreeNode& root)
     {
-        if constexpr (!std::is_aggregate_v<TCfg>)
-            static_assert(
-                    std::is_constructible_v<TCfg, detail::ConfigReaderPtr>,
-                    "Non aggregate config objects must inherit figcone::Config constructors with 'using "
-                    "Config::Config;'");
         clear();
-        auto cfg = TCfg{makePtr()};
-        try {
-            load<TCfg>(root);
+
+        if constexpr (!std::is_base_of_v<figcone::Config, TCfg>) {
+            if constexpr (!std::is_aggregate_v<TCfg>)
+                static_assert(
+                        std::is_constructible_v<TCfg, detail::ConfigReaderPtr>,
+                        "Static reflection interface isn't compatible with non-aggregate types. Inherit from "
+                        "figcone::Config to use runtime reflection interface");
+
+            auto cfg = TCfg{};
+            loadStructure(cfg);
+            try {
+                load<TCfg>(root);
+            }
+            catch (const detail::LoadingError& e) {
+                throw ConfigError{std::string{"Root node: "} + e.what(), root.position()};
+            }
+            try {
+                PostProcessor<TCfg>{}(cfg);
+            }
+            catch (const ValidationError& e) {
+                throw ConfigError{std::string{"Config is invalid: "} + e.what()};
+            }
+            return cfg;
         }
-        catch (const detail::LoadingError& e) {
-            throw ConfigError{std::string{"Root node: "} + e.what(), root.position()};
+        else {
+            if constexpr (!std::is_aggregate_v<TCfg>)
+                static_assert(
+                        std::is_constructible_v<TCfg, detail::ConfigReaderPtr>,
+                        "Non aggregate config objects must inherit figcone::Config constructors with 'using "
+                        "Config::Config;'");
+
+            auto cfg = TCfg{makePtr()};
+            try {
+                load<TCfg>(root);
+            }
+            catch (const detail::LoadingError& e) {
+                throw ConfigError{std::string{"Root node: "} + e.what(), root.position()};
+            }
+            try {
+                PostProcessor<TCfg>{}(cfg);
+            }
+            catch (const ValidationError& e) {
+                throw ConfigError{std::string{"Config is invalid: "} + e.what()};
+            }
+            resetConfigReader(cfg);
+            return cfg;
         }
-        try {
-            PostProcessor<TCfg>{}(cfg);
-        }
-        catch (const ValidationError& e) {
-            throw ConfigError{std::string{"Config is invalid: "} + e.what()};
-        }
-        resetConfigReader(cfg);
-        return cfg;
     }
 
 private:

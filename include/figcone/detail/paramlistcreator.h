@@ -19,12 +19,18 @@ class ParamListCreator {
             "Param list field must be a sequence container or a sequence container placed in std::optional");
 
 public:
-    ParamListCreator(ConfigReaderPtr cfgReader, std::string paramListName, TParamList& paramListValue)
+    ParamListCreator(
+            ConfigReaderPtr cfgReader,
+            std::string paramListName,
+            TParamList& paramListValue,
+            bool isOptional = false)
         : cfgReader_{cfgReader}
         , paramListName_{(sfun_precondition(!paramListName.empty()), std::move(paramListName))}
         , paramListValue_{paramListValue}
         , paramList_{std::make_unique<ParamList<TParamList>>(paramListName_, paramListValue)}
     {
+        if (isOptional)
+            paramList_->markValueIsSet();
     }
 
     ParamListCreator<TParamList>& operator()(TParamList defaultValue = {})
@@ -53,10 +59,15 @@ public:
         return *this;
     }
 
-    operator TParamList()
+    void createParamList()
     {
         if (cfgReader_)
             ConfigReaderAccess{cfgReader_}.addParam(paramListName_, std::move(paramList_));
+    }
+
+    operator TParamList()
+    {
+        createParamList();
         return defaultValue_;
     }
 

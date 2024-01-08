@@ -27,6 +27,16 @@ auto& maybeOptValue(T& obj)
         return obj;
 }
 
+template<typename T, typename = void>
+struct is_string_streamable : std::false_type {};
+
+template<typename T>
+struct is_string_streamable<T, std::void_t<decltype(std::declval<std::stringstream>() << std::declval<T>())>>
+    : std::true_type {};
+
+template<typename T>
+inline constexpr auto is_string_streamable_v = is_string_streamable<T>::value;
+
 } //namespace figcone::detail
 
 namespace figcone::sfun {

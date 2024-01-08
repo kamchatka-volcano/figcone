@@ -6,7 +6,6 @@
 #include "validator.h"
 #include "external/sfun/contract.h"
 #include "external/sfun/type_traits.h"
-#include <figcone/configreader.h>
 #include <figcone/nameformat.h>
 #include <memory>
 
@@ -15,7 +14,7 @@ namespace figcone::detail {
 template<typename TMap>
 class DictCreator {
 public:
-    DictCreator(ConfigReaderPtr cfgReader, std::string dictName, TMap& dictMap)
+    DictCreator(ConfigReaderPtr cfgReader, std::string dictName, TMap& dictMap, bool isOptional)
         : cfgReader_{cfgReader}
         , dictName_{(sfun_precondition(!dictName.empty()), std::move(dictName))}
         , dict_{std::make_unique<Dict<TMap>>(dictName_, dictMap)}
@@ -28,6 +27,8 @@ public:
         static_assert(
                 std::is_same_v<typename sfun::remove_optional_t<TMap>::key_type, std::string>,
                 "Dictionary associative container's key type must be std::string");
+        if (isOptional)
+            dict_->markValueIsSet();
     }
 
     DictCreator& operator()(TMap defaultValue = {})
@@ -37,10 +38,15 @@ public:
         return *this;
     }
 
-    operator TMap()
+    void createDict()
     {
         if (cfgReader_)
             ConfigReaderAccess{cfgReader_}.addNode(dictName_, std::move(dict_));
+    }
+
+    operator TMap()
+    {
+        createDict();
         return defaultValue_;
     }
 

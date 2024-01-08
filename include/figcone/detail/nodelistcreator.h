@@ -2,6 +2,7 @@
 #define FIGCONE_NODELISTCREATOR_H
 
 #include "configreaderaccess.h"
+#include "creatormode.h"
 #include "nodelist.h"
 #include "external/sfun/contract.h"
 #include "external/sfun/type_traits.h"
@@ -13,21 +14,31 @@ class Config;
 
 namespace figcone::detail {
 
-template<typename TCfgList>
+template<typename TCfgList, CreatorMode creatorMode = CreatorMode::RuntimeReflection>
 class NodeListCreator {
     static_assert(
             sfun::is_dynamic_sequence_container_v<sfun::remove_optional_t<TCfgList>>,
             "Node list field must be a sequence container or a sequence container placed in std::optional");
     static_assert(
-            std::is_base_of_v<Config, typename sfun::remove_optional_t<TCfgList>::value_type>,
-            "TCfgList::value_type must be a subclass of figcone::Config.");
+            std::conditional_t<
+                    creatorMode == CreatorMode::RuntimeReflection,
+                    std::is_base_of<Config, typename sfun::remove_optional_t<TCfgList>::value_type>,
+                    std::true_type>::value,
+            "TConfig must be a subclass of figcone::Config.");
+    static_assert(
+            std::conditional_t<
+                    creatorMode == CreatorMode::StaticReflection,
+                    std::negation<std::is_base_of<Config, typename sfun::remove_optional_t<TCfgList>::value_type>>,
+                    std::true_type>::value,
+            "TConfig must not be a subclass of figcone::Config when static reflection interface is used.");
 
 public:
     NodeListCreator(
             ConfigReaderPtr cfgReader,
             std::string nodeListName,
             TCfgList& nodeList,
-            NodeListType type = NodeListType::Normal)
+            NodeListType type = NodeListType::Normal,
+            bool isOptional = false)
         : cfgReader_{cfgReader}
         , nodeListName_{(sfun_precondition(!nodeListName.empty()), std::move(nodeListName))}
         , nodeList_{std::make_unique<NodeList<TCfgList>>(
@@ -37,22 +48,29 @@ public:
                   type)}
         , nodeListValue_(nodeList)
     {
+        if (isOptional)
+            nodeList_->markValueIsSet();
     }
 
-    NodeListCreator<TCfgList>& operator()()
+    NodeListCreator& operator()()
     {
         nodeList_->markValueIsSet();
         return *this;
     }
 
-    operator TCfgList()
+    void createNodeList()
     {
         if (cfgReader_)
             ConfigReaderAccess{cfgReader_}.addNode(nodeListName_, std::move(nodeList_));
+    }
+
+    operator TCfgList()
+    {
+        createNodeList();
         return {};
     }
 
-    NodeListCreator<TCfgList>& ensure(std::function<void(const sfun::remove_optional_t<TCfgList>&)> validatingFunc)
+    NodeListCreator& ensure(std::function<void(const sfun::remove_optional_t<TCfgList>&)> validatingFunc)
     {
         if (cfgReader_)
             ConfigReaderAccess{cfgReader_}.addValidator(
@@ -61,7 +79,7 @@ public:
     }
 
     template<typename TValidator, typename... TArgs>
-    NodeListCreator<TCfgList>& ensure(TArgs&&... args)
+    NodeListCreator& ensure(TArgs&&... args)
     {
         if (cfgReader_)
             ConfigReaderAccess{cfgReader_}.addValidator(std::make_unique<Validator<TCfgList>>(

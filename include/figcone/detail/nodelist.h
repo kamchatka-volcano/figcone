@@ -52,19 +52,32 @@ public:
             const auto& treeNode = nodeList.asList().at(i);
             try {
                 using Cfg = typename sfun::remove_optional_t<TCfgList>::value_type;
-                if constexpr (!std::is_aggregate_v<Cfg>)
-                    static_assert(
-                            std::is_constructible_v<Cfg, detail::ConfigReaderPtr>,
-                            "Non aggregate config objects must inherit figcone::Config constructors with 'using "
-                            "Config::Config;'");
+                if constexpr (std::is_base_of_v<figcone::Config, Cfg>) {
+                    if (!std::is_aggregate_v<Cfg>)
+                        static_assert(
+                                std::is_constructible_v<Cfg, detail::ConfigReaderPtr>,
+                                "Non aggregate config objects must inherit figcone::Config constructors with 'using "
+                                "Config::Config;'");
 
-                auto cfg = Cfg{cfgReader_};
-                if (cfgReader_) {
-                    if (type_ == NodeListType::Copy && i > 0)
-                        ConfigReaderAccess{cfgReader_}.load<Cfg>(nodeList.asList().at(0));
-                    ConfigReaderAccess{cfgReader_}.load<Cfg>(treeNode);
+                    auto cfg = Cfg{cfgReader_};
+                    if (cfgReader_) {
+                        if (type_ == NodeListType::Copy && i > 0)
+                            ConfigReaderAccess{cfgReader_}.load<Cfg>(nodeList.asList().at(0));
+                        ConfigReaderAccess{cfgReader_}.load<Cfg>(treeNode);
+                    }
+                    maybeOptValue(nodeList_).emplace_back(std::move(cfg));
                 }
-                maybeOptValue(nodeList_).emplace_back(std::move(cfg));
+                else {
+                    auto cfg = Cfg{};
+                    if (cfgReader_) {
+                        ConfigReaderAccess{cfgReader_}.loadStructure<Cfg>(cfg);
+
+                        if (type_ == NodeListType::Copy && i > 0)
+                            ConfigReaderAccess{cfgReader_}.load<Cfg>(nodeList.asList().at(0));
+                        ConfigReaderAccess{cfgReader_}.load<Cfg>(treeNode);
+                    }
+                    maybeOptValue(nodeList_).emplace_back(std::move(cfg));
+                }
             }
             catch (const LoadingError& e) {
                 throw ConfigError{"Node list '" + name_ + "': " + e.what(), treeNode.position()};

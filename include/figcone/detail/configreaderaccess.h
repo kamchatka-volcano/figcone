@@ -43,6 +43,12 @@ public:
         configReader_->template load<TCfg>(treeNode);
     }
 
+    template<typename TCfg>
+    void loadStructure(TCfg& cfg)
+    {
+        configReader_->template loadStructure<TCfg>(cfg);
+    }
+
     detail::ConfigReaderPtr makeNestedReader(const std::string& name)
     {
         return configReader_->makeNestedReader(name);

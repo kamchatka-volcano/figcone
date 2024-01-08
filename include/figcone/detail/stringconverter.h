@@ -1,6 +1,7 @@
 #ifndef FIGCONE_STRINGCONVERTER_H
 #define FIGCONE_STRINGCONVERTER_H
 
+#include <figcone/detail/external/sfun/type_traits.h>
 #include <figcone_tree/errors.h>
 #include <figcone_tree/stringconverter.h>
 #include <string>
@@ -13,10 +14,44 @@ struct StringConversionError {
 };
 
 template<typename T>
+std::optional<T> fromString(const std::string& data)
+{
+    [[maybe_unused]] auto setValue = [](auto& value, const std::string& data) -> std::optional<T>
+    {
+        auto stream = std::stringstream{data};
+        stream >> value;
+
+        if (stream.bad() || stream.fail() || !stream.eof())
+            return {};
+        return value;
+    };
+
+    if constexpr (std::is_convertible_v<std::string, tree::sfun::remove_optional_t<T>>) {
+        return data;
+    }
+    else if constexpr (tree::sfun::is_optional_v<T>) {
+        auto value = T{};
+        value.emplace();
+        return setValue(*value, data);
+    }
+    else {
+        auto value = T{};
+        return setValue(value, data);
+    }
+}
+
+template<typename T>
 std::variant<T, StringConversionError> convertFromString(const std::string& data)
 {
     try {
-        auto result = StringConverter<T>::fromString(data);
+        const auto result = [&]
+        {
+            if constexpr (sfun::is_complete_type_v<StringConverter<T>>)
+                return StringConverter<T>::fromString(data);
+            else
+                return fromString<T>(data);
+        }();
+
         if (!result.has_value())
             return StringConversionError{};
         else

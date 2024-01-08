@@ -2,6 +2,7 @@
 #define FIGCONE_NODECREATOR_H
 
 #include "configreaderaccess.h"
+#include "creatormode.h"
 #include "inode.h"
 #include "node.h"
 #include "utils.h"
@@ -18,36 +19,53 @@ class Config;
 
 namespace figcone::detail {
 
-template<typename TCfg>
+template<typename TCfg, CreatorMode creatorMode = CreatorMode::RuntimeReflection>
 class NodeCreator {
     static_assert(
-            std::is_base_of_v<Config, sfun::remove_optional_t<TCfg>>,
+            std::conditional_t<
+                    creatorMode == CreatorMode::RuntimeReflection,
+                    std::is_base_of<Config, sfun::remove_optional_t<TCfg>>,
+                    std::true_type>::value,
             "TConfig must be a subclass of figcone::Config.");
+    static_assert(
+            std::conditional_t<
+                    creatorMode == CreatorMode::StaticReflection,
+                    std::negation<std::is_base_of<Config, sfun::remove_optional_t<TCfg>>>,
+                    std::true_type>::value,
+            "TConfig must not inherit from figcone::Config when static reflection interface is used.");
 
 public:
-    NodeCreator(ConfigReaderPtr cfgReader, std::string nodeName, TCfg& nodeCfg)
+    NodeCreator(ConfigReaderPtr cfgReader, std::string nodeName, TCfg& nodeCfg, bool isOptional = false)
         : cfgReader_{cfgReader}
         , nodeName_{(sfun_precondition(!nodeName.empty()), std::move(nodeName))}
         , nodeCfg_{nodeCfg}
         , nestedCfgReader_{cfgReader_ ? ConfigReaderAccess{cfgReader_}.makeNestedReader(nodeName_) : ConfigReaderPtr{}}
     {
-        if constexpr (sfun::is_optional_v<TCfg>)
+        if constexpr (std::is_base_of_v<figcone::Config, TCfg> && sfun::is_optional_v<TCfg>)
             static_assert(
                     sfun::dependent_false<TCfg>,
                     "TConfig can't be placed in std::optional, use figcone::optional instead.");
         node_ = std::make_unique<Node<TCfg>>(nodeName_, nodeCfg_, nestedCfgReader_);
+
+        if (isOptional)
+            node_->markValueIsSet();
     }
 
-    NodeCreator<TCfg>& operator()()
+    NodeCreator& operator()()
     {
         node_->markValueIsSet();
         return *this;
     }
 
-    operator TCfg()
+    void createNode()
     {
         if (cfgReader_)
             ConfigReaderAccess{cfgReader_}.addNode(nodeName_, std::move(node_));
+    }
+
+    operator TCfg()
+    {
+        createNode();
 
         if constexpr (!std::is_aggregate_v<TCfg>)
             static_assert(
@@ -58,7 +76,7 @@ public:
         return TCfg{nestedCfgReader_};
     }
 
-    NodeCreator<TCfg>& ensure(std::function<void(const sfun::remove_optional_t<TCfg>&)> validatingFunc)
+    NodeCreator& ensure(std::function<void(const sfun::remove_optional_t<TCfg>&)> validatingFunc)
     {
         if (cfgReader_)
             ConfigReaderAccess{cfgReader_}.addValidator(
@@ -67,7 +85,7 @@ public:
     }
 
     template<typename TValidator, typename... TArgs>
-    NodeCreator<TCfg>& ensure(TArgs&&... args)
+    NodeCreator& ensure(TArgs&&... args)
     {
         if (cfgReader_)
             ConfigReaderAccess{cfgReader_}.addValidator(

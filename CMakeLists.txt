@@ -16,9 +16,51 @@ if (FIGCONE_USE_NAMEOF)
     SealLake_Bundle(
             NAME nameof
             GIT_REPOSITORY https://github.com/Neargye/nameof.git
-            GIT_TAG        master
+            GIT_TAG master
     )
-endif()
+endif ()
+
+SealLake_Bundle(
+        NAME figcone_pfr
+        GIT_REPOSITORY https://github.com/apolukhin/pfr_non_boost.git
+        GIT_TAG 2.2.0
+        DESTINATION include/figcone/detail/external
+        DIRECTORIES include/pfr
+        TEXT_REPLACEMENTS
+        "namespace pfr" "namespace figcone::pfr"
+        "::pfr::" "figcone::pfr::"
+        "PFR_" "FIGCONE_PFR_"
+        "<pfr/" "\""
+        ".hpp>" ".hpp\""
+)
+SealLake_Bundle(
+        NAME figcone_prf_detail
+        SKIP_LOAD
+        GIT_REPOSITORY https://github.com/apolukhin/pfr_non_boost.git
+        GIT_TAG 2.2.0
+        DESTINATION include/figcone/detail/external/pfr/detail
+        WILDCARDS include/pfr/detail/*
+        TEXT_REPLACEMENTS
+        "namespace pfr" "namespace figcone::pfr"
+        "::pfr::" "figcone::pfr::"
+        "PFR_" "FIGCONE_PFR_"
+        "<pfr/detail/" "\""
+        "<pfr/" "\"../"
+        ".hpp>" ".hpp\""
+)
+SealLake_Bundle(
+        NAME figcone_prf_h
+        SKIP_LOAD
+        GIT_REPOSITORY https://github.com/apolukhin/pfr_non_boost.git
+        GIT_TAG 2.2.0
+        DESTINATION include/figcone/detail/external/
+        FILES include/pfr.hpp
+        TEXT_REPLACEMENTS
+        "namespace pfr" "namespace figcone::pfr"
+        "PFR_" "FIGCONE_PFR_"
+        "<pfr/" "\"pfr/"
+        ".hpp>" ".hpp\""
+)
 
 SealLake_Bundle(
         NAME figcone_sfun
@@ -66,4 +108,4 @@ if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML 
     )
 endif()
 
-SealLake_OptionalBuildSteps(tests examples)
+SealLake_OptionalBuildSteps(tests tests_cpp20 examples)

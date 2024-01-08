@@ -11,12 +11,14 @@ namespace figcone::detail {
 template<typename T>
 class ParamCreator {
 public:
-    ParamCreator(ConfigReaderPtr cfgReader, std::string paramName, T& paramValue)
+    ParamCreator(ConfigReaderPtr cfgReader, std::string paramName, T& paramValue, bool isOptional = false)
         : cfgReader_{cfgReader}
         , paramName_{(sfun_precondition(!paramName.empty()), std::move(paramName))}
         , paramValue_{paramValue}
         , param_{std::make_unique<Param<T>>(paramName_, paramValue)}
     {
+        if (isOptional)
+            param_->markValueIsSet();
     }
 
     ParamCreator<T>& operator()(T defaultValue = {})
@@ -43,10 +45,15 @@ public:
         return *this;
     }
 
-    operator T()
+    void createParam()
     {
         if (cfgReader_)
             ConfigReaderAccess{cfgReader_}.addParam(paramName_, std::move(param_));
+    }
+
+    operator T()
+    {
+        createParam();
         return defaultValue_;
     }
 
