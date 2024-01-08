@@ -2,8 +2,10 @@
 #include "errors.h"
 #include "nameformat.h"
 #include "postprocessor.h"
+#include "unregisteredfieldhandler.h"
 #include "detail/configreaderptr.h"
 #include "detail/external/sfun/path.h"
+#include "detail/external/sfun/type_traits.h"
 #include "detail/figcone_ini_import.h"
 #include "detail/figcone_json_import.h"
 #include "detail/figcone_shoal_import.h"
@@ -15,6 +17,7 @@
 #include "detail/ivalidator.h"
 #include "detail/loadingerror.h"
 #include "detail/nameutils.h"
+#include "detail/unregisteredfieldutils.h"
 #include <figcone_tree/iparser.h>
 #include <figcone_tree/tree.h>
 #include <filesystem>
@@ -223,12 +226,16 @@ private:
         validators_.emplace_back((std::move(validator)));
     }
 
+    template<typename TConfig>
     void load(const TreeNode& treeNode)
     {
         for (const auto& nodeName : treeNode.asItem().nodeNames()) {
             const auto& node = treeNode.asItem().node(nodeName);
-            if (!nodes_.count(nodeName))
-                throw ConfigError{"Unknown node '" + nodeName + "'", node.position()};
+            if (!nodes_.count(nodeName)) {
+                detail::handleUnregisteredField<TConfig>(FieldType::Node, nodeName, node.position());
+                continue;
+            }
+
             try {
                 nodes_.at(nodeName)->load(node);
             }
@@ -239,8 +246,10 @@ private:
 
         for (const auto& paramName : treeNode.asItem().paramNames()) {
             const auto& param = treeNode.asItem().param(paramName);
-            if (!params_.count(paramName))
-                throw ConfigError{"Unknown param '" + paramName + "'", param.position()};
+            if (!params_.count(paramName)) {
+                detail::handleUnregisteredField<TConfig>(FieldType::Param, paramName, param.position());
+                continue;
+            }
             params_.at(paramName)->load(param);
         }
 
@@ -319,7 +328,7 @@ private:
         clear();
         auto cfg = TCfg{makePtr()};
         try {
-            load(root);
+            load<TCfg>(root);
         }
         catch (const detail::LoadingError& e) {
             throw ConfigError{std::string{"Root node: "} + e.what(), root.position()};

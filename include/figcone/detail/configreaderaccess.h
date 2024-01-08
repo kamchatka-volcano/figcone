@@ -38,7 +38,7 @@ public:
     template<typename TCfg>
     void load(const TreeNode& treeNode)
     {
-        configReader_->load(treeNode);
+        configReader_->template load<TCfg>(treeNode);
     }
 
     detail::ConfigReaderPtr makeNestedReader(const std::string& name)

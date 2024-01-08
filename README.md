@@ -46,18 +46,19 @@ int main()
 * [Usage](#usage)
      * [Config structure](#Config-structure)
      * [Supporting non-aggregate config structures](#supporting-non-aggregate-config-structures)
-     * [Registration without macros](#registration-without-macros) 
+     * [Registration without macros](#registration-without-macros)
      * [Supported formats](#supported-formats)
-          * [JSON](#json)
-          * [YAML](#yaml)
-          * [TOML](#toml)
-          * [XML](#xml)
-          * [INI](#ini)
-          * [shoal](#shoal)
-     * [Creation of figcone-compatible parsers](#creation-of-figcone-compatible-parsers)  
+         * [JSON](#json)
+         * [YAML](#yaml)
+         * [TOML](#toml)
+         * [XML](#xml)
+         * [INI](#ini)
+         * [shoal](#shoal)
+     * [Creation of figcone-compatible parsers](#creation-of-figcone-compatible-parsers)
      * [User defined types](#user-defined-types)
-  * [Validators](#validators)
-  * [Post-processors](#post-processors)
+     * [Unregistered fields handling](#unregister-fields-handling)
+     * [Validators](#validators)
+     * [Post-processors](#post-processors)
 * [Installation](#installation)
 * [Running tests](#running-tests)
 * [Building examples](#building-examples)   
@@ -735,6 +736,68 @@ struct StringConverter<Host>{
     }
 };
 }
+```
+
+### Unregistered fields handling
+
+By default, `figcone` requires an exact match of the configuration file content with a registered configuration
+structure. Besides any missing or wrongly typed data, errors are raised when some config fields are present in the file
+but are not registered in `figcone`. This behavior is debatable; for example, it can make it impossible to store two
+different apps' configurations in the same file. For this reason, error signaling for unregistered fields can be
+suppressed by registering the necessary behavior with the `UnregisteredFieldHandler` template class.
+
+Provide a template definition with
+the `void operator()(figcone::FieldType, const std::string& fieldName, const figcone::StreamPosition&)` callable
+signature to apply the new behavior to all config levels:
+
+```
+namespace figcone {
+
+template<typename T>
+struct UnregisteredFieldHandler {
+    void operator()(figcone::FieldType, const std::string&, const figcone::StreamPosition&) 
+    {
+        //Don't do anything here to suppress errors for all unregistered fields
+    }
+};
+
+} //namespace figcone
+```
+
+Or create a specialization of `UnregisteredFieldHandler` with a specific node type:
+
+```
+namespace figcone {
+
+template<>
+struct UnregisteredFieldHandler<SharedAlbumCfg> {
+    void operator()(figcone::FieldType, const std::string&, const figcone::StreamPosition&) 
+    {
+        //Don't do anything here to suppress errors for all unregistered fields inside the SharedAlbumCfg node.
+    }
+};
+
+} //namespace figcone
+```
+
+Instead of suppressing all errors of this kind, it's possible to make more targeted adjustments. For example, let's
+allow SharedAlbumCfg to have unregistered parameters but forbid the unregistered subnodes:
+
+```
+namespace figcone {
+
+template<>
+struct UnregisteredFieldHandler<SharedAlbumCfg> {
+    void operator()(figcone::FieldType fieldType, const std::string& fieldName, const figcone::StreamPosition& position) 
+    {
+        if (fieldType == figcone::FieldType::Node)
+            throw ConfigError{"Unknown node '" + fieldName + "'", position};
+            
+        //Don't do anything for fieldType == figcone::FieldType::Param     
+    }
+};
+
+} //namespace figcone
 ```
 
 ### Validators

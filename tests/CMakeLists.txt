@@ -8,7 +8,9 @@ set(SRC
         test_copynodelist.cpp
         test_paramlist.cpp
         test_dict.cpp
-        test_postprocessor.cpp)
+        test_postprocessor.cpp
+        test_unregisteredfieldhandler.cpp
+        test_defaultunregisteredfieldhandler.cpp)
 
 SealLake_GoogleTest(
         SOURCES ${SRC}
