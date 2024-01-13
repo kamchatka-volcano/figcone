@@ -1,0 +1,12 @@
+-Suite: static reflection examples
+
+-Check static reflection example #1:
+Launching PhotoViewer in directory "~/Photos"
+Supported files:
+  .jpg
+  .png
+Thumbnail settings:
+  Max width:256
+  Max height:256
+
+---

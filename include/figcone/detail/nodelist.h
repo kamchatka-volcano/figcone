@@ -53,7 +53,7 @@ public:
             try {
                 using Cfg = typename sfun::remove_optional_t<TCfgList>::value_type;
                 if constexpr (std::is_base_of_v<figcone::Config, Cfg>) {
-                    if (!std::is_aggregate_v<Cfg>)
+                    if constexpr (!std::is_aggregate_v<Cfg>)
                         static_assert(
                                 std::is_constructible_v<Cfg, detail::ConfigReaderPtr>,
                                 "Non aggregate config objects must inherit figcone::Config constructors with 'using "

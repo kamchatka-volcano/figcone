@@ -3,25 +3,15 @@
 #include <iostream>
 #include <vector>
 
-#ifdef FIGCONE_NAMEOF_AVAILABLE
-struct ThumbnailCfg : public figcone::Config
-{
-    int maxWidth = param<&ThumbnailCfg::maxWidth>();
-    int maxHeight = param<&ThumbnailCfg::maxHeight>();
+struct ThumbnailCfg {
+    int maxWidth;
+    int maxHeight;
 };
-#else
-struct ThumbnailCfg : public figcone::Config
-{
-    int maxWidth = param<&ThumbnailCfg::maxWidth>("maxWidth");
-    int maxHeight = param<&ThumbnailCfg::maxHeight>("maxHeight");
-};
-#endif
-struct PhotoViewerCfg : public figcone::Config
-{
-    //config fields can also be created with macros:
-    FIGCONE_PARAM(rootDir, std::filesystem::path);
-    FIGCONE_PARAMLIST(supportedFiles, std::vector<std::string>);
-    FIGCONE_NODE(thumbnailSettings, ThumbnailCfg);
+
+struct PhotoViewerCfg {
+    std::filesystem::path rootDir;
+    std::vector<std::string> supportedFiles;
+    ThumbnailCfg thumbnailSettings;
 };
 
 int main()

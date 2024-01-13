@@ -1,5 +1,4 @@
 #include <figcone/figcone.h>
-#include <figcone/shortmacros.h>
 #include <filesystem>
 #include <iostream>
 #include <map>
@@ -14,17 +13,23 @@ struct NotEmpty {
     }
 };
 
-struct PhotoViewerCfg : public figcone::Config {
-    PARAM(rootDir, std::filesystem::path)
-            .ensure(
-                    [](const auto& path)
-                    {
-                        if (!std::filesystem::exists(path))
-                            throw figcone::ValidationError{"a path must exist"};
-                    });
-    PARAMLIST(supportedFiles, std::vector<std::string>).ensure<NotEmpty>();
-    using StringMap = std::map<std::string, std::string>;
-    DICT(envVars, StringMap)();
+struct PathExists {
+    void operator()(const std::filesystem::path& path)
+    {
+        if (!std::filesystem::exists(path))
+            throw figcone::ValidationError{"a path must exist"};
+    }
+};
+
+struct PhotoViewerCfg {
+    std::filesystem::path rootDir;
+    std::vector<std::string> supportedFiles;
+    std::map<std::string, std::string> envVars;
+
+    using traits = figcone::FieldTraits<
+            figcone::ValidatedField<&PhotoViewerCfg::rootDir, PathExists>,
+            figcone::ValidatedField<&PhotoViewerCfg::supportedFiles, NotEmpty>,
+            figcone::OptionalField<&PhotoViewerCfg::envVars>>;
 };
 
 int main()

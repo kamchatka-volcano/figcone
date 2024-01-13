@@ -7,7 +7,7 @@
 #include <map>
 #include <string>
 
-#if __has_include(<nameof.hpp>)
+#if __has_include(<figcone/detail/external/nameof.hpp>)
 #define NAMEOF_AVAILABLE
 #endif
 

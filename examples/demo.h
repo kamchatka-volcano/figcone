@@ -1,9 +1,46 @@
 #pragma once
-#include <figcone/config.h>
+#include <figcone/figcone.h>
 #include <figcone/shortmacros.h> //enables macros without FIGCONE_ prefix
 #include <string>
 #include <vector>
 #include <map>
+
+#ifdef FIGCONE_EXAMPLE_STATIC_REFLECTION
+
+struct ThumbnailCfg {
+    bool enabled = true;
+    int maxWidth;
+    int maxHeight;
+
+    using traits = figcone::FieldTraits<
+            figcone::OptionalField<&ThumbnailCfg::enabled>>;
+};
+struct HostCfg {
+    std::string ip;
+    int port;
+};
+struct SharedAlbumCfg {
+    std::filesystem::path dir;
+    std::string name;
+    std::vector<HostCfg> hosts;
+
+    using traits = figcone::FieldTraits<
+            figcone::OptionalField<&SharedAlbumCfg::hosts>>;
+};
+struct PhotoViewerCfg {
+    std::filesystem::path rootDir;
+    std::vector<std::string> supportedFiles;
+    ThumbnailCfg thumbnails;
+    std::vector<SharedAlbumCfg> sharedAlbums;
+    std::map<std::string, std::string> envVars;
+
+    using traits = figcone::FieldTraits<
+            figcone::OptionalField<&PhotoViewerCfg::envVars>,
+            figcone::OptionalField<&PhotoViewerCfg::sharedAlbums>,
+            figcone::CopyNodeListField<&PhotoViewerCfg::sharedAlbums>>;
+};
+
+#else
 
 struct ThumbnailCfg : public figcone::Config
 {
@@ -28,3 +65,5 @@ struct PhotoViewerCfg : public figcone::Config{
     using StringMap = std::map<std::string, std::string>;
     DICT(envVars, StringMap)();
 };
+
+#endif

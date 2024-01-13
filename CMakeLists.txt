@@ -10,18 +10,25 @@ SealLake_Import(
         GIT_TAG v2.0.0
 )
 
-option(FIGCONE_USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" OFF)
+option(FIGCONE_USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" ON)
 if (FIGCONE_USE_NAMEOF)
     SealLake_IsInstalled(NAMEOF_OPT_INSTALL)
     SealLake_Bundle(
-            NAME nameof
+            NAME figcone_nameof
+            SKIP_LOAD
             GIT_REPOSITORY https://github.com/Neargye/nameof.git
             GIT_TAG master
+            DESTINATION include/figcone/detail/external
+            FILES include/nameof.hpp
+            TEXT_REPLACEMENTS
+            "namespace nameof" "namespace figcone::nameof"
+            "NAMEOF_" "FIGCONE_NAMEOF_"
     )
 endif ()
 
 SealLake_Bundle(
         NAME figcone_pfr
+        SKIP_LOAD
         GIT_REPOSITORY https://github.com/apolukhin/pfr_non_boost.git
         GIT_TAG 2.2.0
         DESTINATION include/figcone/detail/external
@@ -80,7 +87,7 @@ if (FIGCONE_USE_NAMEOF AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(CPP_STANDARD_FEATURE cxx_std_20)
 else()
     set(CPP_STANDARD_FEATURE cxx_std_17)
-endif()
+endif ()
 
 SealLake_HeaderOnlyLibrary(
         COMPILE_FEATURES ${CPP_STANDARD_FEATURE}
@@ -90,15 +97,6 @@ SealLake_HeaderOnlyLibrary(
         figcone_tree 2.0.0
 )
 
-if (FIGCONE_USE_NAMEOF)
-    SealLake_Libraries(
-            nameof::nameof
-    )
-    SealLake_Dependencies(
-            nameof 0.10.2
-    )
-endif()
-
 if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML OR FIGCONE_USE_INI OR FIGCONE_USE_XML OR FIGCONE_USE_SHOAL)
     SealLake_Libraries(
             figcone::figcone_formats
@@ -106,6 +104,12 @@ if (FIGCONE_USE_ALL OR FIGCONE_USE_JSON OR FIGCONE_USE_YAML OR FIGCONE_USE_TOML 
     SealLake_Dependencies(
             figcone_formats 1.0.0
     )
-endif()
+endif ()
 
-SealLake_OptionalBuildSteps(tests tests_cpp20 examples)
+SealLake_OptionalBuildSteps(
+        tests
+        tests_cpp20
+        tests_static_refl
+        examples
+        examples_static_refl
+)

@@ -14,7 +14,7 @@ namespace figcone::detail {
 template<typename TMap>
 class DictCreator {
 public:
-    DictCreator(ConfigReaderPtr cfgReader, std::string dictName, TMap& dictMap, bool isOptional)
+    DictCreator(ConfigReaderPtr cfgReader, std::string dictName, TMap& dictMap, bool isOptional = false)
         : cfgReader_{cfgReader}
         , dictName_{(sfun_precondition(!dictName.empty()), std::move(dictName))}
         , dict_{std::make_unique<Dict<TMap>>(dictName_, dictMap)}

@@ -1,18 +1,17 @@
 #include <figcone/figcone.h>
-#include <figcone/shortmacros.h> //enables macros without FIGCONE_ prefix
 #include <filesystem>
 #include <iostream>
 #include <map>
 #include <vector>
 
-struct Host{
+struct Host {
     std::string ip;
     int port;
 };
 
-namespace figcone{
+namespace figcone {
 template<>
-struct StringConverter<Host>{
+struct StringConverter<Host> {
     static std::optional<Host> fromString(const std::string& data)
     {
         auto delimPos = data.find(':');
@@ -24,18 +23,20 @@ struct StringConverter<Host>{
         return host;
     }
 };
-}
-struct SharedAlbumCfg : public figcone::Config{
-    PARAM(dir, std::filesystem::path);
-    PARAM(name, std::string);
-    PARAMLIST(hosts, std::vector<Host>)();
+} //namespace figcone
+
+struct SharedAlbumCfg {
+    std::filesystem::path dir;
+    std::string name;
+    std::vector<Host> hosts;
 };
-struct PhotoViewerCfg : public figcone::Config{
-    PARAM(rootDir, std::filesystem::path);
-    PARAMLIST(supportedFiles, std::vector<std::string>);
-    COPY_NODELIST(sharedAlbums, std::vector<SharedAlbumCfg>)();
-    using StringMap = std::map<std::string, std::string>;
-    DICT(envVars, StringMap)();
+struct PhotoViewerCfg {
+    std::filesystem::path rootDir;
+    std::vector<std::string> supportedFiles;
+    std::vector<SharedAlbumCfg> sharedAlbums;
+    std::map<std::string, std::string> envVars;
+
+    using traits = figcone::FieldTraits<figcone::OptionalField<&PhotoViewerCfg::envVars>>;
 };
 
 int main()
@@ -60,7 +61,7 @@ int main()
 
     if (!cfg.sharedAlbums.empty())
         std::cout << "Shared albums:" << std::endl;
-    for (const auto& album : cfg.sharedAlbums){
+    for (const auto& album : cfg.sharedAlbums) {
         std::cout << "  Album:" << album.name << std::endl;
         std::cout << "    Hosts:" << std::endl;
         for (const auto& host : album.hosts)

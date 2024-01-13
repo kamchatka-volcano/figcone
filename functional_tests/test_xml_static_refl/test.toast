@@ -1,0 +1,5 @@
+-Name: xml
+-Suite: static reflection format support
+
+-Check xml static reflection demo: ${{ format_demo_expected_output }}
+-Check all formats static reflection demo with demo.xml: ${{ format_demo_expected_output }}

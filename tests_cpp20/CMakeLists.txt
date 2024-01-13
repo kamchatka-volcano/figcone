@@ -1,13 +1,16 @@
 project(test_figcone_cpp20)
 
 set(SRC
-        test_node_cpp20.cpp
-        test_param_cpp20.cpp
-        test_paramlist_cpp20.cpp
-        test_nodelist_cpp20.cpp
-        test_copynodelist_cpp20.cpp
-        test_dict_cpp20.cpp
-        )
+        ../tests/test_param.cpp
+        ../tests/test_node.cpp
+        ../tests/test_nameformat.cpp
+        ../tests/test_nodelist.cpp
+        ../tests/test_copynodelist.cpp
+        ../tests/test_paramlist.cpp
+        ../tests/test_dict.cpp
+        ../tests/test_postprocessor.cpp
+        ../tests/test_unregisteredfieldhandler.cpp
+        ../tests/test_defaultunregisteredfieldhandler.cpp)
 
 SealLake_GoogleTest(
         SOURCES ${SRC}

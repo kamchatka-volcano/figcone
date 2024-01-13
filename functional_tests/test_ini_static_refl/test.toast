@@ -1,0 +1,5 @@
+-Name: ini
+-Suite: static reflection format support
+
+-Check ini static reflection demo: ${{ format_demo_expected_output }}
+-Check all formats static reflection demo with demo.ini: ${{ format_demo_expected_output }}

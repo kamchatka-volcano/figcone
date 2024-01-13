@@ -1,0 +1,5 @@
+-Name: toml
+-Suite: static reflection format support
+
+-Check toml static reflection demo: ${{ format_demo_expected_output }}
+-Check all formats static reflection demo with demo.toml: ${{ format_demo_expected_output }}

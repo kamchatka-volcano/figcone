@@ -1,0 +1,13 @@
+-Suite: static reflection examples
+
+-Check static reflection example #3:
+Launching PhotoViewer in directory "~/Photos"
+Supported files:
+  .jpg
+  png
+Shared albums:
+  Album:Summer 2019
+    Hosts:
+      127.0.0.1:8080
+
+---

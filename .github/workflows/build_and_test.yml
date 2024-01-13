@@ -29,7 +29,7 @@ jobs:
             cc: "gcc",
             cxx: "g++",
             flags: "-Wall -Werror -Wextra -Wpedantic -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused",
-            artifacts-path: "build/examples"
+            artifacts-path: ""
           }
           - {
             name: "Ubuntu Latest clang",
@@ -37,7 +37,7 @@ jobs:
             cc: "clang",
             cxx: "clang++",
             flags: "-Wall -Werror -Wextra -Wpedantic -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused",
-            artifacts-path: "build/examples"
+            artifacts-path: ""
           }
           - {
             name: "Windows Latest MSVC",
@@ -45,14 +45,14 @@ jobs:
             cc: "cl",
             cxx: "cl",
             flags: "/EHsc /W4 /WX /wd4267",
-            artifacts-path: "build/examples/Release"
+            artifacts-path: "/Release"
           }
 
     steps:
       - uses: actions/checkout@v3
 
       - name: Configure CMake
-        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON -DENABLE_EXAMPLES=ON -DFIGCONE_USE_NAMEOF=${{ matrix.use_nameof }} -DCMAKE_CXX_FLAGS="${{ matrix.config.flags }}"
+        run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON -DENABLE_TESTS_CPP20=ON -DENABLE_TESTS_STATIC_REFL=ON -DENABLE_EXAMPLES=ON -DENABLE_EXAMPLES_STATIC_REFL=ON -DFIGCONE_USE_NAMEOF=${{ matrix.use_nameof }} -DCMAKE_CXX_FLAGS="${{ matrix.config.flags }}"
 
       - name: Build
         run: cmake --build ${{github.workspace}}/build --config Release
@@ -65,7 +65,9 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: figcone-examples-${{ matrix.config.os }}-nameof-${{ matrix.use_nameof }}
-          path: ${{ matrix.config.artifacts-path }}
+          path: |
+            ${{github.workspace}}/build/examples${{ matrix.config.artifacts-path }}
+            ${{github.workspace}}/build/examples_static_refl${{ matrix.config.artifacts-path }}
 
   functional_tests:
     name: Functional testing (${{ matrix.config.name }}, nameof = ${{ matrix.use_nameof }})
@@ -110,11 +112,21 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: figcone-examples-${{ matrix.config.os }}-nameof-${{ matrix.use_nameof }}
-          path: build/examples
+          path: build/
+      - name: Fix artifacts paths on Windows
+        if: matrix.config.name == 'Windows'
+        working-directory: ${{github.workspace}}/build/
+        shell: sh
+        run: mv examples_static_refl/Release/* examples_static_refl/ && mv examples/Release/* examples/ || true
       - name: Set artifacts execute permissions
         if: matrix.config.name == 'Linux'
         shell: sh
         working-directory: ${{github.workspace}}/build/examples
+        run: chmod +x ex* && chmod +x demo_*
+      - name: Set artifacts execute permissions
+        if: matrix.config.name == 'Linux'
+        shell: sh
+        working-directory: ${{github.workspace}}/build/examples_static_refl
         run: chmod +x ex* && chmod +x demo_*
       - name: Launch tests
         id: launch_tests

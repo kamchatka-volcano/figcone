@@ -397,7 +397,7 @@ private:
     template<typename TCfg>
     void loadStructure(TCfg& cfg)
     {
-#if __cplusplus < 202002L
+#if (defined(_MSVC_LANG) && _MSVC_LANG < 202002L) || (!defined(_MSVC_LANG) && __cplusplus < 202002L)
         static_assert(
                 sfun::dependent_false<TCfg>,
                 "Static reflection interface requires C++20. Inherit from figcone::Config to use runtime reflection "

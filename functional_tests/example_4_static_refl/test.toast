@@ -1,0 +1,5 @@
+-Suite: static reflection examples
+
+-Check static reflection example #4:
+Config error:Parameter 'rootDir': a path must exist
+---

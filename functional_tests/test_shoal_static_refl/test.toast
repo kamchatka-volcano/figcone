@@ -1,0 +1,5 @@
+-Name: shoal
+-Suite: static reflection format support
+
+-Check shoal static reflection demo: ${{ format_demo_expected_output }}
+-Check all formats static reflection demo with demo.shoal: ${{ format_demo_expected_output }}

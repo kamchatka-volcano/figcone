@@ -1,0 +1,7 @@
+-Name: json
+-Suite: static reflection format support
+
+-Check json static reflection demo: ${{ format_demo_expected_output }}
+-Check all formats static reflection demo with demo.json: ${{ format_demo_expected_output }}
+
+-Check json_root_list static reflection demo: ${{ format_demo_root_list_expected_output }}
