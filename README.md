@@ -41,7 +41,8 @@ int main()
 }
 ```
 
-This example uses the static reflection interface based on the `pfr` library. It requires C++20 and only works with
+This example uses the static reflection interface based on the [`pfr`](https://github.com/apolukhin/pfr_non_boost)
+library. It requires C++20 and only works with
 aggregate initializable structures. On C++17, the runtime reflection solution originally developed with `figcone` is
 used to register configuration fields:
 
@@ -199,7 +200,8 @@ Examples in the documentation use registration with macros, as it is the least v
 
 ### Config structure for static reflection (C++20)
 
-Static reflection provided by the `pfr` library allows us to register configuration by using aggregate structures
+Static reflection provided by the [`pfr`](https://github.com/apolukhin/pfr_non_boost) library allows us to register
+configuration by using aggregate structures
 without any base class and macros. Let's return to the example from the beginning of this document:
 
 ```c++
