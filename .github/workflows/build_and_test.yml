@@ -1,6 +1,7 @@
 name: build & test (clang, gcc, MSVC)
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "master", "dev", "v3" ]
     paths-ignore:
@@ -26,30 +27,34 @@ jobs:
           - {
             name: "Ubuntu Latest gcc",
             os: ubuntu-latest,
-            cc: "gcc",
-            cxx: "g++",
-            flags: "-Wall -Werror -Wextra -Wpedantic -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused",
+            cmake-preset: gcc-release,
             artifacts-path: ""
           }
           - {
             name: "Ubuntu Latest clang",
             os: ubuntu-latest,
-            cc: "clang",
-            cxx: "clang++",
-            flags: "-Wall -Werror -Wextra -Wpedantic -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused",
+            cmake-preset: clang-release,
             artifacts-path: ""
           }
           - {
             name: "Windows Latest MSVC",
             os: windows-latest,
-            cc: "cl",
-            cxx: "cl",
-            flags: "/EHsc /W4 /WX /wd4267",
+            cmake-preset: msvc-release,
             artifacts-path: "/Release"
           }
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Install ninja (Windows)
+        if: matrix.config.os == 'windows-latest'
+        run: choco install ninja
+      - name: Install ninja (Linux)
+        if: matrix.config.os == 'ubuntu-latest'
+        run: sudo apt install ninja-build
+      - uses: actions/checkout@v4
+
+      - uses: rui314/setup-mold@v1
+      - uses: hendrikmuhs/ccache-action@v1.2
+      - uses: ilammy/msvc-dev-cmd@v1
 
       - name: Configure CMake
         run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTS=ON -DENABLE_TESTS_CPP20=ON -DENABLE_TESTS_STATIC_REFL=ON -DENABLE_EXAMPLES=ON -DENABLE_EXAMPLES_STATIC_REFL=ON -DFIGCONE_USE_NAMEOF=${{ matrix.use_nameof }} -DCMAKE_CXX_FLAGS="${{ matrix.config.flags }}"

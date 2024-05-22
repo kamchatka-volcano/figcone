@@ -1,0 +1,123 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "base-linux",
+      "hidden": true,
+      "displayName": "linux base preset",
+      "generator": "Ninja",
+      "binaryDir": "build-${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXE_LINKER_FLAGS": "-fuse-ld=mold",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache",
+        "CPM_SOURCE_CACHE": "cpm_cache"
+      }
+    },
+    {
+      "name": "clang-base",
+      "hidden": true,
+      "displayName": "clang base preset",
+      "inherits": "base-linux",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_C_COMPILER": "clang",
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Wpedantic -Werror -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused"
+      }
+    },
+    {
+      "name": "clang-debug",
+      "displayName": "clang (Debug)",
+      "inherits": "clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "clang-release",
+      "displayName": "clang (Release)",
+      "inherits": "clang-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "gcc-base",
+      "hidden": true,
+      "displayName": "gcc base preset",
+      "inherits": "base-linux",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "g++",
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_FLAGS": "-Wall -Wextra -Wpedantic -Werror -Wcast-align -Wnon-virtual-dtor -Woverloaded-virtual -Wunused"
+      }
+    },
+    {
+      "name": "gcc-debug",
+      "displayName": "gcc (Debug)",
+      "inherits": "gcc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "gcc-release",
+      "displayName": "gcc (Release)",
+      "inherits": "gcc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "base-windows",
+      "displayName": "windows base preset",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "build-${presetName}",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CPM_SOURCE_CACHE": "cpm_cache",
+        "CMAKE_CXX_COMPILER_LAUNCHER": "ccache"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [
+            "Windows"
+          ]
+        },
+        "jetbrains.com/clion": {
+          "toolchain": "Visual Studio"
+        }
+      }
+    },
+    {
+      "name": "msvc-base",
+      "hidden": true,
+      "displayName": "msvc base preset",
+      "inherits": "base-windows",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "cl.exe",
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_FLAGS": "/EHsc /W4 /WX /wd4267"
+      }
+    },
+    {
+      "name": "msvc-debug",
+      "displayName": "msvc (Debug)",
+      "inherits": "msvc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "msvc-release",
+      "displayName": "msvc (Release)",
+      "inherits": "msvc-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    }
+  ]
+}

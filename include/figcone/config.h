@@ -1,6 +1,7 @@
 #ifndef FIGCONE_CONFIG_H
 #define FIGCONE_CONFIG_H
 
+#include "configreader.h"
 #include "detail/configmacros.h"
 #include "detail/dict.h"
 #include "detail/dictcreator.h"

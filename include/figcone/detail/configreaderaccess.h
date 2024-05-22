@@ -7,7 +7,7 @@
 
 namespace figcone {
 class TreeNode;
-};
+}
 
 namespace figcone::detail {
 class INode;

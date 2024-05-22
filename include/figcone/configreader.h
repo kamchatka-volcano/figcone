@@ -62,7 +62,7 @@ constexpr auto canBeReadAsParam()
             detail::is_string_streamable_v<tree::sfun::remove_optional_t<TField>> ||
             sfun::is_complete_type_v<StringConverter<tree::sfun::remove_optional_t<TField>>>;
 }
-}; //namespace detail
+} //namespace detail
 
 class ConfigReader {
 
