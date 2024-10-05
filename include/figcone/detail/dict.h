@@ -38,11 +38,11 @@ private:
     {
         hasValue_ = true;
         position_ = node.position();
+        dictMap_ = TMap{};
         if (!node.isItem())
             throw ConfigError{"Dictionary '" + name_ + "': config node can't be a list.", node.position()};
         if constexpr (sfun::is_optional_v<TMap>)
             dictMap_.emplace();
-        maybeOptValue(dictMap_).clear();
 
         for (const auto& paramName : node.asItem().paramNames()) {
             const auto& paramValue = node.asItem().param(paramName);

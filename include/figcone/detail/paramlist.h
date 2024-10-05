@@ -38,6 +38,7 @@ private:
     {
         position_ = paramList.position();
         hasValue_ = true;
+        paramListValue_ = TParamList{};
         if constexpr (sfun::is_optional_v<TParamList>)
             paramListValue_.emplace();
 

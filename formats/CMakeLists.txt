@@ -1,4 +1,4 @@
-project(figcone_formats VERSION 1.1.0)
+project(figcone_formats VERSION 1.2.0)
 
 option(FIGCONE_USE_ALL  "Enable all supported config formats" ON)
 option(FIGCONE_USE_JSON "Enable JSON config format" OFF)
@@ -64,9 +64,9 @@ endif()
 
 if(FIGCONE_USE_ALL OR FIGCONE_USE_XML)
     SealLake_Import(
-            figcone_xml 1.1.0
+            figcone_xml 1.2.0
             GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_xml.git
-            GIT_TAG v1.1.0
+            GIT_TAG v1.2.0
     )
     SealLake_Copy(
             WILDCARDS ${figcone_xml_SOURCE_DIR}/include/figcone_xml/*

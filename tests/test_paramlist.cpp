@@ -406,4 +406,21 @@ TEST(TestParamList, DefaultValue)
     EXPECT_EQ(cfg.testIntList.at(2), 3);
 }
 
+TEST(TestParamList, OverwriteDefaultValue)
+{
+    ///testStrList = []
+    ///
+    auto tree = figcone::makeTreeRoot();
+    tree->asItem().addParamList("testStrList", std::vector<std::string>{}, {1, 1});
+    tree->asItem().addParamList("testIntList", std::vector<std::string>{"42", "43"}, {1, 1});
+    auto parser = TreeProvider{std::move(tree)};
+    auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
+    auto cfg = cfgReader.read<CfgStr>("", parser);
+
+    ASSERT_EQ(cfg.testStrList.size(), 0);
+    ASSERT_EQ(cfg.testIntList.size(), 2);
+    EXPECT_EQ(cfg.testIntList.at(0), 42);
+    EXPECT_EQ(cfg.testIntList.at(1), 43);
+}
+
 } //namespace test_paramlist
