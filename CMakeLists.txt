@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(figcone VERSION 3.2.0)
+project(figcone VERSION 3.2.1)
 include(external/seal_lake)
 
 SealLake_IsInstallEnabled(INSTALL_FIGCONE_TREE)

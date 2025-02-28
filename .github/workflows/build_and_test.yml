@@ -28,18 +28,21 @@ jobs:
             name: "Ubuntu Latest gcc",
             os: ubuntu-latest,
             cmake-preset: gcc-release,
+            artifacts-type: "gcc",
             artifacts-path: ""
           }
           - {
             name: "Ubuntu Latest clang",
             os: ubuntu-latest,
             cmake-preset: clang-release,
+            artifacts-type: "clang",
             artifacts-path: ""
           }
           - {
             name: "Windows Latest MSVC",
             os: windows-latest,
             cmake-preset: msvc-release,
+            artifacts-type: "msvc",
             artifacts-path: "/Release"
           }
 
@@ -67,9 +70,9 @@ jobs:
         run: ctest
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: figcone-examples-${{ matrix.config.os }}-nameof-${{ matrix.use_nameof }}
+          name: figcone-examples-${{ matrix.config.artifacts-type }}-nameof-${{ matrix.use_nameof }}
           path: |
             ${{github.workspace}}/build/examples${{ matrix.config.artifacts-path }}
             ${{github.workspace}}/build/examples_static_refl${{ matrix.config.artifacts-path }}
@@ -86,12 +89,14 @@ jobs:
           - {
             name: "Windows",
             os: "windows-latest",
+            artifacts-type: "msvc",
             lunchtoast_exec: "lunchtoast.exe",
             shell_command: -shell="msys2 -c",
           }
           - {
             name: "Linux",
             os: "ubuntu-latest",
+            artifacts-type: "gcc",
             lunchtoast_exec: "lunchtoast",
             shell_command: "",
           }
@@ -114,9 +119,9 @@ jobs:
         run: chmod +x lunchtoast
       - name: Download figcone examples build
         id: pre_launch_tests
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
-          name: figcone-examples-${{ matrix.config.os }}-nameof-${{ matrix.use_nameof }}
+          name: figcone-examples-${{ matrix.config.artifacts-type }}-nameof-${{ matrix.use_nameof }}
           path: build/
       - name: Fix artifacts paths on Windows
         if: matrix.config.name == 'Windows'
@@ -139,7 +144,7 @@ jobs:
         run: lunchtoast/lunchtoast functional_tests ${{ matrix.config.shell_command }} -collectFailedTests=failed_tests
       - name: Upload failed tests
         if: failure() && steps.launch_tests.outcome != 'success' && steps.pre_launch_tests.outcome == 'success'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: figcone-failed-tests-${{ matrix.config.os }}-nameof-${{ matrix.use_nameof }}
           path: failed_tests

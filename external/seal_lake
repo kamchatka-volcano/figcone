@@ -1,5 +1,5 @@
 include(FetchContent)
-set(SEAL_LAKE_VERSION v0.2.0)
+set(SEAL_LAKE_VERSION v0.2.1)
 set(FETCHCONTENT_QUIET FALSE)
 FetchContent_Declare(seal_lake_${SEAL_LAKE_VERSION}
     SOURCE_DIR seal_lake_${SEAL_LAKE_VERSION}
