@@ -6,7 +6,7 @@ SealLake_v040_IsInstallEnabled(INSTALL_FIGCONE_TREE)
 SealLake_v040_Import(
         figcone_tree 2.2.0
         GIT_REPOSITORY https://github.com/kamchatka-volcano/figcone_tree.git
-        GIT_TAG dev
+        GIT_TAG v2.2.0
 )
 
 option(FIGCONE_USE_NAMEOF "Enable automatic registration of struct field names using the nameof library" ON)

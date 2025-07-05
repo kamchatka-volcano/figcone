@@ -9,6 +9,10 @@ set(SRC
         test_dict_cpp20.cpp
         )
 
+if (FIGCONE_TEST_RELEASE)
+        add_subdirectory(release)
+endif ()
+
 SealLake_v040_GoogleTest(
         SOURCES ${SRC}
         COMPILE_FEATURES cxx_std_20

@@ -1,0 +1,63 @@
+name: release
+
+on:
+  push:
+    tags: [ "v*" ]
+
+jobs:
+  build:
+    name: Publish release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ninja (Linux)
+        run: sudo apt install ninja-build
+      - uses: actions/checkout@v4
+      - uses: rui314/setup-mold@v1
+      - uses: hendrikmuhs/ccache-action@v1.2
+      - name: Configure CMake to download dependencies
+        run: cmake -B build --preset="clang-release"
+      - name: Create release package
+        run: release_pack/release.sh
+      - name: Build unit tests with release package
+        working-directory: tests
+        run: |
+          cp -r ../release .
+          cp release/seal_lake.cmake .
+          cp release/CPM.cmake .
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DFIGCONE_TEST_RELEASE=ON
+          cmake --build build
+      - name: Run unit tests
+        working-directory: tests/build
+        run: ./test_figcone
+      - name: Build unit tests (C++20) with release package
+        working-directory: tests_cpp20
+        run: |
+          cp -r ../release .
+          cp release/seal_lake.cmake .
+          cp release/CPM.cmake .
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DFIGCONE_TEST_RELEASE=ON
+          cmake --build build
+      - name: Run unit tests (C++20)
+        working-directory: tests_cpp20/build
+        run: ./test_figcone_cpp20
+      - name: Build unit tests (C++20, static reflection) with release package
+        working-directory: tests_static_refl
+        run: |
+          cp -r ../release .
+          cp release/seal_lake.cmake .
+          cp release/CPM.cmake .
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DFIGCONE_TEST_RELEASE=ON
+          cmake --build build        
+      - name: Run unit tests (C++20, static reflection)
+        working-directory: tests_static_refl/build
+        run: ./test_figcone_static_refl
+      - name: Archive release artifacts
+        working-directory: tests
+        run: |
+          mv release figcone-${{ github.ref_name }}
+          zip -r figcone-${{ github.ref_name }}.zip figcone-${{ github.ref_name }}
+      - name: Upload release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            tests/figcone-${{ github.ref_name }}.zip

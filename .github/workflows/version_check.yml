@@ -1,0 +1,52 @@
+name: check version consistency
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "master", "dev" ]
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    branches: [ "master", "dev" ]
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check version consistency
+        run: |
+          PROJECT_VERSION=$(grep -Po 'project\([^)]*VERSION\s+\K[0-9]+\.[0-9]+\.[0-9]+' CMakeLists.txt)
+          RELEASE_VERSION=$(grep -Po 'project\([^)]*VERSION\s+\K[0-9]+\.[0-9]+\.[0-9]+' release_pack/CMakeLists.txt)
+
+          if [ "$PROJECT_VERSION" != "$RELEASE_VERSION" ]; then
+            echo "Error: Version mismatch between CMakeLists.txt ($PROJECT_VERSION) and release_pack/CMakeLists.txt ($RELEASE_VERSION)"
+            exit 1
+          fi
+      - name: Check GIT_TAG format
+        run: |
+          FILES=$(find . -name CMakeLists.txt)
+          BAD_TAGS=0
+
+          echo "Checking GIT_TAG semantic version format..."
+
+          for FILE in $FILES; do
+            TAGS=$(grep -Po 'GIT_TAG\s+["'\'']?\K[^"'\''\s)]+' "$FILE" || true)
+            for TAG in $TAGS; do
+              if ! [[ "$TAG" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+([-._][A-Za-z0-9]+)*$ ]]; then
+                echo "Error: [file=$FILE] GIT_TAG '$TAG' does not start with a valid semantic version (e.g., 1.2.3, v1.2.3)"
+                BAD_TAGS=1
+              fi
+            done
+          done
+
+          if [ "$BAD_TAGS" -ne 0 ]; then
+            echo "Error: One or more GIT_TAG values don't start with a valid semantic version."
+            exit 1
+          else
+            echo "All GIT_TAG values start with valid semantic versions."
+          fi

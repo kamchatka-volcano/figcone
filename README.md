@@ -1151,8 +1151,7 @@ cmake_minimum_required(VERSION 3.14)
 
 include(FetchContent)
 FetchContent_Declare(figcone
-    GIT_REPOSITORY "https://github.com/kamchatka-volcano/figcone.git"
-    GIT_TAG "origin/master"
+    URL https://github.com/kamchatka-volcano/figcone/releases/download/v3.3.0/figcone-v3.3.0.zip 
 )
 #uncomment if you need to install figcone with your target
 #set(INSTALL_FIGCONE ON)
@@ -1161,6 +1160,9 @@ FetchContent_MakeAvailable(figcone)
 add_executable(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} PRIVATE figcone::figcone)
 ```
+
+Prefer using the release ZIP archive with FetchContent, as it is fully self-contained and avoids spending additional
+time downloading the library dependencies during the CMake configuration step.
 
 By default `figcone` fetches all supported configuration format libraries. You can control this with CMake option `FIGCONE_USE_ALL`. You can also enable support for a single configuration format or a combination of formats  by setting the following options:
   * `FIGCONE_USE_JSON` - fetches and configures the `figcone_json` library;
@@ -1181,7 +1183,7 @@ cmake --install build
 
 After installation, you can use the `find_package()` command to make the installed library available inside your project:
 ```
-find_package(figcone 2.0.0 REQUIRED)
+find_package(figcone 3.3.0 REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE figcone::figcone)   
 ```
 
