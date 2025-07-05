@@ -4,8 +4,8 @@
 #include "configreaderaccess.h"
 #include "dict.h"
 #include "validator.h"
-#include "external/sfun/contract.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/contract.h"
+#include "external/eel/type_traits.h"
 #include <figcone/nameformat.h>
 #include <memory>
 
@@ -16,16 +16,16 @@ class DictCreator {
 public:
     DictCreator(ConfigReaderPtr cfgReader, std::string dictName, TMap& dictMap, bool isOptional = false)
         : cfgReader_{cfgReader}
-        , dictName_{(sfun_precondition(!dictName.empty()), std::move(dictName))}
+        , dictName_{(eel::precondition(!dictName.empty(), FIGCONE_EEL_LINE), std::move(dictName))}
         , dict_{std::make_unique<Dict<TMap>>(dictName_, dictMap)}
         , dictMap_{dictMap}
     {
         static_assert(
-                sfun::is_associative_container_v<sfun::remove_optional_t<TMap>>,
+                eel::is_associative_container_v<eel::remove_optional_t<TMap>>,
                 "Dictionary field must be an associative container or an associative container placed in "
                 "std::optional");
         static_assert(
-                std::is_same_v<typename sfun::remove_optional_t<TMap>::key_type, std::string>,
+                std::is_same_v<typename eel::remove_optional_t<TMap>::key_type, std::string>,
                 "Dictionary associative container's key type must be std::string");
         if (isOptional)
             dict_->markValueIsSet();
@@ -50,7 +50,7 @@ public:
         return defaultValue_;
     }
 
-    DictCreator& ensure(std::function<void(const sfun::remove_optional_t<TMap>&)> validatingFunc)
+    DictCreator& ensure(std::function<void(const eel::remove_optional_t<TMap>&)> validatingFunc)
     {
         if (cfgReader_)
             ConfigReaderAccess{cfgReader_}.addValidator(

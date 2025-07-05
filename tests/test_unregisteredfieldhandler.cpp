@@ -46,14 +46,13 @@ struct MultiLevelCfg : public figcone::Config {
 
 } //namespace
 
-namespace figcone {
 
+namespace figcone {
 template<>
 struct UnregisteredFieldHandler<B> {
     void operator()(figcone::FieldType, const std::string&, const figcone::StreamPosition&) {}
 };
 } //namespace figcone
-
 namespace {
 
 class TreeProvider : public figcone::IParser {
@@ -103,6 +102,7 @@ TEST(UnregisteredFieldHandler, IgnoreUnregisteredFields)
 
     auto parser = TreeProvider{std::move(tree)};
     auto cfgReader = figcone::ConfigReader{figcone::NameFormat::CamelCase};
+
     auto cfg = cfgReader.read<MultiLevelCfg>("", parser);
 
     EXPECT_EQ(cfg.foo, 5);

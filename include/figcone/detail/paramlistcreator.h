@@ -6,8 +6,8 @@
 #include "paramlist.h"
 #include "utils.h"
 #include "validator.h"
-#include "external/sfun/contract.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/contract.h"
+#include "external/eel/type_traits.h"
 #include <vector>
 
 namespace figcone::detail {
@@ -15,7 +15,7 @@ namespace figcone::detail {
 template<typename TParamList>
 class ParamListCreator {
     static_assert(
-            sfun::is_dynamic_sequence_container_v<sfun::remove_optional_t<TParamList>>,
+            eel::is_dynamic_sequence_container_v<eel::remove_optional_t<TParamList>>,
             "Param list field must be a sequence container or a sequence container placed in std::optional");
 
 public:
@@ -25,7 +25,7 @@ public:
             TParamList& paramListValue,
             bool isOptional = false)
         : cfgReader_{cfgReader}
-        , paramListName_{(sfun_precondition(!paramListName.empty()), std::move(paramListName))}
+        , paramListName_{(eel::precondition(!paramListName.empty(), FIGCONE_EEL_LINE), std::move(paramListName))}
         , paramListValue_{paramListValue}
         , paramList_{std::make_unique<ParamList<TParamList>>(paramListName_, paramListValue)}
     {
@@ -40,7 +40,7 @@ public:
         return *this;
     }
 
-    ParamListCreator<TParamList>& ensure(std::function<void(const sfun::remove_optional_t<TParamList>&)> validatingFunc)
+    ParamListCreator<TParamList>& ensure(std::function<void(const eel::remove_optional_t<TParamList>&)> validatingFunc)
     {
         if (cfgReader_)
             ConfigReaderAccess{cfgReader_}.addValidator(

@@ -1,11 +1,11 @@
 #ifndef FIGCONE_IVALIDATOR_H
 #define FIGCONE_IVALIDATOR_H
 
-#include "external/sfun/interface.h"
+#include "external/eel/interface.h"
 
 namespace figcone::detail {
 
-class IValidator : private sfun::interface<IValidator> {
+class IValidator : private eel::interface<IValidator> {
 public:
     virtual void validate() = 0;
 };

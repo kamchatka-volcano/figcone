@@ -1,7 +1,7 @@
 #ifndef FIGCONE_STRINGCONVERTER_H
 #define FIGCONE_STRINGCONVERTER_H
 
-#include <figcone/detail/external/sfun/type_traits.h>
+#include <figcone/detail/external/eel/type_traits.h>
 #include <figcone_tree/errors.h>
 #include <figcone_tree/stringconverter.h>
 #include <string>
@@ -26,10 +26,10 @@ std::optional<T> fromString(const std::string& data)
         return value;
     };
 
-    if constexpr (std::is_convertible_v<std::string, tree::sfun::remove_optional_t<T>>) {
+    if constexpr (std::is_convertible_v<std::string, tree::eel::remove_optional_t<T>>) {
         return data;
     }
-    else if constexpr (tree::sfun::is_optional_v<T>) {
+    else if constexpr (tree::eel::is_optional_v<T>) {
         auto value = T{};
         value.emplace();
         return setValue(*value, data);
@@ -46,7 +46,7 @@ std::variant<T, StringConversionError> convertFromString(const std::string& data
     try {
         const auto result = [&]
         {
-            if constexpr (sfun::is_complete_type_v<StringConverter<T>>)
+            if constexpr (eel::is_complete_type_v<StringConverter<T>>)
                 return StringConverter<T>::fromString(data);
             else
                 return fromString<T>(data);

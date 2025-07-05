@@ -4,7 +4,7 @@
 #include "iconfigentity.h"
 #include "ivalidator.h"
 #include "utils.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/type_traits.h"
 #include <figcone/errors.h>
 #include <functional>
 
@@ -16,7 +16,7 @@ public:
     Validator(
             IConfigEntity& entity,
             T& entityValue,
-            std::function<void(const sfun::remove_optional_t<T>&)> validatingFunc)
+            std::function<void(const eel::remove_optional_t<T>&)> validatingFunc)
         : entity_(entity)
         , entityValue_(entityValue)
         , validatingFunc_(std::move(validatingFunc))
@@ -27,7 +27,7 @@ private:
     void validate() override
     {
         try {
-            if constexpr (sfun::is_optional_v<T> || is_initialized_optional_v<T>) {
+            if constexpr (eel::is_optional_v<T> || is_initialized_optional_v<T>) {
                 if (entityValue_)
                     validatingFunc_(*entityValue_);
             }
@@ -41,7 +41,7 @@ private:
 
     IConfigEntity& entity_;
     T& entityValue_;
-    std::function<void(const sfun::remove_optional_t<T>&)> validatingFunc_;
+    std::function<void(const eel::remove_optional_t<T>&)> validatingFunc_;
 };
 
 } //namespace figcone::detail

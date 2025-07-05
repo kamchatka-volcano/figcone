@@ -4,8 +4,8 @@
 #include "configreaderaccess.h"
 #include "creatormode.h"
 #include "nodelist.h"
-#include "external/sfun/contract.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/contract.h"
+#include "external/eel/type_traits.h"
 #include <figcone/nameformat.h>
 
 namespace figcone {
@@ -17,18 +17,18 @@ namespace figcone::detail {
 template<typename TCfgList, CreatorMode creatorMode = CreatorMode::RuntimeReflection>
 class NodeListCreator {
     static_assert(
-            sfun::is_dynamic_sequence_container_v<sfun::remove_optional_t<TCfgList>>,
+            eel::is_dynamic_sequence_container_v<eel::remove_optional_t<TCfgList>>,
             "Node list field must be a sequence container or a sequence container placed in std::optional");
     static_assert(
             std::conditional_t<
                     creatorMode == CreatorMode::RuntimeReflection,
-                    std::is_base_of<Config, typename sfun::remove_optional_t<TCfgList>::value_type>,
+                    std::is_base_of<Config, typename eel::remove_optional_t<TCfgList>::value_type>,
                     std::true_type>::value,
             "TConfig must be a subclass of figcone::Config.");
     static_assert(
             std::conditional_t<
                     creatorMode == CreatorMode::StaticReflection,
-                    std::negation<std::is_base_of<Config, typename sfun::remove_optional_t<TCfgList>::value_type>>,
+                    std::negation<std::is_base_of<Config, typename eel::remove_optional_t<TCfgList>::value_type>>,
                     std::true_type>::value,
             "TConfig must not be a subclass of figcone::Config when static reflection interface is used.");
 
@@ -40,7 +40,7 @@ public:
             NodeListType type = NodeListType::Normal,
             bool isOptional = false)
         : cfgReader_{cfgReader}
-        , nodeListName_{(sfun_precondition(!nodeListName.empty()), std::move(nodeListName))}
+        , nodeListName_{(eel::precondition(!nodeListName.empty(), FIGCONE_EEL_LINE), std::move(nodeListName))}
         , nodeList_{std::make_unique<NodeList<TCfgList>>(
                   nodeListName_,
                   nodeList,
@@ -70,7 +70,7 @@ public:
         return {};
     }
 
-    NodeListCreator& ensure(std::function<void(const sfun::remove_optional_t<TCfgList>&)> validatingFunc)
+    NodeListCreator& ensure(std::function<void(const eel::remove_optional_t<TCfgList>&)> validatingFunc)
     {
         if (cfgReader_)
             ConfigReaderAccess{cfgReader_}.addValidator(

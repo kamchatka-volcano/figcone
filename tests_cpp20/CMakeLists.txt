@@ -12,7 +12,7 @@ set(SRC
         ../tests/test_unregisteredfieldhandler.cpp
         ../tests/test_defaultunregisteredfieldhandler.cpp)
 
-SealLake_GoogleTest(
+SealLake_v040_GoogleTest(
         SOURCES ${SRC}
         COMPILE_FEATURES cxx_std_20
         PROPERTIES

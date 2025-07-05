@@ -4,7 +4,7 @@
 #include "inode.h"
 #include "param.h"
 #include "utils.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/type_traits.h"
 #include <figcone_tree/tree.h>
 #include <map>
 #include <string>
@@ -20,11 +20,11 @@ public:
         , dictMap_{dictMap}
     {
         static_assert(
-                sfun::is_associative_container_v<sfun::remove_optional_t<TMap>>,
+                eel::is_associative_container_v<eel::remove_optional_t<TMap>>,
                 "Dictionary field must be an associative container or an associative container placed in "
                 "std::optional");
         static_assert(
-                std::is_same_v<typename sfun::remove_optional_t<TMap>::key_type, std::string>,
+                std::is_same_v<typename eel::remove_optional_t<TMap>::key_type, std::string>,
                 "Dictionary associative container's key type must be std::string");
     }
 
@@ -41,16 +41,16 @@ private:
         dictMap_ = TMap{};
         if (!node.isItem())
             throw ConfigError{"Dictionary '" + name_ + "': config node can't be a list.", node.position()};
-        if constexpr (sfun::is_optional_v<TMap>)
+        if constexpr (eel::is_optional_v<TMap>)
             dictMap_.emplace();
 
         for (const auto& paramName : node.asItem().paramNames()) {
             const auto& paramValue = node.asItem().param(paramName);
-            using Param = typename sfun::remove_optional_t<TMap>::mapped_type;
+            using Param = typename eel::remove_optional_t<TMap>::mapped_type;
             const auto paramNameStr = paramName;
             const auto paramValueStr = paramValue;
             auto paramReadResult = convertFromString<Param>(paramValueStr.value());
-            auto readResultVisitor = sfun::overloaded{
+            auto readResultVisitor = eel::overloaded{
                     [&](const Param& param)
                     {
                         maybeOptValue(dictMap_).emplace(paramNameStr, param);
@@ -68,7 +68,7 @@ private:
 
     bool hasValue() const override
     {
-        if constexpr (sfun::is_optional_v<TMap>)
+        if constexpr (eel::is_optional_v<TMap>)
             return true;
         else
             return hasValue_;

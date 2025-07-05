@@ -5,8 +5,8 @@
 #include "iparam.h"
 #include "stringconverter.h"
 #include "utils.h"
-#include "external/sfun/functional.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/functional.h"
+#include "external/eel/type_traits.h"
 #include <figcone/errors.h>
 #include <figcone_tree/stringconverter.h>
 #include <figcone_tree/tree.h>
@@ -38,7 +38,7 @@ private:
         if (!param.isItem())
             throw ConfigError{"Parameter '" + name_ + "': config parameter can't be a list.", param.position()};
         auto paramReadResult = convertFromString<T>(param.value());
-        auto readResultVisitor = sfun::overloaded{
+        auto readResultVisitor = eel::overloaded{
                 [&](const T& param)
                 {
                     paramValue_ = param;
@@ -56,7 +56,7 @@ private:
 
     bool hasValue() const override
     {
-        if constexpr (sfun::is_optional_v<T>)
+        if constexpr (eel::is_optional_v<T>)
             return true;
         else
             return hasValue_;

@@ -1,14 +1,14 @@
 #ifndef FIGCONE_UNREGISTEREDFIELDUTILS_H
 #define FIGCONE_UNREGISTEREDFIELDUTILS_H
 
-#include "external/sfun/type_traits.h"
+#include "external/eel/type_traits.h"
 #include <figcone/unregisteredfieldhandler.h>
 
 namespace figcone::detail {
 template<typename TCfg>
 void handleUnregisteredField(FieldType fieldType, const std::string& fieldName, const StreamPosition& position)
 {
-    if constexpr (sfun::is_complete_type_v<UnregisteredFieldHandler<TCfg>>)
+    if constexpr (eel::is_complete_type_v<UnregisteredFieldHandler<TCfg>>)
         UnregisteredFieldHandler<TCfg>{}(fieldType, fieldName, position);
     else {
         if (fieldType == FieldType::Node)

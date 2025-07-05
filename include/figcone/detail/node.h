@@ -5,7 +5,7 @@
 #include "iconfigentity.h"
 #include "inode.h"
 #include "utils.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/type_traits.h"
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
 #include <algorithm>
@@ -41,11 +41,11 @@ private:
         if (!node.isItem())
             throw ConfigError{"Node '" + name_ + "': config node can't be a list.", node.position()};
 
-        if constexpr (is_initialized_optional_v<TCfg> || sfun::is_optional_v<TCfg>)
+        if constexpr (is_initialized_optional_v<TCfg> || eel::is_optional_v<TCfg>)
             cfg_.emplace();
 
-        if constexpr (!std::is_base_of_v<figcone::Config, sfun::remove_optional_t<TCfg>>) {
-            ConfigReaderAccess{cfgReader_}.loadStructure<sfun::remove_optional_t<TCfg>>(maybeOptValue(cfg_));
+        if constexpr (!std::is_base_of_v<figcone::Config, eel::remove_optional_t<TCfg>>) {
+            ConfigReaderAccess{cfgReader_}.loadStructure<eel::remove_optional_t<TCfg>>(maybeOptValue(cfg_));
         }
 
         if (cfgReader_)
@@ -54,7 +54,7 @@ private:
 
     bool hasValue() const override
     {
-        if constexpr (is_initialized_optional_v<TCfg> || sfun::is_optional_v<TCfg>)
+        if constexpr (is_initialized_optional_v<TCfg> || eel::is_optional_v<TCfg>)
             return true;
         else
             return hasValue_;

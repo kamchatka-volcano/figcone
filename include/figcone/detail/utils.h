@@ -2,7 +2,7 @@
 #define FIGCONE_UTILS_H
 
 #include "initializedoptional.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/type_traits.h"
 #include <optional>
 #include <type_traits>
 #include <vector>
@@ -21,7 +21,7 @@ inline constexpr auto is_initialized_optional_v = is_initialized_optional<T>::va
 template<typename T>
 auto& maybeOptValue(T& obj)
 {
-    if constexpr (sfun::is_optional_v<T>)
+    if constexpr (eel::is_optional_v<T>)
         return *obj;
     else
         return obj;
@@ -39,11 +39,11 @@ inline constexpr auto is_string_streamable_v = is_string_streamable<T>::value;
 
 } //namespace figcone::detail
 
-namespace figcone::sfun {
+namespace figcone::eel {
 template<typename T>
 struct remove_optional<figcone::detail::InitializedOptional<T>> {
     using type = T;
 };
-} //namespace figcone::sfun
+} //namespace figcone::eel
 
 #endif //FIGCONE_UTILS_H

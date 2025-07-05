@@ -8,9 +8,9 @@
 #include "detail/configreaderptr.h"
 #include "detail/creatormode.h"
 #include "detail/dictcreator.h"
+#include "detail/external/eel/path.h"
+#include "detail/external/eel/type_traits.h"
 #include "detail/external/pfr.hpp"
-#include "detail/external/sfun/path.h"
-#include "detail/external/sfun/type_traits.h"
 #include "detail/fieldtraits.h"
 #include "detail/figcone_ini_import.h"
 #include "detail/figcone_json_import.h"
@@ -58,9 +58,9 @@ template<typename TField>
 constexpr auto canBeReadAsParam()
 {
     return detail::is_string_streamable_v<TField> || //
-            sfun::is_complete_type_v<StringConverter<TField>> ||
-            detail::is_string_streamable_v<tree::sfun::remove_optional_t<TField>> ||
-            sfun::is_complete_type_v<StringConverter<tree::sfun::remove_optional_t<TField>>>;
+            eel::is_complete_type_v<StringConverter<TField>> ||
+            detail::is_string_streamable_v<tree::eel::remove_optional_t<TField>> ||
+            eel::is_complete_type_v<StringConverter<tree::eel::remove_optional_t<TField>>>;
 }
 } //namespace detail
 
@@ -77,15 +77,14 @@ public:
             -> std::conditional_t<rootType == RootType::SingleNode, TCfg, std::vector<TCfg>>
     {
         if (!std::filesystem::exists(configFile))
-            throw ConfigError{"Config file " + sfun::path_string(configFile) + " doesn't exist"};
+            throw ConfigError{"Config file " + eel::to_string(configFile) + " doesn't exist"};
 
         if (!std::filesystem::is_regular_file(configFile))
-            throw ConfigError{
-                    "Can't open config file " + sfun::path_string(configFile) + " which is not a regular file"};
+            throw ConfigError{"Can't open config file " + eel::to_string(configFile) + " which is not a regular file"};
 
         auto configStream = std::ifstream{configFile, std::ios_base::binary};
         if (!configStream.is_open())
-            throw ConfigError{"Can't open config file " + sfun::path_string(configFile) + " for reading"};
+            throw ConfigError{"Can't open config file " + eel::to_string(configFile) + " for reading"};
 
         return read<TCfg, rootType>(configStream, parser);
     }
@@ -352,16 +351,16 @@ private:
             detail::setFieldValidators(cfg, field, paramCreator);
             paramCreator.createParam();
         }
-        else if constexpr (sfun::is_associative_container_v<sfun::remove_optional_t<TField>>) {
+        else if constexpr (eel::is_associative_container_v<eel::remove_optional_t<TField>>) {
             static_assert(
-                    detail::canBeReadAsParam<typename sfun::remove_optional_t<TField>::mapped_type>(),
+                    detail::canBeReadAsParam<typename eel::remove_optional_t<TField>::mapped_type>(),
                     "Dict value type must be readable from stringtream or registered with StringConverter");
             auto dictCreator = detail::DictCreator{makePtr(), std::string{name}, field, isOptionalField};
             detail::setFieldValidators(cfg, field, dictCreator);
             dictCreator.createDict();
         }
-        else if constexpr (sfun::is_dynamic_sequence_container_v<sfun::remove_optional_t<TField>>) {
-            if constexpr (detail::canBeReadAsParam<typename sfun::remove_optional_t<TField>::value_type>()) {
+        else if constexpr (eel::is_dynamic_sequence_container_v<eel::remove_optional_t<TField>>) {
+            if constexpr (detail::canBeReadAsParam<typename eel::remove_optional_t<TField>::value_type>()) {
                 auto paramListCreator = detail::ParamListCreator{makePtr(), std::string{name}, field, isOptionalField};
                 detail::setFieldValidators(cfg, field, paramListCreator);
                 paramListCreator.createParamList();
@@ -399,7 +398,7 @@ private:
     {
 #if (defined(_MSVC_LANG) && _MSVC_LANG < 202002L) || (!defined(_MSVC_LANG) && __cplusplus < 202002L)
         static_assert(
-                sfun::dependent_false<TCfg>,
+                eel::dependent_false<TCfg>,
                 "Static reflection interface requires C++20. Inherit from figcone::Config to use runtime reflection "
                 "interface");
 #endif

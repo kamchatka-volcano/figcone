@@ -3,10 +3,10 @@ project(figcone_examples_static_refl)
 
 file(GLOB SRC_FILES "../examples/demo_*.cpp")
 foreach(SRC_FILE ${SRC_FILES})
-    SealLake_StringAfterLast(${SRC_FILE} "/" TEST_NAME)
-    SealLake_StringBeforeLast(${TEST_NAME} "." TEST_NAME)
+    SealLake_v040_StringAfterLast(${SRC_FILE} "/" TEST_NAME)
+    SealLake_v040_StringBeforeLast(${TEST_NAME} "." TEST_NAME)
 
-    SealLake_Executable(
+    SealLake_v040_Executable(
             NAME ${TEST_NAME}_static_refl
             SOURCES ${SRC_FILE}
             COMPILE_FEATURES cxx_std_20
@@ -26,10 +26,10 @@ set(EXAMPLE_SRC
         ex05_static_refl.cpp
 )
 foreach(SRC_FILE ${EXAMPLE_SRC})
-    SealLake_StringAfterLast(${SRC_FILE} "/" TEST_NAME)
-    SealLake_StringBeforeLast(${TEST_NAME} "." TEST_NAME)
+    SealLake_v040_StringAfterLast(${SRC_FILE} "/" TEST_NAME)
+    SealLake_v040_StringBeforeLast(${TEST_NAME} "." TEST_NAME)
 
-    SealLake_Executable(
+    SealLake_v040_Executable(
             NAME ${TEST_NAME}
             SOURCES ${SRC_FILE}
             COMPILE_FEATURES cxx_std_20

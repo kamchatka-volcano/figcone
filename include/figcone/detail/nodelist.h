@@ -5,7 +5,7 @@
 #include "inode.h"
 #include "loadingerror.h"
 #include "utils.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/type_traits.h"
 #include <figcone/errors.h>
 #include <figcone_tree/tree.h>
 #include <memory>
@@ -29,7 +29,7 @@ public:
         , cfgReader_{cfgReader}
     {
         static_assert(
-                sfun::is_dynamic_sequence_container_v<sfun::remove_optional_t<TCfgList>>,
+                eel::is_dynamic_sequence_container_v<eel::remove_optional_t<TCfgList>>,
                 "Node list field must be a sequence container or a sequence container placed in std::optional");
     }
 
@@ -45,14 +45,14 @@ public:
         nodeList_ = TCfgList{};
         if (!nodeList.isList())
             throw ConfigError{"Node list '" + name_ + "': config node must be a list.", nodeList.position()};
-        if constexpr (sfun::is_optional<TCfgList>::value)
+        if constexpr (eel::is_optional<TCfgList>::value)
             nodeList_.emplace();
 
         maybeOptValue(nodeList_).clear();
         for (auto i = 0; i < nodeList.asList().size(); ++i) {
             const auto& treeNode = nodeList.asList().at(i);
             try {
-                using Cfg = typename sfun::remove_optional_t<TCfgList>::value_type;
+                using Cfg = typename eel::remove_optional_t<TCfgList>::value_type;
                 if constexpr (std::is_base_of_v<figcone::Config, Cfg>) {
                     if constexpr (!std::is_aggregate_v<Cfg>)
                         static_assert(
@@ -88,7 +88,7 @@ public:
 
     bool hasValue() const override
     {
-        if constexpr (sfun::is_optional_v<TCfgList>)
+        if constexpr (eel::is_optional_v<TCfgList>)
             return true;
         else
             return hasValue_;

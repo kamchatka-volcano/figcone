@@ -4,7 +4,7 @@
 #include "iparam.h"
 #include "stringconverter.h"
 #include "utils.h"
-#include "external/sfun/type_traits.h"
+#include "external/eel/type_traits.h"
 #include <figcone/errors.h>
 #include <figcone_tree/stringconverter.h>
 #include <figcone_tree/tree.h>
@@ -18,7 +18,7 @@ namespace figcone::detail {
 template<typename TParamList>
 class ParamList : public IParam {
     static_assert(
-            sfun::is_dynamic_sequence_container_v<sfun::remove_optional_t<TParamList>>,
+            eel::is_dynamic_sequence_container_v<eel::remove_optional_t<TParamList>>,
             "Param list field must be a sequence container or a sequence container placed in std::optional");
 
 public:
@@ -39,15 +39,15 @@ private:
         position_ = paramList.position();
         hasValue_ = true;
         paramListValue_ = TParamList{};
-        if constexpr (sfun::is_optional_v<TParamList>)
+        if constexpr (eel::is_optional_v<TParamList>)
             paramListValue_.emplace();
 
         if (!paramList.isList())
             throw ConfigError{"Parameter list '" + name_ + "': config parameter must be a list.", paramList.position()};
         for (const auto& paramValueStr : paramList.valueList()) {
-            using Param = typename sfun::remove_optional_t<TParamList>::value_type;
+            using Param = typename eel::remove_optional_t<TParamList>::value_type;
             auto paramReadResult = convertFromString<Param>(paramValueStr);
-            auto readResultVisitor = sfun::overloaded{
+            auto readResultVisitor = eel::overloaded{
                     [&](const Param& param)
                     {
                         maybeOptValue(paramListValue_).emplace_back(param);
@@ -66,7 +66,7 @@ private:
 
     bool hasValue() const override
     {
-        if constexpr (sfun::is_optional_v<TParamList>)
+        if constexpr (eel::is_optional_v<TParamList>)
             return true;
         else
             return hasValue_;

@@ -4,7 +4,7 @@
 #include "configreaderaccess.h"
 #include "param.h"
 #include "validator.h"
-#include "external/sfun/contract.h"
+#include "external/eel/contract.h"
 
 namespace figcone::detail {
 
@@ -13,7 +13,7 @@ class ParamCreator {
 public:
     ParamCreator(ConfigReaderPtr cfgReader, std::string paramName, T& paramValue, bool isOptional = false)
         : cfgReader_{cfgReader}
-        , paramName_{(sfun_precondition(!paramName.empty()), std::move(paramName))}
+        , paramName_{(eel::precondition(!paramName.empty(), FIGCONE_EEL_LINE), std::move(paramName))}
         , paramValue_{paramValue}
         , param_{std::make_unique<Param<T>>(paramName_, paramValue)}
     {
@@ -28,7 +28,7 @@ public:
         return *this;
     }
 
-    ParamCreator<T>& ensure(std::function<void(const sfun::remove_optional_t<T>&)> validatingFunc)
+    ParamCreator<T>& ensure(std::function<void(const eel::remove_optional_t<T>&)> validatingFunc)
     {
         if (cfgReader_)
             ConfigReaderAccess{cfgReader_}.addValidator(

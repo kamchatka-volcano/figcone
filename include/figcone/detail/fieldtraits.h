@@ -1,6 +1,6 @@
 #ifndef FIGCONE_FIELDTRAITS_H
 #define FIGCONE_FIELDTRAITS_H
-#include "external/sfun/type_list.h"
+#include "external/eel/type_list.h"
 #include <type_traits>
 
 namespace figcone {
@@ -24,7 +24,7 @@ struct ValidatedField {
 };
 
 template<typename... Ts>
-using FieldTraits = sfun::type_list<Ts...>;
+using FieldTraits = eel::type_list<Ts...>;
 
 namespace detail {
 
@@ -93,7 +93,7 @@ template<
         std::size_t... indices>
 bool hasMatchingTrait(TCfg& cfg, TFieldValue& field, std::index_sequence<indices...>)
 {
-    return (isTraitAndMatchesField<TTraitChecker>(sfun::get<indices>(TTraitList{}), cfg, field) || ...);
+    return (isTraitAndMatchesField<TTraitChecker>(eel::get<indices>(TTraitList{}), cfg, field) || ...);
 }
 
 template<typename TCfg, typename TFieldValue>
@@ -137,7 +137,7 @@ void setValidatorIfTraitMatchesField(const TTrait&, TCfg& cfg, TFieldValue& fiel
 template<typename TTraitList, typename TCfg, typename TFieldValue, typename TFieldCreator, std::size_t... indices>
 void setValidatorFromTraits(TCfg& cfg, TFieldValue& field, TFieldCreator& fieldCreator, std::index_sequence<indices...>)
 {
-    (setValidatorIfTraitMatchesField(sfun::get<indices>(TTraitList{}), cfg, field, fieldCreator), ...);
+    (setValidatorIfTraitMatchesField(eel::get<indices>(TTraitList{}), cfg, field, fieldCreator), ...);
 }
 
 template<typename TCfg, typename TFieldValue, typename TFieldCreator>

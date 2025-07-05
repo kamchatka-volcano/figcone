@@ -28,7 +28,7 @@ void PostProcessor<test_postprocessor::Cfg>::operator()(test_postprocessor::Cfg&
                 cfg.surname.begin(),
                 [](const auto& ch)
                 {
-                    return sfun::toupper(ch);
+                    return eel::toupper(ch);
                 });
     if (!cfg.name.has_value() && cfg.age < 18)
         throw ValidationError{"Name field must be specified for underage persons"};
